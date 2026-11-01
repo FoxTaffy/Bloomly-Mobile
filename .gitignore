@@ -1,0 +1,23 @@
+# Claude Code: настройки, скиллы и служебные файлы, в репозиторий не попадают
+.claude/
+
+# Зависимости и сборка
+node_modules/
+.expo/
+dist/
+web-build/
+
+# Окружение и секреты
+.env
+.env*.local
+
+# Системные файлы
+.DS_Store
+*.log
+
+# Нативные папки, генерируются Expo
+/ios
+/android
+CLAUDE.md
+AGENTS.md
+.mcp.json
