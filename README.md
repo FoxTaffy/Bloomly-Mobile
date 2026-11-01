@@ -135,6 +135,10 @@ Nunito подключён через `@expo-google-fonts/nunito` в [app/_layout
 - Схема deep link: `bloomly://`
 - iOS bundle id и Android package: `app.bloomly.mobile`
 
+## Гид для разработчика
+
+Запуск, структура и правила работы описаны в [GUIDE.md](GUIDE.md).
+
 ## Связанные проекты
 
 - **Веб-версия и бэкенд** (Vue 3, Fastify, Prisma, PostgreSQL) — отдельный репозиторий Bloomly.
