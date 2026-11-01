@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Bloomly",
+    "slug": "bloomly",
+    "scheme": "bloomly",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#16192F",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.bloomly.mobile"
+    },
+    "android": {
+      "package": "app.bloomly.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#16192F"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-secure-store",
+      "expo-font",
+      "expo-web-browser",
+      "expo-image",
+      "expo-splash-screen"
+    ]
+  }
+}
