@@ -58,6 +58,8 @@ mobile/
 ├── app/                 # экраны и роутинг (Expo Router)
 │   ├── _layout.tsx      # корневой layout
 │   └── index.tsx        # главный экран
+├── docs/
+│   └── brand-guide.jpg  # макет бренд-гайда
 ├── app.json             # конфиг Expo (имя, схема, иконки, плагины)
 ├── global.css           # директивы Tailwind для NativeWind
 ├── tailwind.config.js   # токены дизайна
@@ -68,15 +70,65 @@ mobile/
 
 ## Дизайн
 
-Приложение тёмное (`userInterfaceStyle: dark`), шрифт — **Nunito**. Палитра и правила — в [brand-guide](../docs/brand-guide.md) основного репозитория; цвета вне палитры гайда не вводятся.
+Приложение тёмное (`userInterfaceStyle: dark`), шрифт — **Nunito**. Цвета вне палитры гайда не вводятся. Токены лежат в [tailwind.config.js](tailwind.config.js) и совпадают с `brand-guide.md` основного репозитория.
 
-| Роль | HEX |
+<p align="center">
+  <img src="docs/brand-guide.jpg" alt="Bloomly — Brand Guide" width="720">
+</p>
+
+### Цвет
+
+Нейтральные:
+
+| Роль | HEX | Класс |
+|---|---|---|
+| Фон | `#16192F` | `bg-brand-bg` |
+| Фон блока | `#1F223C` | `bg-brand-card` |
+| Рамка блока | `#2A2D45` | `border-brand-border` |
+| Приглушённый | `#3A4060` | `brand-muted` |
+| Off-White | `#F9FAFD` | `text-brand-offwhite` |
+
+Акцент («Знак» и ступени):
+
+| Ступень | HEX | Класс |
+|---|---|---|
+| Знак | `#4C67CF` | `brand-accent` |
+| ++ | `#161F40` | `brand-accent-plus-plus` |
+| + | `#31458F` | `brand-accent-plus` |
+| − | `#A1B4FF` | `brand-accent-minus` |
+| −− | `#D5DDFF` | `brand-accent-minus-minus` |
+| −−− | `#EEF2FF` | `brand-accent-minus-minus-minus` |
+
+Статусные и декоративные:
+
+| Роль | HEX | Класс |
+|---|---|---|
+| Успех | `#66C770` | `brand-success` |
+| Ошибка | `#E14664` | `brand-error` |
+| Внимание | `#E76F51` | `brand-warning` |
+| Жёлтый | `#FFC01F` | `brand-yellow` |
+| Розовый | `#F7A9E2` | `brand-pink` |
+| Пурпурный | `#CD83F5` | `brand-purple` |
+
+### Типографика
+
+Nunito подключён через `@expo-google-fonts/nunito` в [app/_layout.tsx](app/_layout.tsx). В React Native начертание задаётся семейством, поэтому вместо `font-bold` используются:
+
+| Класс | Начертание |
 |---|---|
-| Фон | `#16192F` |
-| Фон блока | `#1F223C` |
-| Рамка блока | `#2A2D45` |
-| Акцент | `#4C67CF` |
-| Off-White | `#F9FAFD` |
+| `font-nunito` | Regular |
+| `font-nunito-medium` | Medium |
+| `font-nunito-bold` | Bold |
+
+### Кнопки и поля
+
+| Элемент | По умолчанию | Заполнение | Фиксация (фокус) |
+|---|---|---|---|
+| Кнопка с заливкой | `brand-accent` | `brand-accent-plus` | яркий синий со свечением |
+| Кнопка-контур | синяя рамка и текст | то же, приглушённее | яркая рамка |
+| Поле | тёмная заливка, приглушённый плейсхолдер | введённый текст | светлая рамка, курсор |
+
+Заполненное поле показывает галочку `brand-success` справа. Иконки — Phosphor, начертание Bold, активное состояние — Fill.
 
 ## Идентификаторы приложения
 
