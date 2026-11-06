@@ -18,6 +18,4 @@ web-build/
 # Нативные папки, генерируются Expo
 /ios
 /android
-CLAUDE.md
-AGENTS.md
 .mcp.json

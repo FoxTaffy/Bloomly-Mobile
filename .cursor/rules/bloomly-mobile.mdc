@@ -1,0 +1,5 @@
+---
+description: Правила Bloomly Mobile (Expo, iOS/Android/Pixel)
+alwaysApply: true
+---
+Следуй `AGENTS.md` в корне репозитория и `docs/ARCHITECTURE.md`. Перед коммитом запускай `npm run check`. Отвечай по-русски.

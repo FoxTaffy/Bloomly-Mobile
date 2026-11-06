@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { colors } from '@/theme/tokens';
 import {
   useFonts,
   Nunito_400Regular,
@@ -11,6 +14,8 @@ import {
 } from '@expo-google-fonts/nunito';
 
 SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 30_000 } } });
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -26,9 +31,11 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#16192F' } }} />
-    </>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

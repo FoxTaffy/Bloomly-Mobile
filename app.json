@@ -9,14 +9,25 @@
     "backgroundColor": "#16192F",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.bloomly.mobile"
+      "bundleIdentifier": "app.bloomly.mobile",
+      "requireFullScreen": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": true
+      }
     },
     "android": {
       "package": "app.bloomly.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#16192F"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": true,
+      "softwareKeyboardLayoutMode": "resize",
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -25,7 +36,11 @@
       "expo-font",
       "expo-web-browser",
       "expo-image",
-      "expo-splash-screen"
-    ]
+      "expo-splash-screen",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
