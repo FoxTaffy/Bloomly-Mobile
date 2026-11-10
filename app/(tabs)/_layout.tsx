@@ -1,21 +1,46 @@
 import { Tabs } from 'expo-router';
-import { colors } from '@/theme/tokens';
+import { House, Compass, MessageCircle, Grid3x3 } from 'lucide-react-native';
+import { useSession } from '../../src/stores/session';
+import { Avatar } from '../../src/components/Avatar';
 
-// Нижняя навигация: на iOS и Android одинаковая, высоту и отступ жестовой панели считает библиотека.
 export default function TabsLayout() {
+  const user = useSession((s) => s.user);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
-        tabBarActiveTintColor: colors.accentMinus,
-        tabBarInactiveTintColor: colors.offwhite,
+        tabBarActiveTintColor: '#A1B4FF',
+        tabBarInactiveTintColor: '#7C86AE',
+        tabBarLabelStyle: { fontFamily: 'Nunito_700Bold', fontSize: 11, marginBottom: 4 },
+        tabBarStyle: { backgroundColor: '#16192F', borderTopColor: '#2A2D45', paddingTop: 6 },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Лента' }} />
-      <Tabs.Screen name="explore" options={{ title: 'Обзор' }} />
-      <Tabs.Screen name="messages" options={{ title: 'Чаты' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Профиль' }} />
+      <Tabs.Screen
+        name="feed"
+        options={{ title: 'Главная', tabBarIcon: ({ color, size }) => <House color={color} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="discover"
+        options={{ title: 'Поиск', tabBarIcon: ({ color, size }) => <Compass color={color} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="messages"
+        options={{ title: 'Сообщения', tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="groups"
+        options={{ title: 'Группы', tabBarIcon: ({ color, size }) => <Grid3x3 color={color} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Профиль',
+          tabBarIcon: ({ focused }) => (
+            <Avatar uri={user?.avatar_url} name={user?.display_name ?? user?.username} size={28} ring={focused} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

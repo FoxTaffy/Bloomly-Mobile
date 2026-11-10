@@ -1,11 +1,14 @@
-import { Text } from 'react-native';
-import { Screen } from '@/components/ui/Screen';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSession } from '../../src/stores/session';
+import { ProfileContent } from '../../src/components/ProfileContent';
 
-// Заглушка под вёрстку: веб-аналог — frontend/src/views/ProfileView.vue
-export default function ProfileScreen() {
+export default function OwnProfileScreen() {
+  const user = useSession((s) => s.user);
+  if (!user) return null;
+
   return (
-    <Screen edges={['top']} className="items-center justify-center">
-      <Text className="font-nunito-bold text-xl text-brand-offwhite">Профиль</Text>
-    </Screen>
+    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+      <ProfileContent username={user.username} isOwn />
+    </SafeAreaView>
   );
 }

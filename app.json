@@ -5,42 +5,38 @@
     "scheme": "bloomly",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#16192F",
+    "experiments": {
+      "typedRoutes": true
+    },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "app.bloomly.mobile",
-      "requireFullScreen": false,
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "UIViewControllerBasedStatusBarAppearance": true
-      }
+      "supportsTablet": true
     },
     "android": {
-      "package": "app.bloomly.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#16192F"
+        "backgroundColor": "#16192F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": true,
-      "softwareKeyboardLayoutMode": "resize",
-      "blockedPermissions": [
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.SYSTEM_ALERT_WINDOW"
-      ]
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
       "expo-status-bar",
       "expo-secure-store",
+      "expo-image",
+      "expo-video",
+      "expo-audio",
       "expo-font",
       "expo-web-browser",
-      "expo-image",
-      "expo-splash-screen",
-      "expo-notifications"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+      "expo-image-picker"
+    ]
   }
 }

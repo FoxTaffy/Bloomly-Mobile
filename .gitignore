@@ -1,21 +1,41 @@
-# Claude Code: настройки, скиллы и служебные файлы, в репозиторий не попадают
-.claude/
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# Зависимости и сборка
+# dependencies
 node_modules/
+
+# Expo
 .expo/
 dist/
 web-build/
+expo-env.d.ts
 
-# Окружение и секреты
-.env
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
 .env*.local
 
-# Системные файлы
-.DS_Store
-*.log
+# typescript
+*.tsbuildinfo
 
-# Нативные папки, генерируются Expo
+# generated native folders
 /ios
 /android
-.mcp.json
