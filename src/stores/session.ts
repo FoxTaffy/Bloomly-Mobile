@@ -21,6 +21,10 @@ interface SessionState {
   setSession: (token: string, refreshToken: string | undefined, user: AuthUser) => Promise<void>;
   login: (email: string, password: string, remember?: boolean) => Promise<void>;
   register: (username: string, email: string, password: string, consent: AgeConsentPayload) => Promise<void>;
+  /** Второй шаг входа: код второго фактора (POST /auth/login/2fa/verify). */
+  verifyTwoFactor: (mfaToken: string, code: string, remember?: boolean) => Promise<void>;
+  /** Повторная отправка кода (метод email). */
+  resendTwoFactor: (mfaToken: string) => Promise<void>;
   /** Дата рождения и согласия после OAuth / входа без даты рождения. 'parental-pending' — ждём согласия родителя. */
   completeSignup: (signupToken: string, consent: AgeConsentPayload) => Promise<'ok' | 'parental-pending'>;
   /** Сохранить шаг профиля (имя, дата рождения, симпатии) или пропустить. */
@@ -93,6 +97,16 @@ export const useSession = create<SessionState>((set, get) => ({
     }
     set({ user: next });
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(next));
+  },
+
+  verifyTwoFactor: async (mfaToken, code, remember = true) => {
+    const res = await api.post('/auth/login/2fa/verify', { mfaToken, code, remember });
+    const { token, user, refreshToken } = res.data.data;
+    await get().setSession(token, refreshToken, user);
+  },
+
+  resendTwoFactor: async (mfaToken) => {
+    await api.post('/auth/login/2fa/resend', { mfaToken });
   },
 
   verifyEmail: async (email, code, remember = true) => {

@@ -51,7 +51,9 @@ api.interceptors.response.use(
     }
     const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
 
-    if (error.response?.status === 401 && original && !original._retry && !original.url?.includes('/auth/refresh')) {
+    // Обновляем сессию только если запрос шёл с токеном: 401 на вход (неверный пароль, TWO_FACTOR_REQUIRED) — не истёкшая сессия
+    const hadAuthorization = !!original?.headers?.get?.('Authorization');
+    if (error.response?.status === 401 && original && hadAuthorization && !original._retry && !original.url?.includes('/auth/refresh')) {
       original._retry = true;
       if (!refreshPromise) {
         refreshPromise = doRefresh().finally(() => {

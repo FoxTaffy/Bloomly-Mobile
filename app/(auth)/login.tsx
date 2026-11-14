@@ -10,6 +10,7 @@ import {
 import { Screen } from '@/components/ui';
 import { AgeConsentFields } from '@/components/auth/AgeConsentFields';
 import { useAgeConsent } from '@/hooks/useAgeConsent';
+import { usePendingMfa } from '@/stores/pendingMfa';
 import { usePendingSignup } from '@/stores/pendingSignup';
 import { useRouter, type Href } from 'expo-router';
 import { Mail, Lock, User, Eye, EyeOff, Key, ShieldCheck, ChevronLeft, Monitor, CircleAlert } from 'lucide-react-native';
@@ -132,6 +133,13 @@ export default function AuthScreen() {
       }
     } catch (e: any) {
       const code = e?.response?.data?.error?.code;
+      // Включена двухфакторная проверка: сервер отвечает 401 с токеном второго шага (web LoginView)
+      if (code === 'TWO_FACTOR_REQUIRED') {
+        const d = e?.response?.data?.data;
+        usePendingMfa.getState().set({ mfaToken: d?.mfaToken ?? '', method: d?.method ?? null, email: email.trim(), remember });
+        router.push('/(auth)/two-factor');
+        return;
+      }
       // Аккаунт без даты рождения: сессии нет, токен в ответе, ведём на возрастную проверку (как на вебе)
       if (code === 'AGE_VERIFICATION_REQUIRED') {
         usePendingSignup.getState().set(e?.response?.data?.data?.signupToken ?? null);

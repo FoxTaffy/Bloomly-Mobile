@@ -8,6 +8,7 @@ import { Button, Screen } from '@/components/ui';
 import { useAgeConsent } from '@/hooks/useAgeConsent';
 import { useT } from '@/hooks/useT';
 import { apiErrorCode, apiErrorMessage } from '@/shared/apiError';
+import { usePendingMfa } from '@/stores/pendingMfa';
 import { usePendingSignup } from '@/stores/pendingSignup';
 import { useSession } from '@/stores/session';
 
@@ -40,8 +41,14 @@ export default function AgeVerificationScreen() {
       if (result === 'parental-pending') setParentalPending(true);
       // 'ok': сессия создана, корневой layout сам откроет онбординг или ленту
     } catch (e) {
-      // Включена двухфакторная проверка: в мобильном приложении её экрана пока нет
-      setError(apiErrorCode(e) === 'TWO_FACTOR_REQUIRED' ? t('mTwoFactorUnsupported') : apiErrorMessage(e) ?? t('ageVerifFailed'));
+      if (apiErrorCode(e) === 'TWO_FACTOR_REQUIRED') {
+        // Вход через OAuth не отменяет 2FA: продолжаем на экране второго фактора (как web OAuthAgeVerificationView)
+        const d = (e as { response?: { data?: { data?: { mfaToken?: string; method?: string } } } })?.response?.data?.data;
+        usePendingMfa.getState().set({ mfaToken: d?.mfaToken ?? '', method: d?.method ?? null, email: '', remember: true });
+        router.replace('/(auth)/two-factor');
+        return;
+      }
+      setError(apiErrorMessage(e) ?? t('ageVerifFailed'));
     } finally {
       setBusy(false);
     }
