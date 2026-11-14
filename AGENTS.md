@@ -1,6 +1,6 @@
 # Bloomly Mobile: правила для ИИ-ассистента
 
-Мобильный клиент соцсети Bloomly: Expo 58, React Native 0.88, TypeScript strict, Expo Router, NativeWind 4, TanStack Query, zustand.
+Мобильный клиент соцсети Bloomly: Expo 57, React Native 0.86, TypeScript strict, Expo Router, NativeWind 4, TanStack Query, zustand.
 Платформы: **iOS, Android, Google Pixel** (Android 15+ рисует edge-to-edge). Язык интерфейса и ответов — русский.
 Бэкенд и веб — в отдельном репозитории (`bloomly.fun`), здесь их нет. API: `https://bloomly.fun/api`
 (локально `EXPO_PUBLIC_API_URL`).
@@ -24,7 +24,7 @@
 6. **Паритет с вебом:** логику не придумывать, переносить из веб-аналога (путь указан в таблице `docs/ARCHITECTURE.md` и в комментарии заглушки экрана).
    Обязательные состояния: загрузка, пусто, ошибка, 18+/NSFW, замороженный аккаунт, режим обслуживания.
    Shop (стикеры и рамки) и Dealers' Den — разные разделы, не смешивать. Новых денежных операций не добавлять.
-7. **Зависимости:** только `npx expo install <пакет>`, совместимые с SDK 58 и New Architecture. Не добавлять нативный код без причины. Не удалять `.npmrc` (`legacy-peer-deps`).
+7. **Зависимости:** только `npx expo install <пакет>`, совместимые с SDK 57 и New Architecture. Не добавлять нативный код без причины. Не удалять `.npmrc` (`legacy-peer-deps`).
 8. **Не трогать без прямой просьбы:** `babel.config.js`, `metro.config.js`, `app.json` (bundle id/package `app.bloomly.mobile`, схема `bloomly`), `package-lock.json` вручную.
 
 ## Проверка (обязательна перед каждым коммитом)
@@ -41,7 +41,7 @@ npm run check     # tsc --noEmit + scripts/check-rules.mjs (хардкод цв�
 4. `npm run check`, затем коммит.
 
 ## Git и границы
-Работай в ветке, не в `main`. Коммиты маленькие, сообщения по-русски (`feat(mobile): …`, `fix(mobile): …`).
+Работай в ветке `mobile/<тема>`, в `main` только через Pull Request (прямые коммиты в `main` разрешены лишь для веба; правило корневого `CLAUDE.md` про `main` на `mobile/` не распространяется). Коммиты маленькие, сообщения по-русски (`feat(mobile): …`, `fix(mobile): …`).
 Не пушить, не делать force-push и не запускать EAS-сборки без явной просьбы. Не коммитить `.env`, ключи, `ios/`, `android/`.
 Если правило мешает задаче или требуется новый стиль/зависимость — сказать об этом одной строкой и ждать решения, а не обходить правило.
 Открытые вопросы (ассеты иконки, оплата в сторах, рейтинг 18+, EAS, universal links) не решать самому, они в `docs/ARCHITECTURE.md`.

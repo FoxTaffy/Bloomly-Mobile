@@ -23,16 +23,16 @@
 ```
 app/                    маршруты expo-router (только экраны и layout, без логики)
   _layout.tsx           провайдеры: SafeArea, QueryClient, шрифты, сплэш
-  (auth)/               вход, регистрация, онбординг (без нижних вкладок)
-  (tabs)/               Лента · Обзор · Чаты · Профиль
+  (auth)/               вход (регистрация и онбординг — в планах; без нижних вкладок)
+  (tabs)/               Лента · Обзор · Группы · Чаты · Профиль
 src/
-  api/client.ts         axios: X-Client: mobile, X-Device-Id, Bearer
+  api/client.ts         axios: X-Client: mobile, X-Device-Id, Bearer (запросы: posts, groups, messages, …)
   api/<домен>.ts        запросы по доменам бэкенда (posts, groups, events…) + типы ответов
-  stores/               zustand: только клиентское состояние (сессия, настройки)
-  hooks/                useWindowClass, хуки данных на TanStack Query (usePosts…)
-  lib/                  storage (SecureStore), чистые утилиты
+  stores/session.ts     zustand: только клиентское состояние (сессия, токены)
+  hooks/                хуки (сейчас useChatSocket; useWindowClass и хуки данных на TanStack Query — по мере экранов)
+  lib/                  config, oauth, wsClient, time; storage (SecureStore) — в планах
   theme/tokens.ts       единственный TS-файл с цветами и брейкпоинтами
-  components/ui/        общие примитивы (Screen, Button, Card, Field…)
+  components/ui/        общие примитивы (Screen, Button, Card, Field…): создаются, когда блок повторится 2+ раза
   components/<домен>/   блоки конкретного раздела
   types/                общие типы
 scripts/check-rules.mjs проверка правил архитектуры

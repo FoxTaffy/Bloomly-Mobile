@@ -4,8 +4,8 @@
 
 **Мобильное приложение соцсети Bloomly**
 
-![Expo](https://img.shields.io/badge/Expo-58-000020?logo=expo&logoColor=white)
-![React Native](https://img.shields.io/badge/React_Native-0.88-61DAFB?logo=react&logoColor=black)
+![Expo](https://img.shields.io/badge/Expo-57-000020?logo=expo&logoColor=white)
+![React Native](https://img.shields.io/badge/React_Native-0.86-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
 ![NativeWind](https://img.shields.io/badge/NativeWind-4-4C67CF)
 ![Platforms](https://img.shields.io/badge/iOS%20%7C%20Android-supported-31458F)
@@ -24,7 +24,7 @@ Bloomly — соцсеть, у которой есть веб-версия и б
 
 | Область | Технологии |
 |---|---|
-| Фреймворк | [Expo](https://expo.dev) 58, React Native 0.88, React 19 |
+| Фреймворк | [Expo](https://expo.dev) 57, React Native 0.86, React 19 |
 | Навигация | [Expo Router](https://docs.expo.dev/router/introduction/) (файловая маршрутизация) |
 | Стили | [NativeWind](https://www.nativewind.dev) 4 + Tailwind CSS 3 |
 | Данные | TanStack Query, Axios |
@@ -56,10 +56,16 @@ npm start          # dev-сервер, QR-код для Expo Go
 ```
 mobile/
 ├── app/                 # экраны и роутинг (Expo Router)
-│   ├── _layout.tsx      # корневой layout
-│   └── index.tsx        # главный экран
+│   ├── _layout.tsx      # корневой layout, провайдеры
+│   ├── (auth)/          # вход
+│   ├── (tabs)/          # вкладки: лента, обзор, группы, чаты, профиль
+│   └── events|groups|messages|profile/   # экраны с параметрами
+├── src/                 # api, components, hooks, lib, stores, theme, types
+├── scripts/             # check-rules.mjs (проверка правил, npm run check)
 ├── docs/
+│   ├── ARCHITECTURE.md  # архитектура и карта экранов
 │   └── brand-guide.jpg  # макет бренд-гайда
+├── eas.json             # профили сборки EAS
 ├── app.json             # конфиг Expo (имя, схема, иконки, плагины)
 ├── global.css           # директивы Tailwind для NativeWind
 ├── tailwind.config.js   # токены дизайна
