@@ -165,6 +165,7 @@ export const ru = {
   mNsfwPostAdultsOnly: "Этот пост доступен только подтверждённым совершеннолетним. Подтвердить возраст можно на сайте.",
   mNsfwPostAskShow: "Автор отметил пост как 18+. Показать его?",
   mOauthSigningIn: "Входим через OAuth…",
+  mOffline: "Нет соединения. Данные могут быть устаревшими.",
   mOnlyUnread: "Непрочитанные",
   mPeriodDay: "Сутки",
   mPeriodMonth: "Месяц",

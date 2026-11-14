@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { createPost, fetchExplorePage, fetchFeedPage, fetchTrendingTags, repawPost, votePost } from '@/api/posts';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
+import { FEED_CACHE_MAX_AGE_MS } from '@/shared/feedCache';
 import type { CursorPage, Post } from '@/shared/api-types';
 import { appendUnique, type ExplorePeriod, type ExploreSort, type FeedMode } from '@/shared/feed';
 
@@ -22,6 +23,8 @@ export function useInfinitePosts(mode: FeedMode = 'for-you') {
     initialPageParam: null as string | null,
     queryFn: ({ pageParam }) => fetchFeedPage({ mode, nsfw: nsfwMode, cursor: pageParam }),
     getNextPageParam: (last) => last.nextCursor,
+    // Лента «Для вас» сохраняется на диск для чтения без сети (lib/queryPersist.ts): держим её в памяти не меньше срока кэша
+    gcTime: mode === 'for-you' ? FEED_CACHE_MAX_AGE_MS : undefined,
   });
   return { ...query, posts: flatten(query.data) };
 }

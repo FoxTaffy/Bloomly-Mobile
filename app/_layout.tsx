@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -18,6 +19,9 @@ import {
 import { useSession } from '@/stores/session';
 import { useLang } from '@/stores/lang';
 import { initMonitoring, withMonitoring } from '@/lib/monitoring';
+import { setupNetwork } from '@/lib/network';
+import { clearPersistedCache, persistOptions } from '@/lib/queryPersist';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { useNsfwPreference } from '@/hooks/useNsfwMode';
 import { wsClient } from '@/lib/wsClient';
 import { AppStatusGate } from '@/components/AppStatusGate';
@@ -29,10 +33,12 @@ import type { Conversation, Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
 initMonitoring();
+setupNetwork();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
+  // offlineFirst: без сети запрос не «висит» молча, а падает в состояние ошибки с повтором; сохранённая лента остаётся
+  defaultOptions: { queries: { staleTime: 30_000, retry: 1, networkMode: 'offlineFirst' } },
 });
 
 /** Рендерится внутри дерева навигации: навигация по нажатию на push возможна только после монтирования Stack. */
@@ -77,7 +83,10 @@ function RootLayout() {
 
   // Выход: кэш запросов принадлежит прошлому аккаунту, чужие данные не должны попасть в следующий вход
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) queryClient.clear();
+    if (isHydrated && !isAuthenticated) {
+      queryClient.clear();
+      void clearPersistedCache();
+    }
   }, [isHydrated, isAuthenticated]);
 
   // App-wide realtime chat sync — one shared connection, alive regardless of which
@@ -156,7 +165,7 @@ function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
           <StatusBar style="light" />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
             <Stack.Screen name="auth/callback" />
@@ -179,9 +188,10 @@ function RootLayout() {
               <Stack.Screen name="(auth)" />
             </Stack.Protected>
           </Stack>
+          <OfflineBanner />
           <PushNavigator />
           <AppStatusGate />
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
