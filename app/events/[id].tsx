@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Calendar, MapPin } from 'lucide-react-native';
@@ -35,7 +35,7 @@ export default function EventDetailScreen() {
   const starts = new Date(event.starts_at);
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <ScrollView>
         <View className="relative">
           <LinearGradient colors={[colors.accent, colors.purple]} style={{ height: 180, width: '100%' }}>
@@ -99,6 +99,6 @@ export default function EventDetailScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

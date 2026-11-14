@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Text, Pressable, SectionList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronLeft } from 'lucide-react-native';
-import { fetchNotifications, markNotificationsRead } from '@/api/notifications';
-import { acceptRelationship, declineRelationship } from '@/api/relationships';
+import { Screen } from '@/components/ui';
+import { useNotificationActions, useNotifications } from '@/hooks/useNotifications';
 import { NotificationRow } from '@/components/NotificationRow';
 import { colors } from '@/theme/tokens';
 
@@ -14,10 +12,10 @@ const LAST_SEEN_KEY = 'bloomly_notifications_last_seen';
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [lastSeen, setLastSeen] = useState<string | null>(null);
 
-  const notificationsQuery = useQuery({ queryKey: ['notifications'], queryFn: fetchNotifications });
+  const notificationsQuery = useNotifications();
+  const { markRead: markReadMutation, accept: acceptMutation, decline: declineMutation } = useNotificationActions();
 
   useEffect(() => {
     AsyncStorage.getItem(LAST_SEEN_KEY).then(setLastSeen);
@@ -25,21 +23,6 @@ export default function NotificationsScreen() {
       AsyncStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
     };
   }, []);
-
-  const markReadMutation = useMutation({
-    mutationFn: () => markNotificationsRead(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-  });
-
-  const acceptMutation = useMutation({
-    mutationFn: (id: string) => acceptRelationship(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-  });
-
-  const declineMutation = useMutation({
-    mutationFn: (id: string) => declineRelationship(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-  });
 
   const sections = useMemo(() => {
     const items = notificationsQuery.data ?? [];
@@ -53,7 +36,7 @@ export default function NotificationsScreen() {
   }, [notificationsQuery.data, lastSeen]);
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <View className="flex-row items-center justify-between px-4 py-2">
         <View className="flex-row items-center gap-3">
           <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
@@ -83,6 +66,6 @@ export default function NotificationsScreen() {
           notificationsQuery.isLoading ? null : <Text className="mt-10 text-center text-brand-muted">Пока пусто</Text>
         }
       />
-    </SafeAreaView>
+    </Screen>
   );
 }

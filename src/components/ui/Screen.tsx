@@ -14,10 +14,12 @@ interface ScreenProps {
   keyboard?: boolean;
   /** Перехват жеста/кнопки «назад» на Android (например, закрыть лист). Вернуть true, если событие обработано. */
   onBackPress?: () => boolean;
+  /** Без фона brand-bg: экран рисует свой фон (например, экран входа). */
+  transparent?: boolean;
   className?: string;
 }
 
-export function Screen({ children, edges = ['top'], keyboard = false, onBackPress, className }: ScreenProps) {
+export function Screen({ children, edges = ['top'], keyboard = false, onBackPress, transparent = false, className }: ScreenProps) {
   const windowClass = useWindowClass();
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function Screen({ children, edges = ['top'], keyboard = false, onBackPres
   );
 
   return (
-    <SafeAreaView className={`flex-1 bg-brand-bg ${className ?? ''}`} edges={edges}>
+    <SafeAreaView className={`flex-1 ${transparent ? '' : 'bg-brand-bg'} ${className ?? ''}`} edges={edges}>
       {keyboard ? (
         // На Android окно меняет размер само (softwareKeyboardLayoutMode: resize), на iOS нужен отступ.
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">

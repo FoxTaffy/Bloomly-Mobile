@@ -1,4 +1,4 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Screen } from '@/components/ui';
 import { useSession } from '@/stores/session';
 import { ProfileContent } from '@/components/ProfileContent';
 
@@ -7,8 +7,8 @@ export default function OwnProfileScreen() {
   if (!user) return null;
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <ProfileContent username={user.username} isOwn />
-    </SafeAreaView>
+    </Screen>
   );
 }

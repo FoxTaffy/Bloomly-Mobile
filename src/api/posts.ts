@@ -1,8 +1,9 @@
 import { api } from './client';
-import type { Comment, Post } from '@/shared/api-types';
+import type { Comment, CursorPage, NsfwMode, Post } from '@/shared/api-types';
+import { exploreRequest, feedRequest, isRenderablePost, SEARCH_PAGE_SIZE, type ExplorePeriod, type ExploreSort, type FeedMode } from '@/shared/feed';
 
-export async function fetchTrendingTags(): Promise<{ id: string; name: string; count: number }[]> {
-  const res = await api.get('/posts/trending-tags');
+export async function fetchTrendingTags(includeNsfw = false): Promise<{ id: string; name: string; count: number }[]> {
+  const res = await api.get('/posts/trending-tags', { params: { includeNsfw: String(includeNsfw) } });
   return res.data.data.tags;
 }
 
@@ -22,9 +23,35 @@ export async function fetchPost(id: string): Promise<Post> {
   return res.data.data.post as Post;
 }
 
-export async function fetchComments(postId: string): Promise<Comment[]> {
+export async function fetchComments(postId: string): Promise<{ comments: Comment[]; canModerate: boolean }> {
   const res = await api.get(`/posts/${postId}/comments`);
-  return res.data.data.comments as Comment[];
+  return { comments: (res.data.data.comments ?? []) as Comment[], canModerate: !!res.data.data.canModerate };
+}
+
+async function getPostsPage(path: string, params: Record<string, string>): Promise<CursorPage<Post>> {
+  const res = await api.get(path, { params });
+  const posts = ((res.data.data.posts ?? []) as Post[]).filter(isRenderablePost);
+  return { items: posts, nextCursor: res.data.data.nextCursor ?? null };
+}
+
+export function fetchFeedPage(opts: { mode: FeedMode; nsfw: NsfwMode; cursor?: string | null }) {
+  const { path, params } = feedRequest(opts);
+  return getPostsPage(path, params);
+}
+
+export function fetchExplorePage(opts: { sort: ExploreSort; period: ExplorePeriod; tag?: string; nsfw: NsfwMode; cursor?: string | null }) {
+  const { path, params } = exploreRequest(opts);
+  return getPostsPage(path, params);
+}
+
+export async function searchPostsPage(q: string, page: number): Promise<Post[]> {
+  const res = await api.get('/posts/search', { params: { q, limit: SEARCH_PAGE_SIZE, page, sort: 'relevance', synonyms: 'true' } });
+  return (res.data.data.posts ?? []) as Post[];
+}
+
+export async function searchTags(q: string): Promise<{ id: string; name: string; count: number }[]> {
+  const res = await api.get('/posts/search/tags', { params: { q, limit: 20 } });
+  return res.data.data.tags ?? [];
 }
 
 export async function createComment(postId: string, content: string, parentId?: string): Promise<Comment> {

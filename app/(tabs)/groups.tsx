@@ -1,9 +1,10 @@
 import { View, Text, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react-native';
-import { fetchMyGroups, fetchRecommendedGroups, fetchUpcomingEvents, fetchEventAttendees, rsvpEvent, joinGroup } from '@/api/groups';
+import { fetchUpcomingEvents, fetchEventAttendees, rsvpEvent } from '@/api/groups';
+import { Screen } from '@/components/ui';
+import { useJoinGroup, useMyGroups, useRecommendedGroups } from '@/hooks/useGroups';
 import { EventCard } from '@/components/EventCard';
 import { GroupRow } from '@/components/GroupRow';
 import { colors } from '@/theme/tokens';
@@ -13,8 +14,8 @@ export default function GroupsScreen() {
   const queryClient = useQueryClient();
 
   const eventsQuery = useQuery({ queryKey: ['events', 'upcoming'], queryFn: fetchUpcomingEvents });
-  const myGroupsQuery = useQuery({ queryKey: ['groups', 'me'], queryFn: fetchMyGroups });
-  const recommendedQuery = useQuery({ queryKey: ['groups', 'discover'], queryFn: fetchRecommendedGroups });
+  const myGroupsQuery = useMyGroups();
+  const recommendedQuery = useRecommendedGroups();
 
   const featured = eventsQuery.data?.[0];
 
@@ -32,16 +33,10 @@ export default function GroupsScreen() {
     },
   });
 
-  const joinMutation = useMutation({
-    mutationFn: (id: string) => joinGroup(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups', 'me'] });
-      queryClient.invalidateQueries({ queryKey: ['groups', 'discover'] });
-    },
-  });
+  const joinMutation = useJoinGroup();
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-2xl font-extrabold text-brand-offwhite">Сообщества</Text>
         <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-brand-card">
@@ -82,6 +77,6 @@ export default function GroupsScreen() {
           />
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

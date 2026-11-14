@@ -4,6 +4,8 @@ import { Image } from 'expo-image';
 import { Link, useRouter } from 'expo-router';
 import { Heart, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
 import { Avatar } from './Avatar';
+import { Card } from '@/components/ui';
+import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { VerifiedBadge } from './VerifiedBadge';
 import { timeAgo } from '@/lib/time';
 import type { Post, PostAuthor } from '@/shared/api-types';
@@ -35,18 +37,15 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
 
   const openPost = () => router.push(`/post/${post.id}`);
 
-  const Container = interactive ? Pressable : View;
+  const { nsfwMode } = useNsfwMode();
+  // 18+: в режиме 'hide' скрываем текст и медиа, в 'blur' размываем изображения (web: PostCard.vue)
+  const nsfwLocked = post.is_nsfw && nsfwMode === 'hide';
+  const nsfwBlur = post.is_nsfw && nsfwMode === 'blur';
 
   return (
-    <Container
-      {...(interactive
-        ? {
-            onPress: openPost,
-            accessibilityRole: 'button' as const,
-            accessibilityLabel: 'Открыть пост',
-            className: 'mb-3 rounded-2xl border border-brand-border bg-brand-card p-4 active:opacity-90',
-          }
-        : { className: 'mb-3 rounded-2xl border border-brand-border bg-brand-card p-4' })}
+    <Card
+      className="mb-3"
+      {...(interactive ? { onPress: openPost, accessibilityRole: 'button' as const, accessibilityLabel: 'Открыть пост' } : {})}
     >
       <View className="mb-3 flex-row items-center justify-between">
         {author ? (
@@ -68,14 +67,20 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
         ) : null}
       </View>
 
-      {post.title ? <Text className="mb-1 text-base font-bold text-brand-offwhite">{post.title}</Text> : null}
-      {post.content ? (
+      {nsfwLocked ? (
+        <View className="mb-3 items-center rounded-2xl bg-brand-bg py-6">
+          <Text className="font-nunito-bold text-brand-muted">Контент 18+ скрыт</Text>
+        </View>
+      ) : null}
+
+      {!nsfwLocked && post.title ? <Text className="mb-1 text-base font-bold text-brand-offwhite">{post.title}</Text> : null}
+      {!nsfwLocked && post.content ? (
         <Text numberOfLines={6} className="mb-3 leading-5 text-brand-offwhite">
           {post.content}
         </Text>
       ) : null}
 
-      {post.media_urls.length > 0 ? (
+      {!nsfwLocked && post.media_urls.length > 0 ? (
         <View className="mb-3 overflow-hidden rounded-2xl">
           <ScrollView
             horizontal
@@ -90,6 +95,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
                 source={{ uri: url }}
                 style={{ width: mediaWidth, height: mediaWidth * 0.75 }}
                 contentFit="cover"
+                blurRadius={nsfwBlur ? 40 : 0}
               />
             ))}
           </ScrollView>
@@ -135,7 +141,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
           <Text className="text-sm text-brand-muted">{post._count.repaws}</Text>
         </Pressable>
       </View>
-    </Container>
+    </Card>
   );
 }
 

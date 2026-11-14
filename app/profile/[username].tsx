@@ -1,5 +1,5 @@
 import { View, Pressable, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useSession } from '@/stores/session';
@@ -13,7 +13,7 @@ export default function UserProfileScreen() {
   const isOwn = currentUser?.username === username;
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <View className="flex-row items-center px-4 py-2">
         <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
           <ChevronLeft size={18} color={colors.offwhite} />
@@ -21,6 +21,6 @@ export default function UserProfileScreen() {
         <Text className="ml-3 text-base font-bold text-brand-offwhite">@{username}</Text>
       </View>
       <ProfileContent username={username} isOwn={isOwn} />
-    </SafeAreaView>
+    </Screen>
   );
 }

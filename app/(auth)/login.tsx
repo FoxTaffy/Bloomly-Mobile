@@ -4,12 +4,10 @@ import {
   Text,
   Pressable,
   Switch,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Screen } from '@/components/ui';
 import { Mail, Lock, User, Eye, EyeOff, Key, ShieldCheck, ChevronLeft, Monitor, CircleAlert } from 'lucide-react-native';
 import { useSession } from '@/stores/session';
 import { loginWithOAuth } from '@/lib/oauth';
@@ -180,8 +178,7 @@ export default function AuthScreen() {
   return (
     <View className="flex-1">
       <AuroraBackground />
-      <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+      <Screen transparent keyboard edges={['top', 'bottom']}>
           <ScrollView contentContainerClassName="flex-grow justify-center px-5 py-8" keyboardShouldPersistTaps="handled">
             <View className="mb-6 items-center">
               <View
@@ -436,8 +433,7 @@ export default function AuthScreen() {
               </Text>
             </AuthCard>
           </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+      </Screen>
     </View>
   );
 }

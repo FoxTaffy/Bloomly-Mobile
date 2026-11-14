@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react-native';
@@ -24,7 +24,7 @@ export default function GroupDetailScreen() {
   if (!group) return null;
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <ScrollView>
         <View className="relative">
           <LinearGradient colors={[group.accent_color ?? colors.accent, colors.purple]} style={{ height: 160, width: '100%' }}>
@@ -48,6 +48,6 @@ export default function GroupDetailScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

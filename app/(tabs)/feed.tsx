@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Flower2, Search, Bell, Hash } from 'lucide-react-native';
-import { fetchStories } from '@/api/stories';
-import { fetchFeed, votePost, repawPost, createPost } from '@/api/posts';
+import { EmptyState, ErrorState, Screen, Skeleton } from '@/components/ui';
+import { useCreatePost, useInfinitePosts, useRepawPost, useVotePost } from '@/hooks/usePosts';
+import { useStories } from '@/hooks/useStories';
 import { PostCard } from '@/components/PostCard';
 import { StoryRing, AddStoryButton } from '@/components/StoryRing';
 import { Avatar } from '@/components/Avatar';
@@ -15,34 +14,18 @@ import { colors } from '@/theme/tokens';
 
 export default function FeedScreen() {
   const user = useSession((s) => s.user);
-  const queryClient = useQueryClient();
   const [draft, setDraft] = useState('');
 
-  const storiesQuery = useQuery({ queryKey: ['stories'], queryFn: fetchStories });
-  const feedQuery = useQuery({ queryKey: ['feed'], queryFn: () => fetchFeed({ personalized: true }) });
+  const storiesQuery = useStories();
+  const feedQuery = useInfinitePosts('for-you');
+  const voteMutation = useVotePost();
+  const repawMutation = useRepawPost();
+  const postMutation = useCreatePost();
 
-  const voteMutation = useMutation({
-    mutationFn: ({ id, value }: { id: string; value: 1 | -1 | 0 }) => votePost(id, value),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['feed'] }),
-  });
-
-  const repawMutation = useMutation({
-    mutationFn: (id: string) => repawPost(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['feed'] }),
-  });
-
-  const postMutation = useMutation({
-    mutationFn: () => createPost({ content: draft.trim() }),
-    onSuccess: () => {
-      setDraft('');
-      queryClient.invalidateQueries({ queryKey: ['feed'] });
-    },
-  });
-
-  const posts = feedQuery.data ?? [];
+  const posts = feedQuery.posts;
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <View className="mb-2 flex-row items-center justify-between px-4 py-2">
         <View className="flex-row items-center gap-2">
           <Flower2 size={22} color={colors.accent} />
@@ -64,6 +47,10 @@ export default function FeedScreen() {
         data={posts}
         keyExtractor={(item) => item.id}
         contentContainerClassName="px-4 pb-6"
+        onEndReachedThreshold={0.6}
+        onEndReached={() => {
+          if (feedQuery.hasNextPage && !feedQuery.isFetchingNextPage) feedQuery.fetchNextPage();
+        }}
         refreshControl={
           <RefreshControl
             refreshing={feedQuery.isRefetching}
@@ -98,7 +85,9 @@ export default function FeedScreen() {
               />
               {draft.trim().length > 0 ? (
                 <Pressable
-                  onPress={() => postMutation.mutate()}
+                  onPress={() =>
+                    postMutation.mutate(draft.trim(), { onSuccess: () => setDraft('') })
+                  }
                   disabled={postMutation.isPending}
                   className="rounded-full bg-brand-accent px-3 py-1.5"
                 >
@@ -120,11 +109,19 @@ export default function FeedScreen() {
           />
         )}
         ListEmptyComponent={
-          feedQuery.isLoading ? null : (
-            <Text className="mt-10 text-center text-brand-muted">Пока пусто. Подпишись на кого-нибудь!</Text>
+          feedQuery.isLoading ? (
+            <View className="gap-3">
+              <Skeleton height={120} />
+              <Skeleton height={120} />
+            </View>
+          ) : feedQuery.isError ? (
+            <ErrorState onRetry={() => feedQuery.refetch()} />
+          ) : (
+            <EmptyState title="Пока пусто" hint="Подпишитесь на кого-нибудь, и посты появятся здесь." />
           )
         }
+        ListFooterComponent={feedQuery.isFetchingNextPage ? <Skeleton height={80} className="mt-2" /> : null}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }

@@ -11,8 +11,8 @@ export async function fetchRecommendedGroups(): Promise<Group[]> {
   return res.data.data.groups as Group[];
 }
 
-export async function searchGroups(q: string): Promise<Group[]> {
-  const res = await api.get('/groups/search', { params: { q, limit: 10 } });
+export async function searchGroups(q: string, page = 1): Promise<Group[]> {
+  const res = await api.get('/groups/search', { params: { q, limit: 20, page } });
   return res.data.data.groups as Group[];
 }
 

@@ -1,18 +1,17 @@
 import { View, Text, TextInput, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react-native';
-import { fetchConversations } from '@/api/messages';
+import { Screen } from '@/components/ui';
+import { useConversations } from '@/hooks/useConversations';
 import { ConversationRow } from '@/components/ConversationRow';
 import { colors } from '@/theme/tokens';
 
 export default function MessagesScreen() {
   const router = useRouter();
-  const conversationsQuery = useQuery({ queryKey: ['conversations'], queryFn: fetchConversations });
+  const conversationsQuery = useConversations();
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
+    <Screen>
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-2xl font-extrabold text-brand-offwhite">Сообщения</Text>
       </View>
@@ -36,6 +35,6 @@ export default function MessagesScreen() {
           )
         }
       />
-    </SafeAreaView>
+    </Screen>
   );
 }

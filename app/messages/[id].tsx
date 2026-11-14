@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { ChevronLeft, Wifi, Send, Mic, Square } from 'lucide-react-native';
@@ -92,7 +92,7 @@ export default function ChatThreadScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-bg" edges={['top', 'bottom']}>
+    <Screen edges={['top', 'bottom']}>
       <View className="flex-row items-center gap-3 border-b border-brand-border px-4 py-2">
         <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
           <ChevronLeft size={18} color={colors.offwhite} />
@@ -140,6 +140,6 @@ export default function ChatThreadScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }
