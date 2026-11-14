@@ -4,6 +4,7 @@ import type { Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
 import { ContentMenu } from './ContentMenu';
+import { VoiceMessage } from '@/components/chat/VoiceMessage';
 
 export function MessageBubble({ message, isMine }: { message: Message; isMine: boolean }) {
   const { t } = useT();
@@ -16,7 +17,9 @@ export function MessageBubble({ message, isMine }: { message: Message; isMine: b
       <View
         className={`rounded-2xl px-4 py-2.5 ${isMine ? 'bg-brand-accent rounded-br-sm' : 'bg-brand-card rounded-bl-sm border border-brand-border'}`}
       >
-        {isVoice ? (
+        {isVoice && message.file_url ? (
+          <VoiceMessage id={message.id} url={message.file_url} isMine={isMine} />
+        ) : isVoice ? (
           <View className="flex-row items-center gap-2">
             <Mic size={16} color={isMine ? colors.offwhite : colors.accentMinus} />
             <Text className={isMine ? 'text-brand-offwhite' : 'text-brand-offwhite'}>{t('chatVoiceMessageTitle')}</Text>
