@@ -17,6 +17,7 @@ import { useSession } from '../../src/stores/session';
 import { Avatar } from '../../src/components/Avatar';
 import { MessageBubble } from '../../src/components/MessageBubble';
 import type { Conversation, Message } from '../../src/types/api';
+import { colors } from '../../src/theme/tokens';
 
 export default function ChatThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -94,13 +95,13 @@ export default function ChatThreadScreen() {
     <SafeAreaView className="flex-1 bg-brand-bg" edges={['top', 'bottom']}>
       <View className="flex-row items-center gap-3 border-b border-brand-border px-4 py-2">
         <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
-          <ChevronLeft size={18} color="#F9FAFD" />
+          <ChevronLeft size={18} color={colors.offwhite} />
         </Pressable>
         <Avatar uri={conversation?.is_group ? conversation.avatar_url : other?.avatar_url} name={title} size={36} />
         <View className="flex-1">
           <Text className="font-bold text-brand-offwhite">{title}</Text>
           <View className="flex-row items-center gap-1">
-            <Wifi size={10} color={connected ? '#66C770' : '#7C86AE'} />
+            <Wifi size={10} color={connected ? colors.success : colors.mutedIcon} />
             <Text className="text-xs text-brand-muted">{connected ? 'На связи' : 'Подключение...'}</Text>
           </View>
         </View>
@@ -121,20 +122,20 @@ export default function ChatThreadScreen() {
             value={draft}
             onChangeText={setDraft}
             placeholder="Сообщение..."
-            placeholderTextColor="#7C86AE"
+            placeholderTextColor={colors.mutedIcon}
             className="flex-1 rounded-2xl border border-brand-border bg-brand-card px-4 py-2.5 text-brand-offwhite"
             multiline
           />
           {draft.trim().length > 0 ? (
             <Pressable onPress={onSend} className="h-11 w-11 items-center justify-center rounded-full bg-brand-accent">
-              <Send size={18} color="#F9FAFD" />
+              <Send size={18} color={colors.offwhite} />
             </Pressable>
           ) : (
             <Pressable
               onPress={onToggleRecord}
               className={`h-11 w-11 items-center justify-center rounded-full ${recorderState.isRecording ? 'bg-brand-error' : 'bg-brand-accent'}`}
             >
-              {recorderState.isRecording ? <Square size={16} color="#F9FAFD" /> : <Mic size={18} color="#F9FAFD" />}
+              {recorderState.isRecording ? <Square size={16} color={colors.offwhite} /> : <Mic size={18} color={colors.offwhite} />}
             </Pressable>
           )}
         </View>

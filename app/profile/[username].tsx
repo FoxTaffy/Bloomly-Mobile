@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useSession } from '../../src/stores/session';
 import { ProfileContent } from '../../src/components/ProfileContent';
+import { colors } from '../../src/theme/tokens';
 
 export default function UserProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
@@ -15,7 +16,7 @@ export default function UserProfileScreen() {
     <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
       <View className="flex-row items-center px-4 py-2">
         <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
-          <ChevronLeft size={18} color="#F9FAFD" />
+          <ChevronLeft size={18} color={colors.offwhite} />
         </Pressable>
         <Text className="ml-3 text-base font-bold text-brand-offwhite">@{username}</Text>
       </View>

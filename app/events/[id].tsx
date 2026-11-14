@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Calendar, MapPin } from 'lucide-react-native';
 import { fetchEvent, fetchEventAttendees, rsvpEvent } from '../../src/api/groups';
 import { Avatar } from '../../src/components/Avatar';
+import { colors } from '../../src/theme/tokens';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,7 +38,7 @@ export default function EventDetailScreen() {
     <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
       <ScrollView>
         <View className="relative">
-          <LinearGradient colors={['#4C67CF', '#CD83F5']} style={{ height: 180, width: '100%' }}>
+          <LinearGradient colors={[colors.accent, colors.purple]} style={{ height: 180, width: '100%' }}>
             {event.banner_url ? (
               <Image source={{ uri: event.banner_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
             ) : null}
@@ -46,14 +47,14 @@ export default function EventDetailScreen() {
             onPress={() => router.back()}
             className="absolute left-4 top-4 h-9 w-9 items-center justify-center rounded-full bg-black/40"
           >
-            <ChevronLeft size={18} color="#F9FAFD" />
+            <ChevronLeft size={18} color={colors.offwhite} />
           </Pressable>
         </View>
 
         <View className="p-4">
           <Text className="mb-2 text-2xl font-extrabold text-brand-offwhite">{event.title}</Text>
           <View className="mb-1.5 flex-row items-center gap-2">
-            <Calendar size={16} color="#7C86AE" />
+            <Calendar size={16} color={colors.mutedIcon} />
             <Text className="text-brand-muted">
               {starts.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })} ·{' '}
               {starts.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
@@ -61,7 +62,7 @@ export default function EventDetailScreen() {
           </View>
           {event.location_name ? (
             <View className="mb-4 flex-row items-center gap-2">
-              <MapPin size={16} color="#7C86AE" />
+              <MapPin size={16} color={colors.mutedIcon} />
               <Text className="text-brand-muted">{event.location_name}</Text>
             </View>
           ) : null}

@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Hash } from 'lucide-react-native';
 import { fetchTrendingTags } from '../../src/api/posts';
+import { colors } from '../../src/theme/tokens';
 
 export default function DiscoverScreen() {
   const tagsQuery = useQuery({ queryKey: ['trending-tags'], queryFn: fetchTrendingTags });
@@ -12,8 +13,8 @@ export default function DiscoverScreen() {
       <View className="px-4 py-2">
         <Text className="mb-4 text-2xl font-extrabold text-brand-offwhite">Поиск</Text>
         <View className="mb-6 flex-row items-center gap-2 rounded-2xl border border-brand-border bg-brand-card px-4 py-3">
-          <Search size={18} color="#7C86AE" />
-          <TextInput placeholder="Найти людей, теги, посты" placeholderTextColor="#7C86AE" className="flex-1 text-brand-offwhite" />
+          <Search size={18} color={colors.mutedIcon} />
+          <TextInput placeholder="Найти людей, теги, посты" placeholderTextColor={colors.mutedIcon} className="flex-1 text-brand-offwhite" />
         </View>
         <Text className="mb-3 text-sm font-semibold text-brand-muted">В ТРЕНДЕ</Text>
       </View>
@@ -24,7 +25,7 @@ export default function DiscoverScreen() {
         renderItem={({ item }) => (
           <Pressable className="flex-row items-center justify-between rounded-2xl border border-brand-border bg-brand-card px-4 py-3">
             <View className="flex-row items-center gap-2">
-              <Hash size={16} color="#4C67CF" />
+              <Hash size={16} color={colors.accent} />
               <Text className="font-semibold text-brand-offwhite">{item.name}</Text>
             </View>
             <Text className="text-xs text-brand-muted">{item.count} постов</Text>

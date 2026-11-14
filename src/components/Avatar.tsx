@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../theme/tokens';
 
 interface AvatarProps {
   uri?: string | null;
@@ -9,7 +10,7 @@ interface AvatarProps {
   ring?: boolean;
 }
 
-const RING_COLORS: [string, string] = ['#4C67CF', '#CD83F5'];
+const RING_COLORS: [string, string] = [colors.accent, colors.purple];
 
 export function Avatar({ uri, name, size = 44, ring = false }: AvatarProps) {
   const initial = (name ?? '?').trim().charAt(0).toUpperCase();
@@ -27,7 +28,7 @@ export function Avatar({ uri, name, size = 44, ring = false }: AvatarProps) {
       style={{ width: inner, height: inner, borderRadius: inner / 2 }}
       className="items-center justify-center bg-brand-accent"
     >
-      <Text style={{ fontSize: inner * 0.42, fontWeight: '700', color: '#F9FAFD' }}>{initial}</Text>
+      <Text style={{ fontSize: inner * 0.42, fontWeight: '700', color: colors.offwhite }}>{initial}</Text>
     </View>
   );
 

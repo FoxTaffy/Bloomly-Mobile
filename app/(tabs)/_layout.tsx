@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { House, Compass, MessageCircle, Grid3x3 } from 'lucide-react-native';
 import { useSession } from '../../src/stores/session';
 import { Avatar } from '../../src/components/Avatar';
+import { colors } from '../../src/theme/tokens';
 
 export default function TabsLayout() {
   const user = useSession((s) => s.user);
@@ -10,10 +11,10 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#A1B4FF',
-        tabBarInactiveTintColor: '#7C86AE',
+        tabBarActiveTintColor: colors.accentMinus,
+        tabBarInactiveTintColor: colors.mutedIcon,
         tabBarLabelStyle: { fontFamily: 'Nunito_700Bold', fontSize: 11, marginBottom: 4 },
-        tabBarStyle: { backgroundColor: '#16192F', borderTopColor: '#2A2D45', paddingTop: 6 },
+        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border, paddingTop: 6 },
       }}
     >
       <Tabs.Screen

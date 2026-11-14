@@ -11,6 +11,7 @@ import { StoryRing, AddStoryButton } from '../../src/components/StoryRing';
 import { Avatar } from '../../src/components/Avatar';
 import { useSession } from '../../src/stores/session';
 import type { Post } from '../../src/types/api';
+import { colors } from '../../src/theme/tokens';
 
 export default function FeedScreen() {
   const user = useSession((s) => s.user);
@@ -44,16 +45,16 @@ export default function FeedScreen() {
     <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
       <View className="mb-2 flex-row items-center justify-between px-4 py-2">
         <View className="flex-row items-center gap-2">
-          <Flower2 size={22} color="#4C67CF" />
+          <Flower2 size={22} color={colors.accent} />
           <Text className="text-lg font-extrabold text-brand-offwhite">Bloomly</Text>
         </View>
         <View className="flex-row items-center gap-3">
           <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-brand-card">
-            <Search size={18} color="#F9FAFD" />
+            <Search size={18} color={colors.offwhite} />
           </Pressable>
           <Link href="/notifications" asChild>
             <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-brand-card">
-              <Bell size={18} color="#F9FAFD" />
+              <Bell size={18} color={colors.offwhite} />
             </Pressable>
           </Link>
         </View>
@@ -70,7 +71,7 @@ export default function FeedScreen() {
               feedQuery.refetch();
               storiesQuery.refetch();
             }}
-            tintColor="#4C67CF"
+            tintColor={colors.accent}
           />
         }
         ListHeaderComponent={
@@ -91,7 +92,7 @@ export default function FeedScreen() {
                 value={draft}
                 onChangeText={setDraft}
                 placeholder="Что у вас нового?"
-                placeholderTextColor="#7C86AE"
+                placeholderTextColor={colors.mutedIcon}
                 className="flex-1 text-brand-offwhite"
                 multiline
               />
@@ -106,7 +107,7 @@ export default function FeedScreen() {
                   </Text>
                 </Pressable>
               ) : (
-                <Hash size={18} color="#7C86AE" />
+                <Hash size={18} color={colors.mutedIcon} />
               )}
             </View>
           </View>

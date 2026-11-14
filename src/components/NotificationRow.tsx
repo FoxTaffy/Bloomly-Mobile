@@ -3,6 +3,7 @@ import { Heart, MessageCircle, UserPlus, AtSign, Repeat2, Bell } from 'lucide-re
 import { Avatar } from './Avatar';
 import { timeAgo } from '../lib/time';
 import type { AppNotification } from '../types/api';
+import { colors } from '../theme/tokens';
 
 const TYPE_SUFFIX: Record<string, string> = {
   LIKE: 'оценил(а) твой пост',
@@ -45,7 +46,7 @@ export function NotificationRow({
       <View>
         <Avatar uri={notification.sender?.avatar_url} name={name} size={40} />
         <View className="absolute -bottom-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-brand-card">
-          <Icon size={12} color="#4C67CF" />
+          <Icon size={12} color={colors.accent} />
         </View>
       </View>
       <View className="flex-1">

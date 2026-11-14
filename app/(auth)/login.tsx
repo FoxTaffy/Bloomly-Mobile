@@ -20,10 +20,11 @@ import { TabSwitch } from '../../src/components/auth/TabSwitch';
 import { AuthInput } from '../../src/components/auth/AuthInput';
 import { AuthButton } from '../../src/components/auth/AuthButton';
 import { YandexIcon, GoogleIcon, XIcon, TwitchIcon } from '../../src/components/auth/OAuthIcons';
+import { colors } from '../../src/theme/tokens';
 
 type Mode = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
-const ICON_COLOR = 'rgba(255,255,255,0.35)';
+const ICON_COLOR = colors.white35;
 
 export default function AuthScreen() {
   const login = useSession((s) => s.login);
@@ -85,8 +86,8 @@ export default function AuthScreen() {
       : ['', 'Слабый', 'Средний', 'Хороший', 'Отличный'][pwStrength];
   const pwColor =
     activePassword && activePassword.length < 8
-      ? '#E14664'
-      : ['', '#E14664', '#E76F51', '#FFC01F', '#66C770'][pwStrength];
+      ? colors.error
+      : ['', colors.error, colors.warning, colors.yellow, colors.success][pwStrength];
 
   async function onResendOtp() {
     if (resendCountdown > 0) return;
@@ -186,9 +187,9 @@ export default function AuthScreen() {
               <View
                 className="mb-3 h-14 w-14 items-center justify-center rounded-2xl border"
                 style={{
-                  backgroundColor: 'rgba(76,103,207,0.2)',
-                  borderColor: 'rgba(76,103,207,0.3)',
-                  shadowColor: '#4C67CF',
+                  backgroundColor: colors.accentBg,
+                  borderColor: colors.accentBorder,
+                  shadowColor: colors.accent,
                   shadowOpacity: 0.5,
                   shadowRadius: 20,
                   shadowOffset: { width: 0, height: 0 },
@@ -218,7 +219,7 @@ export default function AuthScreen() {
                 </View>
               ) : (
                 <Pressable onPress={() => switchMode('login')} className="mb-4 -mt-1 flex-row items-center gap-1.5">
-                  <ChevronLeft size={14} color="rgba(255,255,255,0.35)" />
+                  <ChevronLeft size={14} color={colors.white35} />
                   <Text className="font-nunito-semibold text-xs text-white/35">
                     {mode === 'verify' ? 'Ввести другой email' : 'Вернуться к входу'}
                   </Text>
@@ -285,10 +286,10 @@ export default function AuthScreen() {
                 {mode === 'login' ? (
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-1.5">
-                      <Monitor size={13} color="rgba(255,255,255,0.35)" />
+                      <Monitor size={13} color={colors.white35} />
                       <Text className="font-nunito-semibold text-xs text-white/35">Запомнить это устройство</Text>
                     </View>
-                    <Switch value={remember} onValueChange={setRemember} trackColor={{ true: '#4C67CF', false: 'rgba(255,255,255,0.12)' }} />
+                    <Switch value={remember} onValueChange={setRemember} trackColor={{ true: colors.accent, false: colors.white12 }} />
                   </View>
                 ) : null}
 
@@ -307,10 +308,10 @@ export default function AuthScreen() {
                   <View className="gap-3">
                     <View
                       className="flex-row items-center gap-2.5 rounded-2xl border p-3.5"
-                      style={{ backgroundColor: 'rgba(124,58,237,0.1)', borderColor: 'rgba(124,58,237,0.25)' }}
+                      style={{ backgroundColor: colors.violetBg, borderColor: colors.violetBorder }}
                     >
-                      <ShieldCheck size={16} color="#a78bfa" />
-                      <Text className="flex-1 font-nunito-semibold text-xs text-[#a78bfa]">
+                      <ShieldCheck size={16} color={colors.violet} />
+                      <Text className="flex-1 font-nunito-semibold text-xs" style={{ color: colors.violet }}>
                         Код отправлен на <Text className="text-white">{email}</Text>
                       </Text>
                     </View>
@@ -323,7 +324,7 @@ export default function AuthScreen() {
                       style={{ textAlign: 'center', letterSpacing: 8, fontSize: 18 }}
                     />
                     <Pressable onPress={onResendOtp} disabled={resendCountdown > 0} className="items-end">
-                      <Text className={`font-nunito-bold text-xs ${resendCountdown > 0 ? 'text-white/20' : 'text-[#a78bfa]'}`}>
+                      <Text className="font-nunito-bold text-xs" style={{ color: resendCountdown > 0 ? colors.white20 : colors.violet }}>
                         {resendCountdown > 0 ? `Отправить повторно через ${resendCountdown}с` : 'Отправить код повторно'}
                       </Text>
                     </Pressable>
@@ -353,7 +354,7 @@ export default function AuthScreen() {
                         <View
                           key={n}
                           className="h-1 flex-1 rounded-full"
-                          style={{ backgroundColor: n <= pwStrength ? pwColor : 'rgba(255,255,255,0.08)' }}
+                          style={{ backgroundColor: n <= pwStrength ? pwColor : colors.white08 }}
                         />
                       ))}
                     </View>
@@ -366,10 +367,10 @@ export default function AuthScreen() {
                 {error ? (
                   <View
                     className="flex-row items-start gap-2.5 rounded-2xl border p-3.5"
-                    style={{ backgroundColor: 'rgba(225,70,100,0.08)', borderColor: 'rgba(225,70,100,0.2)' }}
+                    style={{ backgroundColor: colors.errorBg, borderColor: colors.errorBorder }}
                   >
-                    <CircleAlert size={16} color="#f87171" />
-                    <Text className="flex-1 font-nunito-bold text-sm text-[#f87171]">{error}</Text>
+                    <CircleAlert size={16} color={colors.errorSoft} />
+                    <Text className="flex-1 font-nunito-bold text-sm" style={{ color: colors.errorSoft }}>{error}</Text>
                   </View>
                 ) : null}
 
@@ -392,7 +393,7 @@ export default function AuthScreen() {
                     onPress={() => onOAuth('yandex')}
                     disabled={!!oauthLoading}
                     className="mb-2 flex-row items-center justify-center gap-3 rounded-2xl px-4 py-3"
-                    style={{ backgroundColor: '#fc3f1d', opacity: oauthLoading && oauthLoading !== 'yandex' ? 0.5 : 1 }}
+                    style={{ backgroundColor: colors.yandex, opacity: oauthLoading && oauthLoading !== 'yandex' ? 0.5 : 1 }}
                   >
                     <YandexIcon size={18} />
                     <Text className="font-nunito-extrabold text-sm text-white">Войти через Яндекс</Text>
@@ -406,7 +407,7 @@ export default function AuthScreen() {
                       style={{ opacity: oauthLoading && oauthLoading !== 'google' ? 0.5 : 1 }}
                     >
                       <GoogleIcon size={16} />
-                      <Text className="font-nunito-extrabold text-xs text-[#1a1a2e]">Google</Text>
+                      <Text className="font-nunito-extrabold text-xs" style={{ color: colors.inkDark }}>Google</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => onOAuth('twitter')}
@@ -421,7 +422,7 @@ export default function AuthScreen() {
                       onPress={() => onOAuth('twitch')}
                       disabled={!!oauthLoading}
                       className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl px-2 py-2.5"
-                      style={{ backgroundColor: '#9146FF', opacity: oauthLoading && oauthLoading !== 'twitch' ? 0.5 : 1 }}
+                      style={{ backgroundColor: colors.twitch, opacity: oauthLoading && oauthLoading !== 'twitch' ? 0.5 : 1 }}
                     >
                       <TwitchIcon size={16} />
                       <Text className="font-nunito-extrabold text-xs text-white">Twitch</Text>

@@ -6,7 +6,7 @@ const ROOT = new URL('..', import.meta.url).pathname;
 const ALLOW_HEX = new Set(['src/theme/tokens.ts']); // единственный TS-файл с цветами
 const rules = [
   { id: 'hex-color', re: /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b(?![0-9a-fA-F])/, msg: 'Цвет вне src/theme/tokens.ts: используй класс brand-* или colors из tokens', skip: (f) => ALLOW_HEX.has(f) },
-  { id: 'rgb-color', re: /\brgba?\(/, msg: 'rgb()/rgba(): используй токены бренда (для прозрачности — bg-brand-*/50)', skip: () => false },
+  { id: 'rgb-color', re: /\brgba?\(/, msg: 'rgb()/rgba(): используй токены бренда (для прозрачности — bg-brand-*/50)', skip: (f) => ALLOW_HEX.has(f) },
   { id: 'rn-safeareaview', re: /import\s*\{[^}]*\bSafeAreaView\b[^}]*\}\s*from\s*'react-native'/, msg: 'SafeAreaView из react-native устарел: используй <Screen> / useSafeAreaInsets', skip: () => false },
   { id: 'magic-statusbar', re: /StatusBar\.currentHeight|Platform\.OS\s*===\s*'ios'\s*\?\s*(20|44|47|59)\b/, msg: 'Высоты статус-бара/выреза — только из useSafeAreaInsets', skip: () => false },
   { id: 'web-api', re: /\b(localStorage|sessionStorage|document\.|window\.)/, msg: 'Веб-API в нативном коде: используй SecureStore / AsyncStorage', skip: () => false },

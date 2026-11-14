@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Star, Calendar } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import type { EventAttendee, GroupEvent } from '../types/api';
+import { colors } from '../theme/tokens';
 
 export function EventCard({
   event,
@@ -25,7 +26,7 @@ export function EventCard({
   return (
     <Pressable onPress={onPress} className="mb-6 overflow-hidden rounded-2xl border border-brand-border bg-brand-card">
       <View className="relative">
-        <LinearGradient colors={['#4C67CF', '#CD83F5']} style={{ height: 140, width: '100%' }}>
+        <LinearGradient colors={[colors.accent, colors.purple]} style={{ height: 140, width: '100%' }}>
           {event.banner_url ? (
             <Image source={{ uri: event.banner_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
           ) : null}
@@ -34,14 +35,14 @@ export function EventCard({
           <Text className="text-xs font-bold text-white">СОБЫТИЕ</Text>
         </View>
         <View className="absolute right-3 top-3 flex-row items-center gap-1 rounded-full bg-black/50 px-2 py-1">
-          <Star size={12} color="#FFC01F" fill="#FFC01F" />
+          <Star size={12} color={colors.yellow} fill={colors.yellow} />
           <Text className="text-xs font-bold text-white">4.9</Text>
         </View>
       </View>
       <View className="p-4">
         <Text className="mb-1 text-lg font-extrabold text-brand-offwhite">{event.title}</Text>
         <View className="mb-3 flex-row items-center gap-1.5">
-          <Calendar size={14} color="#7C86AE" />
+          <Calendar size={14} color={colors.mutedIcon} />
           <Text className="text-sm text-brand-muted">
             {dateLabel} · {timeLabel}
           </Text>

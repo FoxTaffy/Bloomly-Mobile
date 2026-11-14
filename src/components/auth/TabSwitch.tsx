@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../../theme/tokens';
 
 interface Option {
   key: string;
@@ -31,7 +32,7 @@ export function TabSwitch({ value, onChange, options }: { value: string; onChang
         <Animated.View
           style={[{ position: 'absolute', top: 4, bottom: 4, left: 4, width: pillWidth, borderRadius: 14 }, pillStyle]}
         >
-          <LinearGradient colors={['#4C67CF', '#7B6FD4']} style={{ flex: 1, borderRadius: 14 }} />
+          <LinearGradient colors={[colors.accent, colors.indigo]} style={{ flex: 1, borderRadius: 14 }} />
         </Animated.View>
       ) : null}
       {options.map((o) => (

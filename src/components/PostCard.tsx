@@ -7,6 +7,7 @@ import { Avatar } from './Avatar';
 import { VerifiedBadge } from './VerifiedBadge';
 import { timeAgo } from '../lib/time';
 import type { Post, PostAuthor } from '../types/api';
+import { colors } from '../theme/tokens';
 
 // Feed list has px-4 (16+16) and the card has p-4 (16+16): media must fit inside both.
 const HORIZONTAL_SPACE = 64;
@@ -61,7 +62,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
         )}
         {post.is_announcement ? (
           <View className="ml-2 flex-row items-center gap-1 rounded-full bg-brand-accent-plus-plus px-2 py-1">
-            <Pin size={12} color="#A1B4FF" />
+            <Pin size={12} color={colors.accentMinus} />
             <Text className="text-xs font-semibold text-brand-accent-minus">Закреплён</Text>
           </View>
         ) : null}
@@ -110,7 +111,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
           accessibilityLabel={liked ? 'Убрать лайк' : 'Лайк'}
           className="flex-row items-center gap-1.5 active:opacity-60"
         >
-          <Heart size={20} color={liked ? '#E14664' : '#7C86AE'} fill={liked ? '#E14664' : 'transparent'} />
+          <Heart size={20} color={liked ? colors.error : colors.mutedIcon} fill={liked ? colors.error : 'transparent'} />
           <Text className={`text-sm ${liked ? 'font-bold text-brand-error' : 'text-brand-muted'}`}>{post._count.votes}</Text>
         </Pressable>
         <Pressable
@@ -120,7 +121,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
           accessibilityLabel="Комментарии"
           className="flex-row items-center gap-1.5 active:opacity-60"
         >
-          <MessageCircle size={20} color="#7C86AE" />
+          <MessageCircle size={20} color={colors.mutedIcon} />
           <Text className="text-sm text-brand-muted">{post._count.comments}</Text>
         </Pressable>
         <Pressable
@@ -130,7 +131,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
           accessibilityLabel="Репост"
           className="flex-row items-center gap-1.5 active:opacity-60"
         >
-          <Repeat2 size={20} color="#7C86AE" />
+          <Repeat2 size={20} color={colors.mutedIcon} />
           <Text className="text-sm text-brand-muted">{post._count.repaws}</Text>
         </Pressable>
       </View>

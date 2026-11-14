@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react-native';
 import { fetchGroup, joinGroup, leaveGroup } from '../../src/api/groups';
+import { colors } from '../../src/theme/tokens';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,7 +27,7 @@ export default function GroupDetailScreen() {
     <SafeAreaView className="flex-1 bg-brand-bg" edges={['top']}>
       <ScrollView>
         <View className="relative">
-          <LinearGradient colors={[group.accent_color ?? '#4C67CF', '#CD83F5']} style={{ height: 160, width: '100%' }}>
+          <LinearGradient colors={[group.accent_color ?? colors.accent, colors.purple]} style={{ height: 160, width: '100%' }}>
             {group.banner_url ? (
               <Image source={{ uri: group.banner_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
             ) : null}
@@ -35,7 +36,7 @@ export default function GroupDetailScreen() {
             onPress={() => router.back()}
             className="absolute left-4 top-4 h-9 w-9 items-center justify-center rounded-full bg-black/40"
           >
-            <ChevronLeft size={18} color="#F9FAFD" />
+            <ChevronLeft size={18} color={colors.offwhite} />
           </Pressable>
         </View>
         <View className="p-4">

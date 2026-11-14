@@ -8,6 +8,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import { fetchNotifications, markNotificationsRead } from '../src/api/notifications';
 import { acceptRelationship, declineRelationship } from '../src/api/relationships';
 import { NotificationRow } from '../src/components/NotificationRow';
+import { colors } from '../src/theme/tokens';
 
 const LAST_SEEN_KEY = 'bloomly_notifications_last_seen';
 
@@ -56,7 +57,7 @@ export default function NotificationsScreen() {
       <View className="flex-row items-center justify-between px-4 py-2">
         <View className="flex-row items-center gap-3">
           <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
-            <ChevronLeft size={18} color="#F9FAFD" />
+            <ChevronLeft size={18} color={colors.offwhite} />
           </Pressable>
           <Text className="text-2xl font-extrabold text-brand-offwhite">Уведомления</Text>
         </View>

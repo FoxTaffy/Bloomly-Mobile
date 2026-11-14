@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import { ArrowRight } from 'lucide-react-native';
 import type { ReactNode } from 'react';
+import { colors } from '../../theme/tokens';
 
 export function AuthButton({
   onPress,
@@ -29,7 +30,7 @@ export function AuthButton({
   return (
     <Pressable onPress={onPress} disabled={disabled || loading} className="mt-1 active:opacity-90">
       <LinearGradient
-        colors={disabled ? ['#3A4060', '#3A4060'] : ['#3d56c4', '#6057cc', '#7B4FD0']}
+        colors={disabled ? [colors.disabled, colors.disabled] : [colors.buttonFrom, colors.buttonMid, colors.buttonTo]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={{ borderRadius: 18, overflow: 'hidden' }}
@@ -37,7 +38,7 @@ export function AuthButton({
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
           <Animated.View style={[{ position: 'absolute', top: -40, bottom: -40, width: 60 }, shimmerStyle]}>
             <LinearGradient
-              colors={['transparent', 'rgba(255,255,255,0.22)', 'transparent']}
+              colors={['transparent', colors.white22, 'transparent']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{ flex: 1 }}
@@ -46,11 +47,11 @@ export function AuthButton({
         </View>
         <View className="flex-row items-center justify-center gap-2.5 px-7 py-4">
           {loading ? (
-            <ActivityIndicator color="#F9FAFD" />
+            <ActivityIndicator color={colors.offwhite} />
           ) : (
             <>
               <Text className="font-nunito-black text-[15px] tracking-wide text-white">{children}</Text>
-              <ArrowRight size={18} color="#F9FAFD" />
+              <ArrowRight size={18} color={colors.offwhite} />
             </>
           )}
         </View>

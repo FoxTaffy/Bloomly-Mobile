@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react-native';
 import { fetchMyGroups, fetchRecommendedGroups, fetchUpcomingEvents, fetchEventAttendees, rsvpEvent, joinGroup } from '../../src/api/groups';
 import { EventCard } from '../../src/components/EventCard';
 import { GroupRow } from '../../src/components/GroupRow';
+import { colors } from '../../src/theme/tokens';
 
 export default function GroupsScreen() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function GroupsScreen() {
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-2xl font-extrabold text-brand-offwhite">Сообщества</Text>
         <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-brand-card">
-          <Plus size={18} color="#F9FAFD" />
+          <Plus size={18} color={colors.offwhite} />
         </Pressable>
       </View>
 

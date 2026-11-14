@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TextInput, TextInputProps, View } from 'react-native';
 import type { ReactNode } from 'react';
+import { colors } from '../../theme/tokens';
 
 interface AuthInputProps extends TextInputProps {
   icon: ReactNode;
@@ -14,13 +15,13 @@ export function AuthInput({ icon, rightElement, style, ...rest }: AuthInputProps
     <View
       className="flex-row items-center rounded-2xl border px-4"
       style={{
-        borderColor: focused ? 'rgba(76,103,207,0.6)' : 'rgba(255,255,255,0.08)',
-        backgroundColor: focused ? 'rgba(76,103,207,0.07)' : 'rgba(255,255,255,0.04)',
+        borderColor: focused ? colors.accentFocusBorder : colors.white08,
+        backgroundColor: focused ? colors.accentFocusBg : colors.white04,
       }}
     >
       {icon}
       <TextInput
-        placeholderTextColor="rgba(255,255,255,0.2)"
+        placeholderTextColor={colors.white20}
         onFocus={(e) => {
           setFocused(true);
           rest.onFocus?.(e);

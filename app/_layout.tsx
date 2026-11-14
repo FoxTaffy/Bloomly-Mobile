@@ -18,6 +18,7 @@ import {
 import { useSession } from '../src/stores/session';
 import { wsClient } from '../src/lib/wsClient';
 import type { Conversation, Message } from '../src/types/api';
+import { colors } from '../src/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -120,7 +121,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#16192F' } }}>
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
             <Stack.Screen name="auth/callback" />
             <Stack.Protected guard={isAuthenticated}>
               <Stack.Screen name="(tabs)" />

@@ -4,6 +4,7 @@ import { Avatar } from './Avatar';
 import { timeAgo } from '../lib/time';
 import type { Conversation } from '../types/api';
 import { useSession } from '../stores/session';
+import { colors } from '../theme/tokens';
 
 export function ConversationRow({ conversation, onPress }: { conversation: Conversation; onPress: () => void }) {
   const myId = useSession((s) => s.user?.id);
@@ -34,7 +35,7 @@ export function ConversationRow({ conversation, onPress }: { conversation: Conve
         </View>
         <View className="mt-0.5 flex-row items-center justify-between">
           <View className="mr-2 flex-1 flex-row items-center gap-1">
-            {last?.type === 'voice' || last?.type === 'audio' ? <Mic size={12} color="#7C86AE" /> : null}
+            {last?.type === 'voice' || last?.type === 'audio' ? <Mic size={12} color={colors.mutedIcon} /> : null}
             <Text className="flex-1 text-sm text-brand-muted" numberOfLines={1}>
               {preview}
             </Text>

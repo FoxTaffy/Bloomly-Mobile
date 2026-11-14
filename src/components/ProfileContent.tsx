@@ -12,6 +12,7 @@ import { getOrCreateConversation } from '../api/messages';
 import { useSession } from '../stores/session';
 import { Avatar } from './Avatar';
 import { VerifiedBadge } from './VerifiedBadge';
+import { colors } from '../theme/tokens';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const GRID_GAP = 4;
@@ -82,7 +83,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
         <View className="mb-4">
           <View className="relative mb-14">
             <LinearGradient
-              colors={['#4C67CF', '#CD83F5']}
+              colors={[colors.accent, colors.purple]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{ height: 140, width: '100%' }}
@@ -94,18 +95,18 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
             <View className="absolute right-4 top-10 flex-row gap-2">
               {isOwn ? (
                 <Pressable onPress={() => logout()} className="h-9 w-9 items-center justify-center rounded-full bg-black/40">
-                  <LogOut size={16} color="#F9FAFD" />
+                  <LogOut size={16} color={colors.offwhite} />
                 </Pressable>
               ) : (
                 <Pressable className="h-9 w-9 items-center justify-center rounded-full bg-black/40">
-                  <Share2 size={16} color="#F9FAFD" />
+                  <Share2 size={16} color={colors.offwhite} />
                 </Pressable>
               )}
               <Pressable className="h-9 w-9 items-center justify-center rounded-full bg-black/40">
-                <Settings size={16} color="#F9FAFD" />
+                <Settings size={16} color={colors.offwhite} />
               </Pressable>
             </View>
-            <View className="absolute -bottom-10 left-4" style={{ borderRadius: 48, borderWidth: 4, borderColor: '#16192F' }}>
+            <View className="absolute -bottom-10 left-4" style={{ borderRadius: 48, borderWidth: 4, borderColor: colors.bg }}>
               <Avatar uri={profile.avatar_url} name={profile.display_name ?? profile.username} size={88} />
             </View>
             {!isOwn ? (
@@ -120,7 +121,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
                   onPress={() => followMutation.mutate()}
                   className="flex-row items-center gap-1.5 rounded-full bg-brand-accent px-4 py-2"
                 >
-                  {profile.is_following ? <UserCheck size={16} color="#F9FAFD" /> : <UserPlus size={16} color="#F9FAFD" />}
+                  {profile.is_following ? <UserCheck size={16} color={colors.offwhite} /> : <UserPlus size={16} color={colors.offwhite} />}
                   <Text className="font-bold text-brand-offwhite">
                     {profile.is_following ? 'Вы подписаны' : 'Подписаться'}
                   </Text>
@@ -149,7 +150,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
               <View className="mt-4 flex-row items-center gap-3 rounded-2xl border border-brand-border bg-brand-card p-3">
                 <View
                   className="h-9 w-9 rounded-lg"
-                  style={{ backgroundColor: profile.fursona_color ?? '#4C67CF' }}
+                  style={{ backgroundColor: profile.fursona_color ?? colors.accent }}
                 />
                 <View>
                   <Text className="text-xs font-semibold text-brand-muted">ФУРСОНА</Text>

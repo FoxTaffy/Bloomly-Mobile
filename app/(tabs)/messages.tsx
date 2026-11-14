@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react-native';
 import { fetchConversations } from '../../src/api/messages';
 import { ConversationRow } from '../../src/components/ConversationRow';
+import { colors } from '../../src/theme/tokens';
 
 export default function MessagesScreen() {
   const router = useRouter();
@@ -17,8 +18,8 @@ export default function MessagesScreen() {
       </View>
 
       <View className="mx-4 mb-2 mt-2 flex-row items-center gap-2 rounded-2xl border border-brand-border bg-brand-card px-4 py-3">
-        <Search size={16} color="#7C86AE" />
-        <TextInput placeholder="Поиск диалогов..." placeholderTextColor="#7C86AE" className="flex-1 text-brand-offwhite" />
+        <Search size={16} color={colors.mutedIcon} />
+        <TextInput placeholder="Поиск диалогов..." placeholderTextColor={colors.mutedIcon} className="flex-1 text-brand-offwhite" />
       </View>
 
       <FlatList
