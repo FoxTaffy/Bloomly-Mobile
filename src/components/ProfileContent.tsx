@@ -3,7 +3,7 @@ import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-nati
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Ban, Ellipsis, Lock, MessageCircle, Snowflake, UserCheck, UserPlus, UserX } from 'lucide-react-native';
+import { Ban, Ellipsis, Lock, MessageCircle, Settings, Snowflake, UserCheck, UserPlus, UserX } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { PostCard } from './PostCard';
 import { ReportSheet } from './ReportSheet';
@@ -107,6 +107,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
       followBusy={followMutation.isPending}
       onMessage={() => messageMutation.mutate(profile.id, { onSuccess: (conv) => router.push(`/messages/${conv.id}`) })}
       onMenu={() => setMenuOpen(true)}
+      onSettings={() => router.push('/settings')}
     />
   );
 
@@ -167,6 +168,7 @@ function ProfileHeader(props: {
   followBusy: boolean;
   onMessage: () => void;
   onMenu: () => void;
+  onSettings: () => void;
 }) {
   const { t, locale } = useT();
   const { profile, isOwn, blocked, tab, onTab } = props;
@@ -182,7 +184,13 @@ function ProfileHeader(props: {
         <View className="absolute -bottom-10 left-4" style={{ borderRadius: 48, borderWidth: 4, borderColor: colors.bg }}>
           <Avatar uri={profile.avatar_url} name={profile.display_name ?? profile.username} size={88} />
         </View>
-        {isOwn ? null : (
+        {isOwn ? (
+          <View className="absolute -bottom-11 right-4">
+            <Pressable onPress={props.onSettings} accessibilityRole="button" accessibilityLabel={t('settings')} hitSlop={6} className="h-10 w-10 items-center justify-center rounded-full bg-brand-card active:opacity-70">
+              <Settings size={18} color={colors.offwhite} />
+            </Pressable>
+          </View>
+        ) : (
           <View className="absolute -bottom-11 right-4 flex-row items-center gap-2">
             <Pressable onPress={props.onMenu} accessibilityRole="button" accessibilityLabel={t('mMore')} hitSlop={6} className="h-10 w-10 items-center justify-center rounded-full bg-brand-card active:opacity-70">
               <Ellipsis size={18} color={colors.offwhite} />

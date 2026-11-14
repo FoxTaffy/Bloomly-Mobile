@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { searchGroups } from '@/api/groups';
 import { searchPostsPage, searchTags } from '@/api/posts';
 import { searchUsers } from '@/api/users';
+import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { SEARCH_PAGE_SIZE } from '@/shared/feed';
 
 // Поиск постранично, как на вебе (views/SearchView.vue): есть ещё страница, если пришла полная.
@@ -20,7 +21,11 @@ function paged<T extends { id: string }>(key: string, q: string, load: (q: strin
 
 export const useSearchUsers = (q: string) => paged('users', q, searchUsers);
 export const useSearchGroups = (q: string) => paged('groups', q, searchGroups);
-export const useSearchPosts = (q: string) => paged('posts', q, searchPostsPage);
+/** Поиск постов учитывает режим NSFW (hide / blur / show) так же, как лента. */
+export function useSearchPosts(q: string) {
+  const { nsfwMode } = useNsfwMode();
+  return paged(`posts:${nsfwMode}`, q, (query, page) => searchPostsPage(query, page, nsfwMode));
+}
 
 export function useSearchTags(q: string) {
   return useQuery({ queryKey: ['search', 'tags', q], queryFn: () => searchTags(q), enabled: q.length > 0 });

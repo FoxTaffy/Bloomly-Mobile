@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/nunito';
 import { useSession } from '@/stores/session';
 import { useLang } from '@/stores/lang';
+import { useNsfwPreference } from '@/hooks/useNsfwMode';
 import { wsClient } from '@/lib/wsClient';
 import { AppStatusGate } from '@/components/AppStatusGate';
 import { usePushRegistration } from '@/hooks/usePushRegistration';
@@ -64,10 +65,16 @@ export default function RootLayout() {
 
   useEffect(() => {
     void useLang.getState().hydrate();
+    void useNsfwPreference.getState().hydrate();
     hydrate().finally(() => {
       if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
     });
   }, [hydrate, fontsLoaded]);
+
+  // Выход: кэш запросов принадлежит прошлому аккаунту, чужие данные не должны попасть в следующий вход
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) queryClient.clear();
+  }, [isHydrated, isAuthenticated]);
 
   // App-wide realtime chat sync — one shared connection, alive regardless of which
   // screen is open, so other logged-in devices (web, another phone) stay in sync.
@@ -157,6 +164,7 @@ export default function RootLayout() {
               <Stack.Screen name="events/[id]" />
               <Stack.Screen name="notifications" />
               <Stack.Screen name="post/[id]" />
+              <Stack.Screen name="settings" />
             </Stack.Protected>
             <Stack.Protected guard={!isAuthenticated}>
               <Stack.Screen name="(auth)" />

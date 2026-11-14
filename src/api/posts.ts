@@ -44,8 +44,8 @@ export function fetchExplorePage(opts: { sort: ExploreSort; period: ExplorePerio
   return getPostsPage(path, params);
 }
 
-export async function searchPostsPage(q: string, page: number): Promise<Post[]> {
-  const res = await api.get('/posts/search', { params: { q, limit: SEARCH_PAGE_SIZE, page, sort: 'relevance', synonyms: 'true' } });
+export async function searchPostsPage(q: string, page: number, nsfw: NsfwMode = 'hide'): Promise<Post[]> {
+  const res = await api.get('/posts/search', { params: { q, limit: SEARCH_PAGE_SIZE, page, sort: 'relevance', synonyms: 'true', nsfw } });
   return (res.data.data.posts ?? []) as Post[];
 }
 
