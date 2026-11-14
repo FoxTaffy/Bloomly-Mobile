@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { Link, useRouter } from 'expo-router';
 import { Heart, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
 import { Avatar } from './Avatar';
+import { ContentMenu } from './ContentMenu';
 import { Card } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { VerifiedBadge } from './VerifiedBadge';
@@ -67,6 +68,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
             <Text className="text-xs font-semibold text-brand-accent-minus">{t('mPinned')}</Text>
           </View>
         ) : null}
+        <ContentMenu report={{ type: 'post', id: post.id }} author={author ? { id: author.id, name: author.username } : null} />
       </View>
 
       {nsfwLocked ? (

@@ -1,6 +1,7 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ContentMenu } from '@/components/ContentMenu';
 import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
@@ -33,6 +34,9 @@ export default function GroupDetailScreen() {
           >
             <ChevronLeft size={18} color={colors.offwhite} />
           </Pressable>
+          <View className="absolute right-4 top-4 rounded-full bg-black/40">
+            <ContentMenu report={{ type: 'group', id: group.id }} />
+          </View>
         </View>
         <View className="p-4">
           <Text className="mb-1 text-2xl font-extrabold text-brand-offwhite">{group.name}</Text>

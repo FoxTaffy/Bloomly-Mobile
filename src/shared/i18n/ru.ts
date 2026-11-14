@@ -178,6 +178,7 @@ export const ru = {
   mReportDuplicate: "Вы уже отправляли жалобу на это — модераторы ещё не рассмотрели предыдущую.",
   mReportFailed: "Не удалось отправить жалобу. Попробуйте ещё раз.",
   mReportOtherPlaceholder: "Опишите причину",
+  mReportQuoteHeader: "— Цитата —",
   mReportRateLimited: "Слишком много жалоб подряд. Подождите немного и попробуйте снова.",
   mReportSentHint: "Модераторы рассмотрят её в ближайшее время",
   mRepost: "Репост",

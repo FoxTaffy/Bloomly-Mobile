@@ -17,7 +17,7 @@ const REASONS: { value: string; label: MessageKey }[] = [
   { value: 'other', label: 'mReasonOther' },
 ];
 
-export function ReportSheet({ visible, onClose, targetType, targetId }: { visible: boolean; onClose: () => void; targetType: ReportTarget; targetId: string }) {
+export function ReportSheet({ visible, onClose, targetType, targetId, evidence }: { visible: boolean; onClose: () => void; targetType: ReportTarget; targetId: string; /** Цитата для модераторов (текст сообщения или комментария), как evidence в ReportModal.vue. */ evidence?: string }) {
   const { t } = useT();
   const [reason, setReason] = useState<string | null>(null);
   const [extra, setExtra] = useState('');
@@ -34,7 +34,7 @@ export function ReportSheet({ visible, onClose, targetType, targetId }: { visibl
     if (!reason) return;
     const item = REASONS.find((r) => r.value === reason);
     const text = reason === 'other' ? extra.trim() || t('mReasonOther') : t(item!.label);
-    submit({ targetType, targetId, reason: text });
+    submit({ targetType, targetId, reason: evidence ? `${text}\n\n${t('mReportQuoteHeader')}\n${evidence.slice(0, 1000)}` : text });
   };
 
   return (
@@ -47,6 +47,7 @@ export function ReportSheet({ visible, onClose, targetType, targetId }: { visibl
         </View>
       ) : (
         <View>
+          {evidence ? <Text numberOfLines={3} className="mb-3 rounded-2xl border border-brand-border px-3 py-2 font-nunito text-xs text-brand-muted">{evidence}</Text> : null}
           <Text className="mb-2 font-nunito-bold text-xs text-brand-muted">{t('mReportChooseReason')}</Text>
           <View className="mb-3 flex-row flex-wrap gap-2">
             {REASONS.map((r) => (

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
+import { ContentMenu } from '@/components/ContentMenu';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { useTimeAgo } from '@/hooks/useTimeAgo';
 import type { Comment } from '@/shared/api-types';
@@ -22,6 +23,10 @@ function CommentBody({ comment, onReply, nested }: { comment: Comment; onReply?:
           <Text className="flex-shrink font-nunito-bold text-sm text-brand-offwhite" numberOfLines={1}>{name}</Text>
           {author?.is_verified ? <VerifiedBadge size={12} /> : null}
           <Text className="font-nunito text-xs text-brand-muted"> · {timeAgo(comment.created_at)}</Text>
+          <View className="flex-1 items-end">
+            {/* В бэкенде нет цели «comment»: жалоба уходит на автора (user) с цитатой комментария */}
+            {author ? <ContentMenu size={16} report={{ type: 'user', id: author.id, evidence: comment.content }} author={{ id: author.id, name: author.username }} /> : null}
+          </View>
         </View>
         <Text className="mt-0.5 font-nunito leading-5 text-brand-offwhite">{comment.content}</Text>
         {onReply ? (
