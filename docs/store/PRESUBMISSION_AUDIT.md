@@ -81,3 +81,30 @@
 | iOS, `NSMicrophoneUsageDescription` | отсутствует | «Bloomly использует микрофон для записи голосовых сообщений в чате.» |
 
 Камера в приложении снимает только фото, видео с камеры нет, поэтому отдельная формулировка про микрофон камеры не нужна: единственная причина использования микрофона — голосовые сообщения.
+
+## Находки 2–4 исправлены: лишние разрешения
+
+Изменения в `app.json`: у `expo-audio` `enableBackgroundPlayback: false`; у `expo-secure-store` `faceIDPermission: false`; `android.blockedPermissions: ["android.permission.SYSTEM_ALERT_WINDOW"]`. Проверка `expo prebuild --no-install` во временной копии.
+
+| Что | До | После |
+|---|---|---|
+| iOS `UIBackgroundModes` (`audio`) | есть | нет |
+| iOS `NSFaceIDUsageDescription` | английская строка по умолчанию | нет |
+| Android `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` | есть | нет |
+| Android `SYSTEM_ALERT_WINDOW` | есть | `tools:node="remove"` (вырезается при сборке) |
+| Android `MODIFY_AUDIO_SETTINGS` | есть | **оставлено намеренно** |
+| Android `RECORD_AUDIO`, `INTERNET`, `VIBRATE`, `READ/WRITE_EXTERNAL_STORAGE` (≤ Android 12) | есть | без изменений |
+
+**Почему `MODIFY_AUDIO_SETTINGS` оставлен.** Это обычное разрешение (без запроса у пользователя и без декларации в Play), а библиотека `expo-audio` обращается к нему при записи через Bluetooth-гарнитуру (`AudioRecorder.kt`: `audioManager.startBluetoothSco()`) и при выборе динамика. Блокировка могла бы тихо сломать запись с Bluetooth-микрофона, поэтому не блокировалось. `VIBRATE` (обычное, из шаблона) тоже не трогал.
+
+**Что нужно каждой функции (итог):**
+
+| Функция | Android | iOS |
+|---|---|---|
+| Голосовые сообщения (запись) | `RECORD_AUDIO` в главном манифесте, `MODIFY_AUDIO_SETTINGS` | `NSMicrophoneUsageDescription` |
+| Камера (фото) | `CAMERA` из манифеста библиотеки `expo-image-picker` (добавляется при сборке Gradle) | `NSCameraUsageDescription` |
+| Галерея | `READ_EXTERNAL_STORAGE` до Android 12; с Android 13 системный выбор фото без разрешения | `NSPhotoLibraryUsageDescription` |
+| Push | `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED` из манифеста библиотеки `expo-notifications` (при сборке) | entitlement `aps-environment` (на месте) |
+| Ссылки | `intent-filter` с `autoVerify` | entitlement `applinks:bloomly.fun` (на месте) |
+
+Не проверено: итоговый merged-манифест (сборка Gradle не запускалась): `CAMERA`, `POST_NOTIFICATIONS` и `RECEIVE_BOOT_COMPLETED` подтверждены по манифестам библиотек, а не по готовой сборке. Блокируется только `SYSTEM_ALERT_WINDOW`, остальные библиотечные разрешения этим правилом не затрагиваются.

@@ -61,6 +61,9 @@
             "DEFAULT"
           ]
         }
+      ],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
     "web": {
@@ -70,7 +73,12 @@
     "plugins": [
       "expo-router",
       "expo-status-bar",
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       "expo-image",
       "expo-video",
       "expo-font",
@@ -86,7 +94,8 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Bloomly использует микрофон для записи голосовых сообщений в чате."
+          "microphonePermission": "Bloomly использует микрофон для записи голосовых сообщений в чате.",
+          "enableBackgroundPlayback": false
         }
       ],
       [
