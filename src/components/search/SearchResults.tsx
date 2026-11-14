@@ -9,13 +9,15 @@ import { Card, Chip, EmptyState, ErrorState, Skeleton } from '@/components/ui';
 import { useRepawPost, useVotePost } from '@/hooks/usePosts';
 import { useSearchGroups, useSearchPosts, useSearchTags, useSearchUsers } from '@/hooks/useSearch';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
+import type { MessageKey } from '@/shared/i18n';
 
 type Tab = 'posts' | 'people' | 'groups' | 'tags';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'posts', label: 'Посты' },
-  { id: 'people', label: 'Люди' },
-  { id: 'groups', label: 'Группы' },
-  { id: 'tags', label: 'Теги' },
+const TABS: { id: Tab; label: MessageKey }[] = [
+  { id: 'posts', label: 'postsTab' },
+  { id: 'people', label: 'headerSearchPeople' },
+  { id: 'groups', label: 'groups' },
+  { id: 'tags', label: 'headerSearchTags' },
 ];
 
 interface Props {
@@ -25,12 +27,14 @@ interface Props {
 }
 
 function Placeholder({ loading, error, onRetry, emptyHint }: { loading: boolean; error: boolean; onRetry: () => void; emptyHint: string }) {
+  const { t } = useT();
   if (loading) return <View className="gap-3"><Skeleton height={64} /><Skeleton height={64} /><Skeleton height={64} /></View>;
   if (error) return <ErrorState onRetry={onRetry} />;
-  return <EmptyState title="Ничего не найдено" hint={emptyHint} />;
+  return <EmptyState title={t('convNothingFound')} hint={emptyHint} />;
 }
 
 export function SearchResults({ query, onPickTag }: Props) {
+  const { t } = useT();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('posts');
   const posts = useSearchPosts(query);
@@ -42,8 +46,8 @@ export function SearchResults({ query, onPickTag }: Props) {
 
   const header = (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 px-4 pb-3" keyboardShouldPersistTaps="handled">
-      {TABS.map((t) => (
-        <Chip key={t.id} label={t.label} selected={tab === t.id} onPress={() => setTab(t.id)} />
+      {TABS.map((x) => (
+        <Chip key={x.id} label={t(x.label)} selected={tab === x.id} onPress={() => setTab(x.id)} />
       ))}
     </ScrollView>
   );
@@ -63,7 +67,7 @@ export function SearchResults({ query, onPickTag }: Props) {
           keyExtractor={(p) => p.id}
           onEndReached={more(posts)}
           renderItem={({ item }) => <PostCard post={item} onVote={(value) => vote.mutate({ id: item.id, value })} onRepaw={() => repaw.mutate(item.id)} />}
-          ListEmptyComponent={<Placeholder loading={posts.isLoading} error={posts.isError} onRetry={() => posts.refetch()} emptyHint="Попробуйте другой запрос." />}
+          ListEmptyComponent={<Placeholder loading={posts.isLoading} error={posts.isError} onRetry={() => posts.refetch()} emptyHint={t('mTryOtherQuery')} />}
         />
       ) : tab === 'people' ? (
         <FlatList
@@ -72,7 +76,7 @@ export function SearchResults({ query, onPickTag }: Props) {
           keyExtractor={(u) => u.id}
           onEndReached={more(users)}
           renderItem={({ item }) => <UserRow user={item} />}
-          ListEmptyComponent={<Placeholder loading={users.isLoading} error={users.isError} onRetry={() => users.refetch()} emptyHint="Людей с таким именем нет." />}
+          ListEmptyComponent={<Placeholder loading={users.isLoading} error={users.isError} onRetry={() => users.refetch()} emptyHint={t('mNoPeopleFound')} />}
         />
       ) : tab === 'groups' ? (
         <FlatList
@@ -81,7 +85,7 @@ export function SearchResults({ query, onPickTag }: Props) {
           keyExtractor={(g) => g.id}
           onEndReached={more(groups)}
           renderItem={({ item }) => <GroupRow group={item} onPress={() => router.push(`/groups/${item.id}`)} />}
-          ListEmptyComponent={<Placeholder loading={groups.isLoading} error={groups.isError} onRetry={() => groups.refetch()} emptyHint="Групп с таким названием нет." />}
+          ListEmptyComponent={<Placeholder loading={groups.isLoading} error={groups.isError} onRetry={() => groups.refetch()} emptyHint={t('mNoGroupsFound')} />}
         />
       ) : (
         <FlatList
@@ -94,10 +98,10 @@ export function SearchResults({ query, onPickTag }: Props) {
                 <Hash size={16} color={colors.accent} />
                 <Text className="font-nunito-bold text-brand-offwhite">{item.name}</Text>
               </View>
-              <Text className="font-nunito text-xs text-brand-muted">{item.count} постов</Text>
+              <Text className="font-nunito text-xs text-brand-muted">{item.count} {t('mPostsLabel')}</Text>
             </Card>
           )}
-          ListEmptyComponent={<Placeholder loading={tags.isLoading} error={tags.isError} onRetry={() => tags.refetch()} emptyHint="Таких тегов нет." />}
+          ListEmptyComponent={<Placeholder loading={tags.isLoading} error={tags.isError} onRetry={() => tags.refetch()} emptyHint={t('mNoTagsFound')} />}
         />
       )}
     </View>

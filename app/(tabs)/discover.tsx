@@ -6,9 +6,11 @@ import { SearchResults } from '@/components/search/SearchResults';
 import { Field, Screen } from '@/components/ui';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 /** Вкладка «Поиск»: пока строка пуста — обзор (/explore на вебе), иначе результаты поиска (/search). */
 export default function DiscoverScreen() {
+  const { t } = useT();
   const [text, setText] = useState('');
   const [tag, setTag] = useState('');
   const query = useDebouncedValue(text.trim(), 300);
@@ -17,11 +19,11 @@ export default function DiscoverScreen() {
   return (
     <Screen>
       <View className="px-4 py-2">
-        <Text className="mb-3 font-nunito-extrabold text-2xl text-brand-offwhite">Поиск</Text>
+        <Text className="mb-3 font-nunito-extrabold text-2xl text-brand-offwhite">{t('mSearchTitle')}</Text>
         <Field
           value={text}
           onChangeText={setText}
-          placeholder="Найти людей, группы, теги, посты"
+          placeholder={t('mSearchPlaceholder')}
           icon={<Search size={18} color={colors.mutedIcon} />}
           returnKeyType="search"
           autoCapitalize="none"

@@ -11,8 +11,10 @@ import { Avatar } from '@/components/Avatar';
 import { useSession } from '@/stores/session';
 import type { Post } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export default function FeedScreen() {
+  const { t } = useT();
   const user = useSession((s) => s.user);
   const [draft, setDraft] = useState('');
 
@@ -78,7 +80,7 @@ export default function FeedScreen() {
               <TextInput
                 value={draft}
                 onChangeText={setDraft}
-                placeholder="Что у вас нового?"
+                placeholder={t('whatsNew')}
                 placeholderTextColor={colors.mutedIcon}
                 className="flex-1 text-brand-offwhite"
                 multiline
@@ -92,7 +94,7 @@ export default function FeedScreen() {
                   className="rounded-full bg-brand-accent px-3 py-1.5"
                 >
                   <Text className="text-xs font-bold text-brand-offwhite">
-                    {postMutation.isPending ? '...' : 'Опубликовать'}
+                    {postMutation.isPending ? '...' : t('publish')}
                   </Text>
                 </Pressable>
               ) : (
@@ -117,7 +119,7 @@ export default function FeedScreen() {
           ) : feedQuery.isError ? (
             <ErrorState onRetry={() => feedQuery.refetch()} />
           ) : (
-            <EmptyState title="Пока пусто" hint="Подпишитесь на кого-нибудь, и посты появятся здесь." />
+            <EmptyState title={t('mEmpty')} hint={t('mFeedEmptyHint')} />
           )
         }
         ListFooterComponent={feedQuery.isFetchingNextPage ? <Skeleton height={80} className="mt-2" /> : null}

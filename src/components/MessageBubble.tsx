@@ -2,8 +2,10 @@ import { View, Text } from 'react-native';
 import { Mic, Lock } from 'lucide-react-native';
 import type { Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export function MessageBubble({ message, isMine }: { message: Message; isMine: boolean }) {
+  const { t } = useT();
   const isVoice = message.type === 'voice' || message.type === 'audio';
   const isEncryptedPlaceholder = !!message.encrypted_text && !message.text;
 
@@ -15,12 +17,12 @@ export function MessageBubble({ message, isMine }: { message: Message; isMine: b
         {isVoice ? (
           <View className="flex-row items-center gap-2">
             <Mic size={16} color={isMine ? colors.offwhite : colors.accentMinus} />
-            <Text className={isMine ? 'text-brand-offwhite' : 'text-brand-offwhite'}>Голосовое сообщение</Text>
+            <Text className={isMine ? 'text-brand-offwhite' : 'text-brand-offwhite'}>{t('chatVoiceMessageTitle')}</Text>
           </View>
         ) : isEncryptedPlaceholder ? (
           <View className="flex-row items-center gap-2">
             <Lock size={14} color={isMine ? colors.offwhite : colors.accentMinus} />
-            <Text className="italic text-brand-offwhite">Зашифрованное сообщение</Text>
+            <Text className="italic text-brand-offwhite">{t('mEncryptedMessage')}</Text>
           </View>
         ) : (
           <Text className="text-brand-offwhite">{message.text}</Text>

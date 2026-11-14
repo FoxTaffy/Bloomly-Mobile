@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
 import type { Story } from '@/shared/api-types';
+import { useT } from '@/hooks/useT';
 
 export function StoryRing({ story, onPress }: { story: Story; onPress?: () => void }) {
   return (
@@ -14,12 +15,13 @@ export function StoryRing({ story, onPress }: { story: Story; onPress?: () => vo
 }
 
 export function AddStoryButton({ onPress }: { onPress?: () => void }) {
+  const { t } = useT();
   return (
     <Pressable onPress={onPress} className="items-center gap-1.5" style={{ width: 68 }}>
       <View className="h-[60px] w-[60px] items-center justify-center rounded-full border-2 border-dashed border-brand-muted">
         <Text className="text-2xl text-brand-muted">+</Text>
       </View>
-      <Text className="text-xs text-brand-muted">История</Text>
+      <Text className="text-xs text-brand-muted">{t('story')}</Text>
     </Pressable>
   );
 }

@@ -19,12 +19,14 @@ import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthButton } from '@/components/auth/AuthButton';
 import { YandexIcon, GoogleIcon, XIcon, TwitchIcon } from '@/components/auth/OAuthIcons';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 type Mode = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 
 const ICON_COLOR = colors.white35;
 
 export default function AuthScreen() {
+  const { t } = useT();
   const login = useSession((s) => s.login);
   const register = useSession((s) => s.register);
   const verifyEmail = useSession((s) => s.verifyEmail);
@@ -80,8 +82,8 @@ export default function AuthScreen() {
   const pwLabel = !activePassword
     ? ''
     : activePassword.length < 8
-      ? 'Минимум 8 символов'
-      : ['', 'Слабый', 'Средний', 'Хороший', 'Отличный'][pwStrength];
+      ? t('loginPasswordMinLength')
+      : ['', t('loginPwWeak'), t('loginPwMedium'), t('loginPwGood'), t('loginPwExcellent')][pwStrength];
   const pwColor =
     activePassword && activePassword.length < 8
       ? colors.error
@@ -124,7 +126,7 @@ export default function AuthScreen() {
         setResendCountdown(60);
         resendOtp(email.trim(), 'register').catch(() => {});
       } else {
-        setError(e?.response?.data?.error?.message ?? 'Что-то пошло не так');
+        setError(e?.response?.data?.error?.message ?? t('mSomethingWrong'));
       }
     } finally {
       setLoading(false);
@@ -136,7 +138,7 @@ export default function AuthScreen() {
     setError(null);
     try {
       const result = await loginWithOAuth(provider);
-      if (result === 'error') setError('Не удалось войти через соцсеть. Попробуй ещё раз.');
+      if (result === 'error') setError(t('loginOauthFailed'));
     } finally {
       setOauthLoading(null);
     }
@@ -144,36 +146,36 @@ export default function AuthScreen() {
 
   const heading =
     mode === 'login'
-      ? 'С возвращением 👋'
+      ? t('loginHeading')
       : mode === 'register'
-        ? 'Добро пожаловать 🌸'
+        ? t('mRegisterHeading')
         : mode === 'verify'
-          ? 'Подтверди email 📧'
+          ? t('loginVerifyHeading')
           : mode === 'forgot'
-            ? 'Сброс пароля 🔑'
-            : 'Новый пароль 🛡️';
+            ? t('loginForgotHeading')
+            : t('loginResetHeading');
 
   const subtitle =
     mode === 'login'
-      ? 'Войди, чтобы продолжить — твоя лента ждёт.'
+      ? t('loginSubheading')
       : mode === 'register'
-        ? 'Минута регистрации — и ты уже часть сообщества.'
+        ? t('loginRegisterSubheading')
         : mode === 'verify'
-          ? `Мы отправили 6-значный код на ${email || 'твою почту'}.`
+          ? t('mCodeSentToMail', { email: email || t('loginYourEmailFallback') })
           : mode === 'forgot'
-            ? 'Введи email — мы отправим код для восстановления.'
-            : 'Введи код из письма и придумай новый пароль.';
+            ? t('loginForgotSubheading')
+            : t('loginResetSubheading');
 
   const submitLabel =
     mode === 'login'
-      ? 'Войти'
+      ? t('submitLogin')
       : mode === 'register'
-        ? 'Создать аккаунт'
+        ? t('submitRegister')
         : mode === 'verify'
-          ? 'Подтвердить email'
+          ? t('loginConfirmEmailBtn')
           : mode === 'forgot'
-            ? 'Отправить код'
-            : 'Сменить пароль';
+            ? t('sendCodeBtn')
+            : t('changePasswordBtn');
 
   return (
     <View className="flex-1">
@@ -209,8 +211,8 @@ export default function AuthScreen() {
                     value={mode}
                     onChange={(v) => switchMode(v as Mode)}
                     options={[
-                      { key: 'login', label: 'Вход' },
-                      { key: 'register', label: 'Регистрация' },
+                      { key: 'login', label: t('loginTab') },
+                      { key: 'register', label: t('registerTab') },
                     ]}
                   />
                 </View>
@@ -218,7 +220,7 @@ export default function AuthScreen() {
                 <Pressable onPress={() => switchMode('login')} className="mb-4 -mt-1 flex-row items-center gap-1.5">
                   <ChevronLeft size={14} color={colors.white35} />
                   <Text className="font-nunito-semibold text-xs text-white/35">
-                    {mode === 'verify' ? 'Ввести другой email' : 'Вернуться к входу'}
+                    {mode === 'verify' ? t('loginChangeEmailBtn') : t('loginBackToLoginBtn')}
                   </Text>
                 </Pressable>
               )}
@@ -249,10 +251,10 @@ export default function AuthScreen() {
                     />
                     <Text className="mt-1.5 pl-1 font-nunito-semibold text-[11px] text-white/30">
                       {!username
-                        ? 'только a–z, 0–9, _ · минимум 3 символа'
+                        ? t('loginUsernameHint')
                         : username.length < 3
-                          ? `нужно ещё ${3 - username.length} симв.`
-                          : `будет: ${username}`}
+                          ? t('mUsernameNeedMore', { n: 3 - username.length })
+                          : t('mUsernameWillBe', { name: username })}
                     </Text>
                   </View>
                 ) : null}
@@ -276,7 +278,7 @@ export default function AuthScreen() {
 
                 {mode === 'login' ? (
                   <Pressable onPress={() => switchMode('forgot')} className="-mt-2 items-end">
-                    <Text className="font-nunito-bold text-xs text-white/35">Забыл пароль?</Text>
+                    <Text className="font-nunito-bold text-xs text-white/35">{t('forgotPassword')}</Text>
                   </Pressable>
                 ) : null}
 
@@ -284,7 +286,7 @@ export default function AuthScreen() {
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-1.5">
                       <Monitor size={13} color={colors.white35} />
-                      <Text className="font-nunito-semibold text-xs text-white/35">Запомнить это устройство</Text>
+                      <Text className="font-nunito-semibold text-xs text-white/35">{t('loginRememberDevice')}</Text>
                     </View>
                     <Switch value={remember} onValueChange={setRemember} trackColor={{ true: colors.accent, false: colors.white12 }} />
                   </View>
@@ -295,7 +297,7 @@ export default function AuthScreen() {
                     icon={<Key size={17} color={ICON_COLOR} />}
                     value={resetCode}
                     onChangeText={(v) => setResetCode(v.replace(/\D+/g, '').slice(0, 6))}
-                    placeholder="6-значный код"
+                    placeholder={t('loginSixDigitCodePlaceholder')}
                     keyboardType="number-pad"
                     style={{ textAlign: 'center', letterSpacing: 4 }}
                   />
@@ -309,7 +311,7 @@ export default function AuthScreen() {
                     >
                       <ShieldCheck size={16} color={colors.violet} />
                       <Text className="flex-1 font-nunito-semibold text-xs" style={{ color: colors.violet }}>
-                        Код отправлен на <Text className="text-white">{email}</Text>
+                        {t('mCodeSentToPrefix')}<Text className="text-white">{email}</Text>
                       </Text>
                     </View>
                     <AuthInput
@@ -322,7 +324,7 @@ export default function AuthScreen() {
                     />
                     <Pressable onPress={onResendOtp} disabled={resendCountdown > 0} className="items-end">
                       <Text className="font-nunito-bold text-xs" style={{ color: resendCountdown > 0 ? colors.white20 : colors.violet }}>
-                        {resendCountdown > 0 ? `Отправить повторно через ${resendCountdown}с` : 'Отправить код повторно'}
+                        {resendCountdown > 0 ? t('mResendIn', { n: resendCountdown }) : t('loginResendCode')}
                       </Text>
                     </Pressable>
                   </View>
@@ -333,7 +335,7 @@ export default function AuthScreen() {
                     icon={<Lock size={17} color={ICON_COLOR} />}
                     value={newPassword}
                     onChangeText={setNewPassword}
-                    placeholder="Новый пароль"
+                    placeholder={t('newPasswordLabel')}
                     secureTextEntry={!showNewPass}
                     autoComplete="new-password"
                     rightElement={
@@ -381,7 +383,7 @@ export default function AuthScreen() {
                   <View className="mb-4 flex-row items-center gap-3">
                     <View className="h-px flex-1 bg-white/[0.08]" />
                     <Text className="font-nunito-bold text-[11px] uppercase tracking-widest text-white/25">
-                      или войти через
+                      {t('loginOrContinueWith')}
                     </Text>
                     <View className="h-px flex-1 bg-white/[0.08]" />
                   </View>
@@ -393,7 +395,7 @@ export default function AuthScreen() {
                     style={{ backgroundColor: colors.yandex, opacity: oauthLoading && oauthLoading !== 'yandex' ? 0.5 : 1 }}
                   >
                     <YandexIcon size={18} />
-                    <Text className="font-nunito-extrabold text-sm text-white">Войти через Яндекс</Text>
+                    <Text className="font-nunito-extrabold text-sm text-white">{t('mLoginYandex')}</Text>
                   </Pressable>
 
                   <View className="flex-row gap-2">
@@ -429,7 +431,7 @@ export default function AuthScreen() {
               ) : null}
 
               <Text className="mt-6 text-center font-nunito-semibold text-xs leading-relaxed text-white/20">
-                Нажимая кнопку, ты принимаешь Условия и Политику
+                {t('mTermsConsent')}
               </Text>
             </AuthCard>
           </ScrollView>

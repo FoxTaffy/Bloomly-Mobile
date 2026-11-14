@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
-import { timeAgo } from '@/lib/time';
+import { useTimeAgo } from '@/hooks/useTimeAgo';
 import type { Comment } from '@/shared/api-types';
+import { useT } from '@/hooks/useT';
 
 // Как на вебе (PostComments.vue): сначала две реплики, остальные по кнопке.
 const REPLIES_PREVIEW = 2;
 
 function CommentBody({ comment, onReply, nested }: { comment: Comment; onReply?: (c: Comment) => void; nested?: boolean }) {
+  const timeAgo = useTimeAgo();
+  const { t } = useT();
   const author = comment.author;
   const name = comment.group?.name ?? author?.display_name ?? author?.username ?? 'Bloomly';
   return (
@@ -23,7 +26,7 @@ function CommentBody({ comment, onReply, nested }: { comment: Comment; onReply?:
         <Text className="mt-0.5 font-nunito leading-5 text-brand-offwhite">{comment.content}</Text>
         {onReply ? (
           <Pressable onPress={() => onReply(comment)} hitSlop={8} accessibilityRole="button" className="mt-1 self-start active:opacity-60">
-            <Text className="font-nunito-bold text-xs text-brand-muted">Ответить</Text>
+            <Text className="font-nunito-bold text-xs text-brand-muted">{t('reply')}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -32,6 +35,7 @@ function CommentBody({ comment, onReply, nested }: { comment: Comment; onReply?:
 }
 
 export function CommentItem({ comment, onReply }: { comment: Comment; onReply?: (c: Comment) => void }) {
+  const { t } = useT();
   const [expanded, setExpanded] = useState(false);
   const replies = comment.replies ?? [];
   const shown = expanded ? replies : replies.slice(0, REPLIES_PREVIEW);
@@ -47,7 +51,7 @@ export function CommentItem({ comment, onReply }: { comment: Comment; onReply?: 
           {replies.length > REPLIES_PREVIEW ? (
             <Pressable onPress={() => setExpanded((v) => !v)} hitSlop={8} className="mt-2 self-start active:opacity-60">
               <Text className="font-nunito-bold text-xs text-brand-accent-minus">
-                {expanded ? 'Скрыть ответы' : `Ещё ответов: ${replies.length - REPLIES_PREVIEW}`}
+                {expanded ? t('commentsCollapseReplies') : t('commentsMoreReplies', { n: replies.length - REPLIES_PREVIEW })}
               </Text>
             </Pressable>
           ) : null}

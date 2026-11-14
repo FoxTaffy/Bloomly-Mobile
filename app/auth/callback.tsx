@@ -3,8 +3,10 @@ import { View, Text, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export default function OAuthCallbackScreen() {
+  const { t } = useT();
   const { token, refreshToken } = useLocalSearchParams<{ token?: string; refreshToken?: string }>();
   const router = useRouter();
   const loginWithToken = useSession((s) => s.loginWithToken);
@@ -26,7 +28,7 @@ export default function OAuthCallbackScreen() {
     <View className="flex-1 items-center justify-center gap-4 bg-brand-bg">
       <Image source={require('../../assets/bloomly-logo.png')} style={{ width: 48, height: 48, opacity: 0.7 }} />
       <ActivityIndicator color={colors.accent} />
-      <Text className="text-sm font-medium text-brand-muted">Входим через OAuth…</Text>
+      <Text className="text-sm font-medium text-brand-muted">{t('mOauthSigningIn')}</Text>
     </View>
   );
 }

@@ -6,12 +6,15 @@ import { Chip, EmptyState, ErrorState, Skeleton } from '@/components/ui';
 import { useExplorePosts, useTrendingTags, useVotePost, useRepawPost } from '@/hooks/usePosts';
 import { EXPLORE_PERIODS, type ExplorePeriod, type ExploreSort } from '@/shared/feed';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
+import type { MessageKey } from '@/shared/i18n';
 
-const SORT_LABEL: Record<ExploreSort, string> = { hot: 'Актуальное', new: 'Новое' };
-const PERIOD_LABEL: Record<ExplorePeriod, string> = { day: 'Сутки', week: 'Неделя', month: 'Месяц', all: 'Всё время' };
+const SORT_KEY: Record<ExploreSort, MessageKey> = { hot: 'trending', new: 'exploreSortNew' };
+const PERIOD_KEY: Record<ExplorePeriod, MessageKey> = { day: 'mPeriodDay', week: 'mPeriodWeek', month: 'mPeriodMonth', all: 'explorePeriodAll' };
 
 /** Обзор (web: views/ExploreView.vue + composables/useExploreFeed.ts): тренды, сортировка, период, тег. */
 export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (tag: string) => void }) {
+  const { t } = useT();
   const [sort, setSort] = useState<ExploreSort>('hot');
   const [period, setPeriod] = useState<ExplorePeriod>('all');
 
@@ -35,7 +38,7 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
         <View className="gap-3 pb-3">
           {(tags.data ?? []).length > 0 ? (
             <View>
-              <Text className="mb-2 font-nunito-bold text-xs text-brand-muted">В ТРЕНДЕ</Text>
+              <Text className="mb-2 font-nunito-bold text-xs text-brand-muted">{t('mTrendingCaps')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2" keyboardShouldPersistTaps="handled">
                 {(tags.data ?? []).map((t) => (
                   <Chip key={t.id} label={`#${t.name}`} selected={tag === t.name} onPress={() => onTagChange(tag === t.name ? '' : t.name)} />
@@ -44,14 +47,14 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
             </View>
           ) : null}
           <View className="flex-row flex-wrap items-center gap-2">
-            {(Object.keys(SORT_LABEL) as ExploreSort[]).map((s) => (
-              <Chip key={s} label={SORT_LABEL[s]} selected={sort === s} onPress={() => setSort(s)} />
+            {(Object.keys(SORT_KEY) as ExploreSort[]).map((s) => (
+              <Chip key={s} label={t(SORT_KEY[s])} selected={sort === s} onPress={() => setSort(s)} />
             ))}
           </View>
           {sort === 'hot' ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
               {EXPLORE_PERIODS.map((p) => (
-                <Chip key={p} label={PERIOD_LABEL[p]} selected={period === p} onPress={() => setPeriod(p)} />
+                <Chip key={p} label={t(PERIOD_KEY[p])} selected={period === p} onPress={() => setPeriod(p)} />
               ))}
             </ScrollView>
           ) : null}
@@ -75,7 +78,7 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
         ) : explore.isError ? (
           <ErrorState onRetry={() => explore.refetch()} />
         ) : (
-          <EmptyState title="Ничего не найдено" hint={tag ? 'По этому тегу пока нет постов.' : 'Постов с медиа пока нет.'} />
+          <EmptyState title={t('convNothingFound')} hint={tag ? t('mNoPostsForTag') : t('mNoMediaPostsHint')} />
         )
       }
       ListFooterComponent={explore.isFetchingNextPage ? <Skeleton height={80} className="mt-2" /> : null}

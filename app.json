@@ -53,7 +53,8 @@
           "color": "#4C67CF"
         }
       ],
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-localization"
     ]
   }
 }

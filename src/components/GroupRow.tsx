@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
 import { Card } from '@/components/ui';
 import type { Group } from '@/shared/api-types';
+import { useT } from '@/hooks/useT';
 
 export function GroupRow({
   group,
@@ -14,6 +15,7 @@ export function GroupRow({
   onAction?: () => void;
   onPress?: () => void;
 }) {
+  const { t, locale } = useT();
   return (
     <Card padding="sm" onPress={onPress} className="mb-3 flex-row items-center gap-3">
       <Avatar uri={group.avatar_url} name={group.name} size={48} />
@@ -21,7 +23,7 @@ export function GroupRow({
         <Text className="font-bold text-brand-offwhite" numberOfLines={1}>
           {group.name}
         </Text>
-        <Text className="text-xs text-brand-muted">{group.member_count.toLocaleString('ru-RU')} участников</Text>
+        <Text className="text-xs text-brand-muted">{group.member_count.toLocaleString(locale)} {t('membersCount')}</Text>
       </View>
       {actionLabel && onAction ? (
         <Pressable onPress={onAction} className="rounded-full bg-brand-accent-plus-plus px-4 py-2">

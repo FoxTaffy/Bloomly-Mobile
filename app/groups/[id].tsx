@@ -7,8 +7,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react-native';
 import { fetchGroup, joinGroup, leaveGroup } from '@/api/groups';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export default function GroupDetailScreen() {
+  const { t, locale } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -41,10 +43,10 @@ export default function GroupDetailScreen() {
         </View>
         <View className="p-4">
           <Text className="mb-1 text-2xl font-extrabold text-brand-offwhite">{group.name}</Text>
-          <Text className="mb-4 text-brand-muted">{group.member_count.toLocaleString('ru-RU')} участников</Text>
+          <Text className="mb-4 text-brand-muted">{group.member_count.toLocaleString(locale)} {t('membersCount')}</Text>
           {group.description ? <Text className="mb-4 leading-5 text-brand-offwhite">{group.description}</Text> : null}
           <Pressable onPress={() => joinMutation.mutate()} className="rounded-2xl bg-brand-accent py-3.5">
-            <Text className="text-center font-bold text-brand-offwhite">Вступить</Text>
+            <Text className="text-center font-bold text-brand-offwhite">{t('mJoinGroup')}</Text>
           </Pressable>
         </View>
       </ScrollView>

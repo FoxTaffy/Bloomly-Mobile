@@ -1,27 +1,30 @@
 import { Pressable, Text, View } from 'react-native';
 import { Mic } from 'lucide-react-native';
 import { Avatar } from './Avatar';
-import { timeAgo } from '@/lib/time';
+import { useTimeAgo } from '@/hooks/useTimeAgo';
 import type { Conversation } from '@/shared/api-types';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export function ConversationRow({ conversation, onPress }: { conversation: Conversation; onPress: () => void }) {
+  const timeAgo = useTimeAgo();
+  const { t } = useT();
   const myId = useSession((s) => s.user?.id);
   const other = conversation.is_group
     ? null
     : conversation.participants.find((p) => p.id !== myId) ?? conversation.participants[0];
 
-  const title = conversation.is_group ? conversation.name ?? 'Группа' : other?.display_name ?? other?.username ?? '—';
+  const title = conversation.is_group ? conversation.name ?? t('chatGroupFallbackName') : other?.display_name ?? other?.username ?? '—';
   const avatarUri = conversation.is_group ? conversation.avatar_url : other?.avatar_url;
   const last = conversation.last_message;
 
   const preview =
     last?.type === 'voice' || last?.type === 'audio'
-      ? '🎤 Голосовое'
+      ? t('voiceMessagePreview')
       : last?.encrypted_text && !last.text
-        ? '🔒 Зашифрованное сообщение'
-        : (last?.text ?? 'Нет сообщений');
+        ? t('encryptedMessagePreview')
+        : (last?.text ?? t('noMessages'));
 
   return (
     <Pressable onPress={onPress} className="flex-row items-center gap-3 border-b border-brand-border px-4 py-3">

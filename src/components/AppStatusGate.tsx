@@ -5,9 +5,11 @@ import { Button, EmptyState, Screen } from '@/components/ui';
 import { useAppStatus } from '@/stores/appStatus';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 /** Поверх всего приложения: режим обслуживания (503 MAINTENANCE) и замороженный аккаунт (403 ACCOUNT_FROZEN). */
 export function AppStatusGate() {
+  const { t } = useT();
   const queryClient = useQueryClient();
   const maintenance = useAppStatus((s) => s.maintenance);
   const frozenMessage = useAppStatus((s) => s.frozenMessage);
@@ -24,11 +26,11 @@ export function AppStatusGate() {
           {frozenMessage !== null ? (
             <EmptyState
               icon={<Snowflake size={36} color={colors.accentMinus} />}
-              title="Аккаунт заморожен"
-              hint={frozenMessage || 'Обратитесь в поддержку на сайте.'}
+              title={t('profileFrozenAccountBadgeTitle')}
+              hint={frozenMessage || t('mContactSupport')}
               action={
                 <Button
-                  title="Выйти"
+                  title={t('mLogout')}
                   variant="secondary"
                   onPress={async () => {
                     await logout();
@@ -40,11 +42,11 @@ export function AppStatusGate() {
           ) : (
             <EmptyState
               icon={<Wrench size={36} color={colors.accentMinus} />}
-              title="Платформа на обслуживании"
-              hint="Скоро всё заработает. Попробуйте чуть позже."
+              title={t('mMaintenanceTitle')}
+              hint={t('mMaintenanceHint')}
               action={
                 <Button
-                  title="Повторить"
+                  title={t('retryBtn')}
                   onPress={() => {
                     setMaintenance(false);
                     queryClient.invalidateQueries();

@@ -7,9 +7,10 @@ import { Avatar } from './Avatar';
 import { Card } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { VerifiedBadge } from './VerifiedBadge';
-import { timeAgo } from '@/lib/time';
+import { useTimeAgo } from '@/hooks/useTimeAgo';
 import type { Post, PostAuthor } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 // Feed list has px-4 (16+16) and the card has p-4 (16+16): media must fit inside both.
 const HORIZONTAL_SPACE = 64;
@@ -23,6 +24,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCardProps) {
+  const { t } = useT();
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const mediaWidth = screenWidth - HORIZONTAL_SPACE;
@@ -45,7 +47,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
   return (
     <Card
       className="mb-3"
-      {...(interactive ? { onPress: openPost, accessibilityRole: 'button' as const, accessibilityLabel: 'Открыть пост' } : {})}
+      {...(interactive ? { onPress: openPost, accessibilityRole: 'button' as const, accessibilityLabel: t('exploreOpenPost') } : {})}
     >
       <View className="mb-3 flex-row items-center justify-between">
         {author ? (
@@ -62,14 +64,14 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
         {post.is_announcement ? (
           <View className="ml-2 flex-row items-center gap-1 rounded-full bg-brand-accent-plus-plus px-2 py-1">
             <Pin size={12} color={colors.accentMinus} />
-            <Text className="text-xs font-semibold text-brand-accent-minus">Закреплён</Text>
+            <Text className="text-xs font-semibold text-brand-accent-minus">{t('mPinned')}</Text>
           </View>
         ) : null}
       </View>
 
       {nsfwLocked ? (
         <View className="mb-3 items-center rounded-2xl bg-brand-bg py-6">
-          <Text className="font-nunito-bold text-brand-muted">Контент 18+ скрыт</Text>
+          <Text className="font-nunito-bold text-brand-muted">{t('mNsfwHidden')}</Text>
         </View>
       ) : null}
 
@@ -114,7 +116,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
           onPress={() => onVote?.(liked ? 0 : 1)}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel={liked ? 'Убрать лайк' : 'Лайк'}
+          accessibilityLabel={liked ? t('mUnlike') : t('mLike')}
           className="flex-row items-center gap-1.5 active:opacity-60"
         >
           <Heart size={20} color={liked ? colors.error : colors.mutedIcon} fill={liked ? colors.error : 'transparent'} />
@@ -124,7 +126,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
           onPress={interactive ? openPost : undefined}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="Комментарии"
+          accessibilityLabel={t('comments')}
           className="flex-row items-center gap-1.5 active:opacity-60"
         >
           <MessageCircle size={20} color={colors.mutedIcon} />
@@ -134,7 +136,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
           onPress={onRepaw}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="Репост"
+          accessibilityLabel={t('mRepost')}
           className="flex-row items-center gap-1.5 active:opacity-60"
         >
           <Repeat2 size={20} color={colors.mutedIcon} />
@@ -154,6 +156,7 @@ function PostAuthorHeader({
   author: PostAuthor | null;
   groupContext?: { name: string };
 }) {
+  const timeAgo = useTimeAgo();
   return (
     <>
       <Avatar uri={author?.avatar_url} name={author?.display_name ?? author?.username} size={40} />

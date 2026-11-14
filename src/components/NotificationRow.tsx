@@ -1,20 +1,22 @@
 import { Pressable, Text, View } from 'react-native';
 import { Heart, MessageCircle, UserPlus, AtSign, Repeat2, Bell } from 'lucide-react-native';
 import { Avatar } from './Avatar';
-import { timeAgo } from '@/lib/time';
+import { useTimeAgo } from '@/hooks/useTimeAgo';
 import type { AppNotification } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
+import type { MessageKey } from '@/shared/i18n';
 
-const TYPE_SUFFIX: Record<string, string> = {
-  LIKE: 'оценил(а) твой пост',
-  REPAW: 'сделал(а) RePaw твоего поста',
-  COMMENT: 'прокомментировал(а) твой пост',
-  MENTION: 'упомянул(а) тебя',
-  FOLLOW: 'подписался(лась) на тебя',
-  FRIEND_REQUEST: 'хочет добавить тебя в друзья',
-  FRIEND_ACCEPT: 'принял(а) заявку в друзья',
-  RELATIONSHIP_REQUEST: 'хочет быть твоим партнёром',
-  RELATIONSHIP_ACCEPTED: 'принял(а) предложение',
+const TYPE_TEXT: Record<string, MessageKey> = {
+  LIKE: 'notifActLike',
+  REPAW: 'notifActRepaw',
+  COMMENT: 'notifActComment',
+  MENTION: 'notifActMention',
+  FOLLOW: 'notifActFollow',
+  FRIEND_REQUEST: 'notifFriendRequest',
+  FRIEND_ACCEPT: 'notifFriendAccept',
+  RELATIONSHIP_REQUEST: 'notifActRelReq',
+  RELATIONSHIP_ACCEPTED: 'notifActRelAccepted',
 };
 
 const TYPE_ICON: Record<string, any> = {
@@ -36,8 +38,11 @@ export function NotificationRow({
   onAccept?: () => void;
   onDecline?: () => void;
 }) {
-  const name = notification.sender?.display_name ?? notification.sender?.username ?? 'Кто-то';
-  const suffix = TYPE_SUFFIX[notification.type] ?? notification.type;
+  const { t } = useT();
+  const timeAgo = useTimeAgo();
+  const name = notification.sender?.display_name ?? notification.sender?.username ?? t('mSomeone');
+  const textKey = TYPE_TEXT[notification.type];
+  const suffix = textKey ? t(textKey) : notification.type;
   const Icon = TYPE_ICON[notification.type] ?? Bell;
   const isRelationshipRequest = notification.type === 'RELATIONSHIP_REQUEST';
 
@@ -57,10 +62,10 @@ export function NotificationRow({
         {isRelationshipRequest ? (
           <View className="mt-2 flex-row gap-2">
             <Pressable onPress={onAccept} className="rounded-full bg-brand-accent px-3 py-1.5">
-              <Text className="text-xs font-bold text-brand-offwhite">Принять</Text>
+              <Text className="text-xs font-bold text-brand-offwhite">{t('notifAccept')}</Text>
             </Pressable>
             <Pressable onPress={onDecline} className="rounded-full bg-brand-card px-3 py-1.5">
-              <Text className="text-xs font-bold text-brand-muted">Позже</Text>
+              <Text className="text-xs font-bold text-brand-muted">{t('verLater')}</Text>
             </Pressable>
           </View>
         ) : null}

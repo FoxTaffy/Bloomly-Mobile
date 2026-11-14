@@ -3,8 +3,10 @@ import { House, Compass, MessageCircle, Grid3x3 } from 'lucide-react-native';
 import { useSession } from '@/stores/session';
 import { Avatar } from '@/components/Avatar';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export default function TabsLayout() {
+  const { t } = useT();
   const user = useSession((s) => s.user);
 
   return (
@@ -19,24 +21,24 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="feed"
-        options={{ title: 'Главная', tabBarIcon: ({ color, size }) => <House color={color} size={size} /> }}
+        options={{ title: t('home'), tabBarIcon: ({ color, size }) => <House color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="discover"
-        options={{ title: 'Поиск', tabBarIcon: ({ color, size }) => <Compass color={color} size={size} /> }}
+        options={{ title: t('mSearchTitle'), tabBarIcon: ({ color, size }) => <Compass color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="messages"
-        options={{ title: 'Сообщения', tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} /> }}
+        options={{ title: t('messages'), tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="groups"
-        options={{ title: 'Группы', tabBarIcon: ({ color, size }) => <Grid3x3 color={color} size={size} /> }}
+        options={{ title: t('groups'), tabBarIcon: ({ color, size }) => <Grid3x3 color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Профиль',
+          title: t('profile'),
           tabBarIcon: ({ focused }) => (
             <Avatar uri={user?.avatar_url} name={user?.display_name ?? user?.username} size={28} ring={focused} />
           ),

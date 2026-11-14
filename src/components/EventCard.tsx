@@ -5,6 +5,7 @@ import { Star, Calendar } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import type { EventAttendee, GroupEvent } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export function EventCard({
   event,
@@ -19,6 +20,7 @@ export function EventCard({
   onRsvp: () => void;
   onPress?: () => void;
 }) {
+  const { t } = useT();
   const date = new Date(event.starts_at);
   const dateLabel = date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
   const timeLabel = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -32,7 +34,7 @@ export function EventCard({
           ) : null}
         </LinearGradient>
         <View className="absolute left-3 top-3 rounded-full bg-black/50 px-2.5 py-1">
-          <Text className="text-xs font-bold text-white">СОБЫТИЕ</Text>
+          <Text className="text-xs font-bold text-white">{t('mEventCaps')}</Text>
         </View>
         <View className="absolute right-3 top-3 flex-row items-center gap-1 rounded-full bg-black/50 px-2 py-1">
           <Star size={12} color={colors.yellow} fill={colors.yellow} />
@@ -55,14 +57,14 @@ export function EventCard({
               </View>
             ))}
             {event.attendee_count > 0 ? (
-              <Text className="ml-2 text-xs text-brand-muted">+{event.attendee_count} идут</Text>
+              <Text className="ml-2 text-xs text-brand-muted">{t('mAttendeesGoing', { n: event.attendee_count })}</Text>
             ) : null}
           </View>
           <Pressable
             onPress={onRsvp}
             className={`rounded-full px-4 py-2 ${going ? 'bg-brand-accent-plus-plus' : 'bg-brand-accent'}`}
           >
-            <Text className="font-bold text-brand-offwhite">{going ? 'Иду ✓' : 'Пойду'}</Text>
+            <Text className="font-bold text-brand-offwhite">{going ? t('mGoingDone') : t('groupDetailGoBtn')}</Text>
           </Pressable>
         </View>
       </View>

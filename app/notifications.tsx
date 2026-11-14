@@ -7,10 +7,12 @@ import { Screen } from '@/components/ui';
 import { useNotificationActions, useNotifications } from '@/hooks/useNotifications';
 import { NotificationRow } from '@/components/NotificationRow';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 const LAST_SEEN_KEY = 'bloomly_notifications_last_seen';
 
 export default function NotificationsScreen() {
+  const { t } = useT();
   const router = useRouter();
   const [lastSeen, setLastSeen] = useState<string | null>(null);
 
@@ -30,8 +32,8 @@ export default function NotificationsScreen() {
     const fresh = items.filter((n) => new Date(n.created_at).getTime() > cutoff);
     const seen = items.filter((n) => new Date(n.created_at).getTime() <= cutoff);
     return [
-      ...(fresh.length ? [{ title: 'НОВЫЕ', data: fresh }] : []),
-      ...(seen.length ? [{ title: 'ПРОСМОТРЕННЫЕ', data: seen }] : []),
+      ...(fresh.length ? [{ title: t('mNewCaps'), data: fresh }] : []),
+      ...(seen.length ? [{ title: t('mSeenCaps'), data: seen }] : []),
     ];
   }, [notificationsQuery.data, lastSeen]);
 
@@ -42,10 +44,10 @@ export default function NotificationsScreen() {
           <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
             <ChevronLeft size={18} color={colors.offwhite} />
           </Pressable>
-          <Text className="text-2xl font-extrabold text-brand-offwhite">Уведомления</Text>
+          <Text className="text-2xl font-extrabold text-brand-offwhite">{t('notificationsMenuItem')}</Text>
         </View>
         <Pressable onPress={() => markReadMutation.mutate()}>
-          <Text className="font-semibold text-brand-accent">Прочитать всё</Text>
+          <Text className="font-semibold text-brand-accent">{t('notifHeaderMarkAll')}</Text>
         </Pressable>
       </View>
 
@@ -63,7 +65,7 @@ export default function NotificationsScreen() {
           />
         )}
         ListEmptyComponent={
-          notificationsQuery.isLoading ? null : <Text className="mt-10 text-center text-brand-muted">Пока пусто</Text>
+          notificationsQuery.isLoading ? null : <Text className="mt-10 text-center text-brand-muted">{t('mEmpty')}</Text>
         }
       />
     </Screen>

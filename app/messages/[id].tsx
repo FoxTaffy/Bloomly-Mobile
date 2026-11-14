@@ -18,8 +18,10 @@ import { Avatar } from '@/components/Avatar';
 import { MessageBubble } from '@/components/MessageBubble';
 import type { Conversation, Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export default function ChatThreadScreen() {
+  const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -29,7 +31,7 @@ export default function ChatThreadScreen() {
 
   const conversation = queryClient.getQueryData<Conversation[]>(['conversations'])?.find((c) => c.id === id);
   const other = conversation && !conversation.is_group ? conversation.participants.find((p) => p.id !== myId) : null;
-  const title = conversation?.is_group ? conversation.name ?? 'Группа' : other?.display_name ?? other?.username ?? '...';
+  const title = conversation?.is_group ? conversation.name ?? t('chatGroupFallbackName') : other?.display_name ?? other?.username ?? '...';
 
   const messagesQuery = useQuery({
     queryKey: ['messages', id],
@@ -102,7 +104,7 @@ export default function ChatThreadScreen() {
           <Text className="font-bold text-brand-offwhite">{title}</Text>
           <View className="flex-row items-center gap-1">
             <Wifi size={10} color={connected ? colors.success : colors.mutedIcon} />
-            <Text className="text-xs text-brand-muted">{connected ? 'На связи' : 'Подключение...'}</Text>
+            <Text className="text-xs text-brand-muted">{connected ? t('mConnected') : t('mConnecting')}</Text>
           </View>
         </View>
       </View>
@@ -121,7 +123,7 @@ export default function ChatThreadScreen() {
           <TextInput
             value={draft}
             onChangeText={setDraft}
-            placeholder="Сообщение..."
+            placeholder={t('mMessagePlaceholder')}
             placeholderTextColor={colors.mutedIcon}
             className="flex-1 rounded-2xl border border-brand-border bg-brand-card px-4 py-2.5 text-brand-offwhite"
             multiline

@@ -16,6 +16,7 @@ import {
   Nunito_900Black,
 } from '@expo-google-fonts/nunito';
 import { useSession } from '@/stores/session';
+import { useLang } from '@/stores/lang';
 import { wsClient } from '@/lib/wsClient';
 import { AppStatusGate } from '@/components/AppStatusGate';
 import { usePushRegistration } from '@/hooks/usePushRegistration';
@@ -42,6 +43,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    void useLang.getState().hydrate();
     hydrate().finally(() => {
       if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
     });

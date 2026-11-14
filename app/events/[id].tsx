@@ -8,8 +8,10 @@ import { ChevronLeft, Calendar, MapPin } from 'lucide-react-native';
 import { fetchEvent, fetchEventAttendees, rsvpEvent } from '@/api/groups';
 import { Avatar } from '@/components/Avatar';
 import { colors } from '@/theme/tokens';
+import { useT } from '@/hooks/useT';
 
 export default function EventDetailScreen() {
+  const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -74,18 +76,18 @@ export default function EventDetailScreen() {
               onPress={() => rsvpMutation.mutate('going')}
               className="flex-1 rounded-2xl bg-brand-accent py-3.5"
             >
-              <Text className="text-center font-bold text-brand-offwhite">Пойду</Text>
+              <Text className="text-center font-bold text-brand-offwhite">{t('groupDetailGoBtn')}</Text>
             </Pressable>
             <Pressable
               onPress={() => rsvpMutation.mutate('maybe')}
               className="flex-1 rounded-2xl border border-brand-border bg-brand-card py-3.5"
             >
-              <Text className="text-center font-bold text-brand-offwhite">Может быть</Text>
+              <Text className="text-center font-bold text-brand-offwhite">{t('mMaybe')}</Text>
             </Pressable>
           </View>
 
           <Text className="mb-3 text-sm font-semibold text-brand-muted">
-            УЧАСТНИКИ · {event.attendee_count}
+            {t('mAttendeesCaps', { n: event.attendee_count })}
           </Text>
           <View className="flex-row flex-wrap gap-3">
             {(attendeesQuery.data ?? []).map((a) => (
