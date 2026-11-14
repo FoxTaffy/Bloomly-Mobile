@@ -4,6 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Hash } from 'lucide-react-native';
 import { PostCard } from '@/components/PostCard';
 import { Chip, EmptyState, ErrorState, Skeleton } from '@/components/ui';
+import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { useExplorePosts, useTrendingTags, useVotePost, useRepawPost } from '@/hooks/usePosts';
 import { EXPLORE_PERIODS, type ExplorePeriod, type ExploreSort } from '@/shared/feed';
 import { colors } from '@/theme/tokens';
@@ -25,9 +26,12 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
   const tags = useTrendingTags();
   const vote = useVotePost();
   const repaw = useRepawPost();
+  const viewable = useViewableIds();
 
   return (
+    <PostVisibilityProvider value={viewable.ids}>
     <FlashList
+      {...viewable.props}
       data={explore.posts}
       keyExtractor={(p) => p.id}
       contentContainerStyle={LIST_PADDING}
@@ -86,5 +90,6 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
       }
       ListFooterComponent={explore.isFetchingNextPage ? <Skeleton height={80} className="mt-2" /> : null}
     />
+    </PostVisibilityProvider>
   );
 }

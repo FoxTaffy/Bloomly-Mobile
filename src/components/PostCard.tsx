@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, NativeSyntheticEvent, NativeScrollEvent, useWindowDimensions } from 'react-native';
-import { Image } from 'expo-image';
+import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Heart, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { ContentMenu } from './ContentMenu';
+import { PostMedia } from '@/components/post/PostMedia';
 import { Card } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { VerifiedBadge } from './VerifiedBadge';
@@ -29,14 +28,9 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const mediaWidth = screenWidth - HORIZONTAL_SPACE;
-  const [page, setPage] = useState(0);
   const author = post.author;
   const groupContext = post.groupPosts?.[0]?.group;
   const liked = post.my_vote === 1;
-
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setPage(Math.round(e.nativeEvent.contentOffset.x / mediaWidth));
-  };
 
   const openPost = () => router.push(`/post/${post.id}`);
 
@@ -84,34 +78,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
         </Text>
       ) : null}
 
-      {!nsfwLocked && post.media_urls.length > 0 ? (
-        <View className="mb-3 overflow-hidden rounded-2xl">
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-          >
-            {post.media_urls.map((url) => (
-              <Image
-                key={url}
-                source={{ uri: url }}
-                style={{ width: mediaWidth, height: mediaWidth * 0.75 }}
-                contentFit="cover"
-                blurRadius={nsfwBlur ? 40 : 0}
-              />
-            ))}
-          </ScrollView>
-          {post.media_urls.length > 1 ? (
-            <View className="absolute bottom-2.5 left-0 right-0 flex-row justify-center gap-1.5">
-              {post.media_urls.map((url, i) => (
-                <View key={url} className={`h-1.5 rounded-full ${i === page ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`} />
-              ))}
-            </View>
-          ) : null}
-        </View>
-      ) : null}
+      {!nsfwLocked ? <PostMedia postId={post.id} urls={post.media_urls} width={mediaWidth} nsfwBlur={nsfwBlur} /> : null}
 
       <View className="flex-row items-center gap-7">
         <Pressable

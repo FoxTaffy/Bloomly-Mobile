@@ -3,17 +3,19 @@ import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-nati
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Ban, Ellipsis, Lock, MessageCircle, Settings, Snowflake, UserCheck, UserPlus, UserX } from 'lucide-react-native';
+import { Ban, Ellipsis, Lock, MessageCircle, Settings, Snowflake, UserCheck, UserPlus, UserX, Video } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { PostCard } from './PostCard';
 import { ReportSheet } from './ReportSheet';
 import { VerifiedBadge } from './VerifiedBadge';
 import { Button, Card, EmptyState, ErrorState, Sheet, Skeleton } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
+import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { useRepawPost, useVotePost } from '@/hooks/usePosts';
 import { useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
 import { isNotFound } from '@/shared/apiError';
+import { isVideoUrl, visualMedia } from '@/shared/media';
 import type { MessageKey } from '@/shared/i18n';
 import type { Post, UserProfile } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
@@ -45,6 +47,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
   const repaw = useRepawPost();
   const { nsfwMode } = useNsfwMode();
   const { width } = useWindowDimensions();
+  const viewable = useViewableIds();
 
   if (profileQuery.isLoading) {
     return (
@@ -113,7 +116,9 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
 
   return (
     <>
+      <PostVisibilityProvider value={viewable.ids}>
       <FlatList<Post>
+        {...viewable.props}
         key={media ? 'grid' : 'list'}
         data={postsQuery.data ?? []}
         keyExtractor={(p) => p.id}
@@ -130,6 +135,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
           )
         }
       />
+      </PostVisibilityProvider>
 
       {isOwn ? null : (
         <>
@@ -272,14 +278,20 @@ function ProfileHeader(props: {
 function MediaTile({ post, size, nsfwMode, onPress }: { post: Post; size: number; nsfwMode: string; onPress: () => void }) {
   const { t } = useT();
   const hidden = post.is_nsfw && nsfwMode === 'hide';
+  const first = visualMedia(post.media_urls)[0];
   return (
     <Pressable onPress={onPress} style={{ width: size, height: size }} accessibilityRole="button" accessibilityLabel={t('exploreOpenPost')} className="overflow-hidden rounded-lg bg-brand-card">
       {hidden ? (
         <View className="flex-1 items-center justify-center">
           <Text className="font-nunito-bold text-xs text-brand-muted">18+</Text>
         </View>
-      ) : post.media_urls[0] ? (
-        <Image source={{ uri: post.media_urls[0] }} style={{ width: '100%', height: '100%' }} contentFit="cover" blurRadius={post.is_nsfw && nsfwMode === 'blur' ? 30 : 0} />
+      ) : first && isVideoUrl(first) ? (
+        // Превью у видео нет: значок, само видео проигрывается на экране поста
+        <View className="flex-1 items-center justify-center">
+          <Video size={26} color={colors.mutedIcon} />
+        </View>
+      ) : first ? (
+        <Image source={{ uri: first }} style={{ width: '100%', height: '100%' }} contentFit="cover" blurRadius={post.is_nsfw && nsfwMode === 'blur' ? 30 : 0} />
       ) : (
         <View className="flex-1 items-center justify-center p-2">
           <Text numberOfLines={4} className="font-nunito text-xs text-brand-muted">{post.content}</Text>

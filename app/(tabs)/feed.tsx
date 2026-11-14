@@ -6,6 +6,7 @@ import { Flower2, Search, Bell, Hash } from 'lucide-react-native';
 import { EmptyState, ErrorState, Screen, Skeleton } from '@/components/ui';
 import { useCreatePost, useInfinitePosts, useRepawPost, useVotePost } from '@/hooks/usePosts';
 import { useStories } from '@/hooks/useStories';
+import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { PostCard } from '@/components/PostCard';
 import { StoryRing, AddStoryButton } from '@/components/StoryRing';
 import { Avatar } from '@/components/Avatar';
@@ -28,6 +29,7 @@ export default function FeedScreen() {
   const postMutation = useCreatePost();
 
   const posts = feedQuery.posts;
+  const viewable = useViewableIds();
 
   return (
     <Screen>
@@ -48,7 +50,9 @@ export default function FeedScreen() {
         </View>
       </View>
 
+      <PostVisibilityProvider value={viewable.ids}>
       <FlashList<Post>
+        {...viewable.props}
         data={posts}
         keyExtractor={(item) => item.id}
         contentContainerStyle={LIST_PADDING}
@@ -127,6 +131,7 @@ export default function FeedScreen() {
         }
         ListFooterComponent={feedQuery.isFetchingNextPage ? <Skeleton height={80} className="mt-2" /> : null}
       />
+      </PostVisibilityProvider>
     </Screen>
   );
 }

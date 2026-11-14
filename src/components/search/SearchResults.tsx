@@ -7,6 +7,7 @@ import { GroupRow } from '@/components/GroupRow';
 import { PostCard } from '@/components/PostCard';
 import { UserRow } from '@/components/UserRow';
 import { Card, Chip, EmptyState, ErrorState, Skeleton } from '@/components/ui';
+import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { useRepawPost, useVotePost } from '@/hooks/usePosts';
 import { useSearchGroups, useSearchPosts, useSearchTags, useSearchUsers } from '@/hooks/useSearch';
 import { colors } from '@/theme/tokens';
@@ -44,6 +45,7 @@ export function SearchResults({ query, onPickTag }: Props) {
   const tags = useSearchTags(query);
   const vote = useVotePost();
   const repaw = useRepawPost();
+  const viewable = useViewableIds();
 
   const header = (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 px-4 pb-3" keyboardShouldPersistTaps="handled">
@@ -62,14 +64,17 @@ export function SearchResults({ query, onPickTag }: Props) {
     <View className="flex-1">
       {header}
       {tab === 'posts' ? (
+        <PostVisibilityProvider value={viewable.ids}>
         <FlashList
           {...common}
+          {...viewable.props}
           data={posts.items}
           keyExtractor={(p) => p.id}
           onEndReached={more(posts)}
           renderItem={({ item }) => <PostCard post={item} onVote={(value) => vote.mutate({ id: item.id, value })} onRepaw={() => repaw.mutate(item.id)} />}
           ListEmptyComponent={<Placeholder loading={posts.isLoading} error={posts.isError} onRetry={() => posts.refetch()} emptyHint={t('mTryOtherQuery')} />}
         />
+        </PostVisibilityProvider>
       ) : tab === 'people' ? (
         <FlashList
           {...common}
