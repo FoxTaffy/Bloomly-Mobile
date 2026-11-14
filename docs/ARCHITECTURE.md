@@ -7,7 +7,7 @@
 
 | Платформа | Что учитываем |
 |---|---|
-| iOS (iPhone, iPad) | `supportsTablet: true`, динамический остров и home-индикатор через safe-area insets, ATS (только https), Keychain для токенов |
+| iOS (iPhone; iPad в режиме совместимости) | `supportsTablet: false`, динамический остров и home-индикатор через safe-area insets, ATS (только https), Keychain для токенов |
 | Android (общий) | adaptive icon, жест «назад» (`predictiveBackGestureEnabled`), `softwareKeyboardLayoutMode: resize`, Keystore для токенов, минимум разрешений |
 | Google Pixel | Android 15+ рисует приложение edge-to-edge: отступы только из `useSafeAreaInsets` (компонент `Screen`), жестовая навигация, вырез камеры, Pixel Fold и планшет — классы ширины `medium`/`expanded` (`useWindowClass`) |
 

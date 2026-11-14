@@ -12,7 +12,7 @@
       "typedRoutes": true
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "app.bloomly.mobile",
       "associatedDomains": [
         "applinks:bloomly.fun"
