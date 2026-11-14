@@ -16,9 +16,13 @@
 | Usage Data | Product Interaction | просмотры постов, оценки, подписки (лента «Для вас») | Product Personalization, App Functionality |
 | Other Data | Other Data Types | дата рождения, email родителя (13–15 лет), отметки согласий, симпатии профиля | App Functionality (проверка возраста, соблюдение закона) |
 
+## Если сборка уходит с включённым Sentry (задан `EXPO_PUBLIC_SENTRY_DSN`)
+
+Добавить строку: **Diagnostics → Crash Data** (и «Other Diagnostic Data», если выбранные поля этого требуют: модель устройства, версия ОС, версия приложения, цепочка экранов). **Not Linked to You**: пользователь в событиях не задан, токены, почта и id вычищены (`src/shared/scrub.ts`). Цель: App Functionality. Tracking: нет. Performance Data не собирается (трассировки выключены). Без DSN строка не нужна: SDK ничего не отправляет.
+
 ## Не собираются
 
-Location, Contacts, Health & Fitness, Financial Info, Browsing History, Search History, Diagnostics (crash и performance), Purchases (покупок в приложении нет), Advertising Data, Sensitive Info как отдельная категория.
+Location, Contacts, Health & Fitness, Financial Info, Browsing History, Search History, Performance Data, Purchases (покупок в приложении нет), Advertising Data, Sensitive Info как отдельная категория.
 
 ## Оговорки
 

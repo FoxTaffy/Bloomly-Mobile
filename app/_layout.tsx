@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/nunito';
 import { useSession } from '@/stores/session';
 import { useLang } from '@/stores/lang';
+import { initMonitoring, withMonitoring } from '@/lib/monitoring';
 import { useNsfwPreference } from '@/hooks/useNsfwMode';
 import { wsClient } from '@/lib/wsClient';
 import { AppStatusGate } from '@/components/AppStatusGate';
@@ -27,6 +28,7 @@ import { syncOnResume } from '@/lib/chatSync';
 import type { Conversation, Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
+initMonitoring();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient({
@@ -39,7 +41,7 @@ function PushNavigator() {
   return null;
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const hydrate = useSession((s) => s.hydrate);
   const isHydrated = useSession((s) => s.isHydrated);
   const isAuthenticated = useSession((s) => s.isAuthenticated);
@@ -184,3 +186,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default withMonitoring(RootLayout);
