@@ -1,12 +1,22 @@
+const OWN_HOSTS = ['bloomly.fun', 'www.bloomly.fun'];
+
 /**
  * Путь веба (адрес из push `data.url` или ссылка bloomly.fun) → маршрут мобильного приложения; null — открыть нельзя.
- * Пока приложение v1 без универсальных ссылок: используется для нажатия на push.
+ * Используется для нажатия на push и для универсальных ссылок (app/+native-intent.tsx).
  */
 export function webPathToRoute(url: string | null | undefined): string | null {
   if (!url) return null;
   let path = url;
   try {
-    if (/^https?:\/\//.test(url)) path = new URL(url).pathname + new URL(url).search;
+    if (/^https?:\/\//.test(url)) {
+      const u = new URL(url);
+      // Только свой сайт: чужой адрес не превращаем в маршрут приложения
+      if (!OWN_HOSTS.includes(u.host)) return null;
+      path = u.pathname + u.search;
+    } else if (/^bloomly:\/\//i.test(url)) {
+      // bloomly://post/<id>: хост схемы — первый сегмент пути
+      path = '/' + url.replace(/^bloomly:\/\//i, '');
+    }
   } catch {
     return null;
   }

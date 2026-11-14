@@ -13,7 +13,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.bloomly.mobile"
+      "bundleIdentifier": "app.bloomly.mobile",
+      "associatedDomains": [
+        "applinks:bloomly.fun"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +29,39 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "app.bloomly.mobile"
+      "package": "app.bloomly.mobile",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "bloomly.fun",
+              "pathPrefix": "/post"
+            },
+            {
+              "scheme": "https",
+              "host": "bloomly.fun",
+              "pathPrefix": "/profile"
+            },
+            {
+              "scheme": "https",
+              "host": "bloomly.fun",
+              "pathPrefix": "/groups"
+            },
+            {
+              "scheme": "https",
+              "host": "bloomly.fun",
+              "pathPrefix": "/events"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
