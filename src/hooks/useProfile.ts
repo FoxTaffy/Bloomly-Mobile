@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toggleFollow } from '@/api/follows';
 import { getOrCreateConversation } from '@/api/messages';
 import { fetchUserPosts } from '@/api/posts';
-import { fetchUserProfile } from '@/api/users';
+import { blockUser, fetchBlockStatus, fetchUserProfile, unblockUser } from '@/api/users';
 
 export type ProfileTab = 'posts' | 'media' | 'likes' | 'repaws';
 
@@ -32,5 +32,21 @@ export function useOpenConversation() {
   return useMutation({
     mutationFn: (userId: string) => getOrCreateConversation(userId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['conversations'] }),
+  });
+}
+
+export function useBlockStatus(userId: string | undefined, enabled: boolean) {
+  return useQuery({ queryKey: ['block-status', userId], queryFn: () => fetchBlockStatus(userId!), enabled: enabled && !!userId });
+}
+
+export function useToggleBlock(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (blocked: boolean) => (blocked ? unblockUser(userId) : blockUser(userId)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['block-status', userId] });
+      qc.invalidateQueries({ queryKey: ['profile'] });
+      qc.invalidateQueries({ queryKey: ['feed'] });
+    },
   });
 }

@@ -90,6 +90,10 @@ export interface UserProfile {
   _count: { followers: number; following: number; posts: number };
   is_private?: boolean;
   is_following?: boolean;
+  /** Аккаунт заморожен (бейдж-снежинка, как на вебе). */
+  frozen_at?: string | null;
+  /** Этот пользователь заблокировал вас. */
+  is_blocked_by_user?: boolean;
 }
 
 export interface Conversation {
