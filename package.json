@@ -49,7 +49,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "rules": "node scripts/check-rules.mjs",
+    "check": "tsc --noEmit && node scripts/check-rules.mjs"
   },
   "private": true
 }
