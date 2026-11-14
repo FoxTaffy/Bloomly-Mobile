@@ -20,6 +20,8 @@ import { useLang } from '@/stores/lang';
 import { wsClient } from '@/lib/wsClient';
 import { AppStatusGate } from '@/components/AppStatusGate';
 import { usePushRegistration } from '@/hooks/usePushRegistration';
+import { useAppState } from '@/hooks/useAppState';
+import { syncOnResume } from '@/lib/chatSync';
 import type { Conversation, Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
@@ -34,6 +36,17 @@ export default function RootLayout() {
   const isHydrated = useSession((s) => s.isHydrated);
   const isAuthenticated = useSession((s) => s.isAuthenticated);
   usePushRegistration();
+
+  // WebSocket в фоне не живёт: сворачиваем — закрываем сокет (дальше работают push), возвращаемся — переподключаемся
+  // и догоняем пропущенное (сообщения по курсору, диалоги, уведомления).
+  useAppState({
+    onBackground: () => wsClient.disconnect(),
+    onActive: () => {
+      if (!useSession.getState().isAuthenticated) return;
+      wsClient.connect();
+      void syncOnResume(queryClient);
+    },
+  });
   const [fontsLoaded] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
@@ -62,6 +75,7 @@ export default function RootLayout() {
       const data = raw.data as Message | undefined;
       if (!data) return;
       const myId = useSession.getState().user?.id;
+      if (data.sender_id !== myId) queryClient.invalidateQueries({ queryKey: ['unread-messages'] });
 
       queryClient.setQueryData<Message[]>(['messages', data.conversation_id], (old) =>
         old && !old.some((m) => m.id === data.id) ? [...old, data] : old,

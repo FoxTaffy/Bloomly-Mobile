@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { House, Compass, MessageCircle, Grid3x3 } from 'lucide-react-native';
 import { useSession } from '@/stores/session';
+import { useUnreadMessages } from '@/hooks/useMessages';
 import { Avatar } from '@/components/Avatar';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
@@ -8,6 +9,7 @@ import { useT } from '@/hooks/useT';
 export default function TabsLayout() {
   const { t } = useT();
   const user = useSession((s) => s.user);
+  const unread = useUnreadMessages();
 
   return (
     <Tabs
@@ -29,7 +31,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="messages"
-        options={{ title: t('messages'), tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} /> }}
+        options={{ title: t('messages'), tabBarBadge: unread > 0 ? (unread > 99 ? '99+' : unread) : undefined, tabBarBadgeStyle: { backgroundColor: colors.accent, color: colors.offwhite, fontFamily: 'Nunito_700Bold' }, tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="groups"

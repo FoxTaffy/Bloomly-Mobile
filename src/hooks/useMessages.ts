@@ -1,8 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { uploadMedia } from '@/api/media';
-import { fetchMessages, markConversationRead, sendMessage } from '@/api/messages';
+import { fetchMessages, fetchMessagesPage, fetchUnreadCount, markConversationRead, sendMessage } from '@/api/messages';
 import type { Conversation, Message } from '@/shared/api-types';
+import { mergeMessages } from '@/shared/messages';
 
 /** Сообщения диалога по возрастанию времени. */
 export function useMessages(conversationId: string) {
@@ -53,5 +54,39 @@ export function useSendMessage(conversationId: string, onSent: (msg: Message) =>
 }
 
 export function useMarkConversationRead() {
-  return useMutation({ mutationFn: (conversationId: string) => markConversationRead(conversationId) });
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) => markConversationRead(conversationId),
+    onSuccess: (_d, conversationId) => {
+      qc.setQueryData<Conversation[]>(['conversations'], (old) => old?.map((c) => (c.id === conversationId ? { ...c, unread_count: 0 } : c)));
+      qc.invalidateQueries({ queryKey: ['unread-messages'] });
+    },
+  });
+}
+
+/** Догрузка более старых сообщений по курсору `before` (веб: stores/messages.ts fetchMessagesPage). */
+export function useOlderMessages(conversationId: string) {
+  const qc = useQueryClient();
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const loadOlder = useCallback(async () => {
+    const current = qc.getQueryData<Message[]>(['messages', conversationId]);
+    if (!current?.length || loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const oldest = [...current].sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
+      const page = await fetchMessagesPage(conversationId, oldest.created_at);
+      setHasMore(page.hasMore);
+      qc.setQueryData<Message[]>(['messages', conversationId], (prev) => mergeMessages(prev ?? [], page.messages));
+    } finally {
+      setLoading(false);
+    }
+  }, [qc, conversationId, loading, hasMore]);
+  return { loadOlder, loading, hasMore };
+}
+
+/** Число непрочитанных диалогов-сообщений для значка на вкладке (личные + групповые). */
+export function useUnreadMessages() {
+  const q = useQuery({ queryKey: ['unread-messages'], queryFn: fetchUnreadCount, staleTime: 15_000 });
+  return (q.data?.personal ?? 0) + (q.data?.group ?? 0);
 }

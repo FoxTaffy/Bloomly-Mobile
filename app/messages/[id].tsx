@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
-import { Screen } from '@/components/ui';
+import { EmptyState, ErrorState, Screen, Skeleton } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Wifi, Send, Mic, Square } from 'lucide-react-native';
 import {
@@ -9,7 +9,7 @@ import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
 } from 'expo-audio';
-import { useAppendMessage, useCachedConversation, useMarkConversationRead, useMessages, useSendMessage } from '@/hooks/useMessages';
+import { useAppendMessage, useCachedConversation, useMarkConversationRead, useMessages, useOlderMessages, useSendMessage } from '@/hooks/useMessages';
 import { useChatSocket } from '@/hooks/useChatSocket';
 import { useSession } from '@/stores/session';
 import { Avatar } from '@/components/Avatar';
@@ -33,11 +33,15 @@ export default function ChatThreadScreen() {
   const messagesQuery = useMessages(id);
   const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data]);
   const markRead = useMarkConversationRead();
+  const { loadOlder } = useOlderMessages(id);
 
+  // Диалог открыт: пришедшее чужое сообщение сразу отмечаем прочитанным (и при открытии)
+  const lastId = messages[messages.length - 1]?.id;
+  const lastIsOthers = !!lastId && messages[messages.length - 1].sender_id !== myId;
   useEffect(() => {
-    if (id) markRead.mutate(id);
+    if (id && (lastIsOthers || !lastId)) markRead.mutate(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, lastId]);
 
   const append = useAppendMessage(id);
   const appendMessage = useCallback(
@@ -101,7 +105,25 @@ export default function ChatThreadScreen() {
           keyExtractor={(m) => m.id}
           contentContainerClassName="px-4 py-3"
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+          onScroll={(e) => {
+            // у верхнего края подгружаем более старые сообщения (курсор before)
+            if (e.nativeEvent.contentOffset.y < 80 && messages.length >= 20) void loadOlder();
+          }}
+          scrollEventThrottle={200}
           renderItem={({ item }) => <MessageBubble message={item} isMine={item.sender_id === myId} />}
+          ListEmptyComponent={
+            messagesQuery.isLoading ? (
+              <View className="gap-3">
+                <Skeleton height={40} width="60%" />
+                <Skeleton height={40} width="45%" className="self-end" />
+                <Skeleton height={40} width="55%" />
+              </View>
+            ) : messagesQuery.isError ? (
+              <ErrorState onRetry={() => messagesQuery.refetch()} />
+            ) : (
+              <EmptyState title={t('noMessages')} />
+            )
+          }
         />
 
         <View className="flex-row items-center gap-2 border-t border-brand-border px-3 py-2">
