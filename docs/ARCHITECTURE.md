@@ -105,7 +105,28 @@ scripts/check-rules.mjs проверка правил архитектуры
 
 `@/` = `src/` (tsconfig `paths`). Внутри одной папки — `./`. Из `app/` в `src/` — только `@/`.
 
-## Статус (ветка mobile/phase-5)
+## Статус (ветка mobile/phase-6)
+
+Сделано в Phase 6 (всё из предыдущих фаз остаётся):
+- [x] Сплэш: `expo-splash-screen` с логотипом, фоном `#16192F` (сверяется с `tokens.ts` в `npm run check`) и `imageWidth: 288`; логотип вписан скриптом `scripts/make-splash.mjs` в прозрачный холст так, чтобы лежать внутри круга 192 dp Android 12+ (30 % радиуса при пороге 33 %). Прежний `splash-icon.png` оказался шаблонной сеткой Expo: заменён. Проверено `prebuild` во временной копии (Android 288 dp × 4, iOS 288 pt, цвета). Требования и источники в `docs/store/ASSETS.md`.
+- [x] Sentry в сборке: плагин в `app.json`, `getSentryExpoConfig` в `metro.config.js`; `expo export` для iOS и Android проходит без `SENTRY_AUTH_TOKEN` и без сети. В профили `eas.json` добавлено `SENTRY_DISABLE_AUTO_UPLOAD=true` (без него iOS-сборка падает без токена). Как включить загрузку sourcemaps: раздел «Sentry» в `GUIDE.md`.
+- [x] `ios.supportsTablet: false`; в `LISTING.md` скриншоты iPad не нужны.
+- [x] Аудит перед отправкой: `docs/store/PRESUBMISSION_AUDIT.md` (итоговые разрешения Android и строки iOS с привязкой к коду, `expo-doctor` 21/21, `npm audit fix`: 14 → 6, без critical; `console.*`, `http://`, TODO в коде не найдены).
+- [x] Чек-лист владельца: `docs/store/LAUNCH_CHECKLIST.md`.
+
+Не сделано / ждёт решения владельца:
+- [ ] **Исправление `app.json`: `microphonePermission: false` у `expo-image-picker` блокирует `RECORD_AUDIO` и убирает `NSMicrophoneUsageDescription`**: голосовые сообщения не заработают на Android и iOS. Ошибка внесена в Phase 4; правка вне разрешённого списка Phase 6, попытка отклонена, ждёт «да» (`PRESUBMISSION_AUDIT.md`, находка 1).
+- [ ] Лишние разрешения (находки 2–4 аудита): фоновое воспроизведение (`UIBackgroundModes: audio`, `FOREGROUND_SERVICE*`), Face ID, `SYSTEM_ALERT_WINDOW`; неиспользуемый `expo-video`.
+- [ ] Оставшиеся 6 уязвимостей в `expo-router` (`query-string`, `decode-uri-component`) и `expo` (`@expo/fingerprint`, `minimatch`): исправление только мажорным обновлением SDK 58.
+- [ ] Всё из чек-листа владельца: аккаунты, `eas login` и `eas init`, SHA-256 для `assetlinks.json`, Team ID для `apple-app-site-association`, адрес компании, демо-аккаунт, решение по возрасту и пакету, Sign in with Apple, анкеты.
+
+Не проверено на устройстве и в эмуляторе (проверены `tsc`, `npm run check`, `expo-doctor`, `expo export`, генерация нативных проектов, чистая логика отдельным запуском):
+- вид сплэша на Android 12+, Android 11 и ниже, iPhone; контраст контура лепестков на тёмном фоне;
+- нативная сборка с плагином Sentry: итоговый merged-манифест Android, шаги Xcode при `SENTRY_DISABLE_AUTO_UPLOAD=true` (по скриптам плагина пропускаются, не запускались);
+- итоговые разрешения в подписанных сборках, запрос разрешений на устройстве;
+- всё из Phase 2b–5: push, возврат из фона, WebView, 2FA, загрузка медиа, deep links, FlashList, офлайн, реальная отправка события в Sentry.
+
+## Статус Phase 5 (сделано ранее; пункты про сплэш, iPad и Sentry закрыты в Phase 6)
 
 Сделано в Phase 5 (всё из предыдущих фаз остаётся):
 - [x] FlashList вместо FlatList: лента, обзор, поиск (4 вкладки), список диалогов, уведомления (без SectionList: заголовки строками, липкие), чат (старт снизу, подгрузка истории через `onStartReached`). Профиль и комментарии поста остаются на FlatList.
