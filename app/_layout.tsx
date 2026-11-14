@@ -158,6 +158,8 @@ export default function RootLayout() {
           <StatusBar style="light" />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
             <Stack.Screen name="auth/callback" />
+            {/* Юридические страницы открыты и без входа: ссылки есть на экране регистрации */}
+            <Stack.Screen name="legal/[doc]" />
             <Stack.Protected guard={isAuthenticated && !needsOnboarding}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="messages/[id]" />
@@ -168,6 +170,7 @@ export default function RootLayout() {
               <Stack.Screen name="post/[id]" />
               <Stack.Screen name="settings" />
               <Stack.Screen name="delete-account" />
+              <Stack.Screen name="support" />
             </Stack.Protected>
             <Stack.Protected guard={!isAuthenticated || needsOnboarding}>
               <Stack.Screen name="(auth)" />

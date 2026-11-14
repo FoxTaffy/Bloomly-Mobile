@@ -105,6 +105,15 @@ export default function SettingsScreen() {
           )}
         </Section>
 
+        <Section title={t('mSettingsLegal')}>
+          <View className="gap-2">
+            <Button title={t('termsTitle')} variant="secondary" onPress={() => router.push('/legal/terms')} />
+            <Button title={t('privacyTitle')} variant="secondary" onPress={() => router.push('/legal/privacy')} />
+            <Button title={t('mDmcaTitle')} variant="secondary" onPress={() => router.push('/legal/dmca')} />
+            <Button title={t('mSupportTitle')} variant="secondary" onPress={() => router.push('/support')} />
+          </View>
+        </Section>
+
         <Section title={t('mSettingsAccount')}>
           <Button
             title={t('mLogout')}
