@@ -20,5 +20,5 @@ export function apiErrorCode(e: unknown): string | undefined {
 /** 404 и 403 на чтении — «не найдено» (web: views/PostView.vue). */
 export function isNotFound(e: unknown): boolean {
   const s = apiErrorStatus(e);
-  return s === 404 || s === 403;
+  return s === 404 || (s === 403 && apiErrorCode(e) !== 'ACCOUNT_FROZEN');
 }

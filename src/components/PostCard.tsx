@@ -75,7 +75,7 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
 
       {!nsfwLocked && post.title ? <Text className="mb-1 text-base font-bold text-brand-offwhite">{post.title}</Text> : null}
       {!nsfwLocked && post.content ? (
-        <Text numberOfLines={6} className="mb-3 leading-5 text-brand-offwhite">
+        <Text numberOfLines={interactive ? 6 : undefined} className="mb-3 leading-5 text-brand-offwhite">
           {post.content}
         </Text>
       ) : null}

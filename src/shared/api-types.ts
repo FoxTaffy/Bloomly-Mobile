@@ -53,6 +53,7 @@ export interface Post {
   tags: { tag: { id: string; name: string } }[];
   _count: { votes: number; repaws: number; comments: number };
   my_vote?: -1 | 0 | 1;
+  comments_disabled?: boolean;
   groupPosts?: { group: { id: string; slug: string; name: string; avatar_url: string | null; accent_color: string | null } }[];
 }
 
