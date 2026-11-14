@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_URL } from '@/lib/config';
+import { getDeviceId } from '@/lib/deviceId';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -26,9 +27,11 @@ export function configureApiClient(handlers: {
   onFrozen = handlers.onFrozen ?? onFrozen;
 }
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const token = getToken();
   if (token) config.headers.set('Authorization', `Bearer ${token}`);
+  // На каждый запрос, как описано в docs/ARCHITECTURE.md: иначе каждый вход считается входом с нового устройства
+  config.headers.set('X-Device-Id', await getDeviceId());
   return config;
 });
 

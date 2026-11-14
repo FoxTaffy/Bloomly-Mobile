@@ -9,7 +9,8 @@
 | Contact Info | Email Address | email аккаунта | App Functionality |
 | Contact Info | Name | отображаемое имя и username (публичны) | App Functionality |
 | Identifiers | User ID | id аккаунта | App Functionality |
-| Identifiers | Device ID | Expo push-токен (если разрешены уведомления) | App Functionality |
+| Identifiers | Device ID | Expo push-токен (если разрешены уведомления) и случайный uuid устройства `X-Device-Id` (не рекламный идентификатор, не используется для отслеживания) | App Functionality |
+| User Content | Photos or Videos | фото и видео, которые пользователь прикладывает к посту | App Functionality |
 | User Content | Audio Data | голосовые сообщения | App Functionality |
 | User Content | Other User Content | посты, комментарии, сообщения, жалобы | App Functionality |
 | Usage Data | Product Interaction | просмотры постов, оценки, подписки (лента «Для вас») | Product Personalization, App Functionality |
@@ -17,11 +18,11 @@
 
 ## Не собираются
 
-Location, Contacts, Photos or Videos, Health & Fitness, Financial Info, Browsing History, Search History, Diagnostics (crash и performance), Purchases (покупок в приложении нет), Advertising Data, Sensitive Info как отдельная категория.
+Location, Contacts, Health & Fitness, Financial Info, Browsing History, Search History, Diagnostics (crash и performance), Purchases (покупок в приложении нет), Advertising Data, Sensitive Info как отдельная категория.
 
 ## Оговорки
 
 - Push-токен обрабатывает Expo и системные службы доставки (APNs, FCM) как процессоры доставки: на метку это не влияет, в политике конфиденциальности это стоит указать.
-- Сервер сохраняет IP и название устройства в записи сессии (безопасность, управление входом): Apple относит это к Device ID / Other Data; перед отправкой сверить с политикой и при необходимости добавить строку «Identifiers → Device ID: App Functionality».
+- Сервер сохраняет IP и название устройства в записи сессии (безопасность, управление входом); сверить с политикой.
 - Описание метки «Other User Content» включает контент 18+, который пользователи публикуют сами; он скрыт по умолчанию (см. AGE_RATING.md).
 - Ссылка на политику конфиденциальности (обязательна): https://bloomly.fun/privacy.
