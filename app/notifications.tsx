@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, SectionList, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter, type Href } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { NotificationRow, type Decision } from '@/components/NotificationRow';
@@ -8,6 +9,8 @@ import { useNotificationActions, useNotifications } from '@/hooks/useNotificatio
 import { useT } from '@/hooks/useT';
 import { buildSections, inTab, NOTIF_TABS, notifTarget, type NotifItem } from '@/shared/notifications';
 import { colors } from '@/theme/tokens';
+
+type Row = { kind: 'header'; key: string; title: string } | { kind: 'item'; key: string; item: NotifItem };
 
 /** Уведомления. Веб-аналог: views/NotificationsView.vue + lib/notifications.ts. */
 export default function NotificationsScreen() {
@@ -28,6 +31,10 @@ export default function NotificationsScreen() {
     () => buildSections(query.items.filter((i) => inTab(tab, i) && (!onlyUnread || i.unread))).map((s) => ({ ...s, title: t(s.titleKey), data: s.items })),
     [query.items, tab, onlyUnread, t],
   );
+
+  // FlashList без секций: заголовки — отдельные строки списка, липкие через stickyHeaderIndices
+  const rows = useMemo<Row[]>(() => sections.flatMap((s) => [{ kind: 'header' as const, key: `h:${s.key}`, title: s.title }, ...s.data.map((item) => ({ kind: 'item' as const, key: item.id, item }))]), [sections]);
+  const stickyIndices = useMemo(() => rows.flatMap((r, i) => (r.kind === 'header' ? [i] : [])), [rows]);
 
   const open = (item: NotifItem) => {
     if (item.unread) markRead.mutate(item.members.filter((m) => !m.is_read).map((m) => m.id));
@@ -66,19 +73,23 @@ export default function NotificationsScreen() {
         <Chip label={t('mOnlyUnread')} selected={onlyUnread} onPress={() => setOnlyUnread((v) => !v)} />
       </ScrollView>
 
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        stickySectionHeadersEnabled
+      <FlashList<Row>
+        data={rows}
+        keyExtractor={(row) => row.key}
+        getItemType={(row) => row.kind}
+        stickyHeaderIndices={stickyIndices}
         refreshControl={<RefreshControl refreshing={query.isRefetching && !query.isFetchingNextPage} onRefresh={() => query.refetch()} tintColor={colors.accent} />}
         onEndReachedThreshold={0.6}
         onEndReached={() => {
           if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
         }}
-        renderSectionHeader={({ section }) => <Text className="bg-brand-bg px-4 pb-2 pt-4 font-nunito-bold text-xs text-brand-muted">{section.title}</Text>}
-        renderItem={({ item }) => (
-          <NotificationRow item={item} decision={decisions[item.id]} onPress={() => open(item)} onAccept={() => decide(item, true)} onDecline={() => decide(item, false)} />
-        )}
+        renderItem={({ item: row }) =>
+          row.kind === 'header' ? (
+            <Text className="bg-brand-bg px-4 pb-2 pt-4 font-nunito-bold text-xs text-brand-muted">{row.title}</Text>
+          ) : (
+            <NotificationRow item={row.item} decision={decisions[row.item.id]} onPress={() => open(row.item)} onAccept={() => decide(row.item, true)} onDecline={() => decide(row.item, false)} />
+          )
+        }
         ListEmptyComponent={
           query.isLoading ? (
             <View className="gap-3 px-4 pt-3">

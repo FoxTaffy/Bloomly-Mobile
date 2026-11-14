@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Hash } from 'lucide-react-native';
 import { PostCard } from '@/components/PostCard';
 import { Chip, EmptyState, ErrorState, Skeleton } from '@/components/ui';
@@ -11,6 +12,8 @@ import type { MessageKey } from '@/shared/i18n';
 
 const SORT_KEY: Record<ExploreSort, MessageKey> = { hot: 'trending', new: 'exploreSortNew' };
 const PERIOD_KEY: Record<ExplorePeriod, MessageKey> = { day: 'mPeriodDay', week: 'mPeriodWeek', month: 'mPeriodMonth', all: 'explorePeriodAll' };
+
+const LIST_PADDING = { paddingHorizontal: 16, paddingBottom: 24 };
 
 /** Обзор (web: views/ExploreView.vue + composables/useExploreFeed.ts): тренды, сортировка, период, тег. */
 export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (tag: string) => void }) {
@@ -24,10 +27,10 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
   const repaw = useRepawPost();
 
   return (
-    <FlatList
+    <FlashList
       data={explore.posts}
       keyExtractor={(p) => p.id}
-      contentContainerClassName="px-4 pb-6"
+      contentContainerStyle={LIST_PADDING}
       keyboardShouldPersistTaps="handled"
       onEndReachedThreshold={0.6}
       onEndReached={() => {

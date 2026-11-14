@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { EmptyState, ErrorState, Screen, Skeleton } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Wifi, Send, Mic, Square } from 'lucide-react-native';
@@ -23,7 +24,7 @@ export default function ChatThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const myId = useSession((s) => s.user?.id);
-  const listRef = useRef<FlatList<Message>>(null);
+  const listRef = useRef<FlashListRef<Message>>(null);
   const [draft, setDraft] = useState('');
 
   const conversation = useCachedConversation(id);
@@ -99,17 +100,18 @@ export default function ChatThreadScreen() {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1" keyboardVerticalOffset={90}>
-        <FlatList
+        <FlashList<Message>
           ref={listRef}
           data={messages}
           keyExtractor={(m) => m.id}
-          contentContainerClassName="px-4 py-3"
-          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
-          onScroll={(e) => {
-            // у верхнего края подгружаем более старые сообщения (курсор before)
-            if (e.nativeEvent.contentOffset.y < 80 && messages.length >= 20) void loadOlder();
+          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
+          // Список растёт вверх: начинаем снизу и остаёмся у последних сообщений, пока читатель не прокрутил вверх
+          maintainVisibleContentPosition={{ startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2 }}
+          // У верхнего края подгружаем более старые сообщения (курсор before)
+          onStartReached={() => {
+            if (messages.length >= 20) void loadOlder();
           }}
-          scrollEventThrottle={200}
+          onStartReachedThreshold={0.3}
           renderItem={({ item }) => <MessageBubble message={item} isMine={item.sender_id === myId} />}
           ListEmptyComponent={
             messagesQuery.isLoading ? (

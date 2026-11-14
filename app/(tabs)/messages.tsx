@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
+import { View, Text } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { EmptyState, ErrorState, Field, Screen, Skeleton } from '@/components/ui';
@@ -38,7 +39,7 @@ export default function MessagesScreen() {
         <Field value={search} onChangeText={setSearch} placeholder={t('mSearchDialogs')} icon={<Search size={16} color={colors.mutedIcon} />} autoCapitalize="none" autoCorrect={false} />
       </View>
 
-      <FlatList
+      <FlashList
         data={conversations}
         keyExtractor={(c) => c.id}
         refreshing={conversationsQuery.isRefetching}

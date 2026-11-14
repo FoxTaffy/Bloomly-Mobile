@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, RefreshControl } from 'react-native';
 import { Link } from 'expo-router';
+import { FlashList } from '@shopify/flash-list';
 import { Flower2, Search, Bell, Hash } from 'lucide-react-native';
 import { EmptyState, ErrorState, Screen, Skeleton } from '@/components/ui';
 import { useCreatePost, useInfinitePosts, useRepawPost, useVotePost } from '@/hooks/usePosts';
@@ -12,6 +13,8 @@ import { useSession } from '@/stores/session';
 import type { Post } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
+
+const LIST_PADDING = { paddingHorizontal: 16, paddingBottom: 24 };
 
 export default function FeedScreen() {
   const { t } = useT();
@@ -45,10 +48,10 @@ export default function FeedScreen() {
         </View>
       </View>
 
-      <FlatList<Post>
+      <FlashList<Post>
         data={posts}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="px-4 pb-6"
+        contentContainerStyle={LIST_PADDING}
         onEndReachedThreshold={0.6}
         onEndReached={() => {
           if (feedQuery.hasNextPage && !feedQuery.isFetchingNextPage) feedQuery.fetchNextPage();

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FlatList, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Hash } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { GroupRow } from '@/components/GroupRow';
@@ -52,7 +53,7 @@ export function SearchResults({ query, onPickTag }: Props) {
     </ScrollView>
   );
 
-  const common = { contentContainerClassName: 'px-4 pb-6', keyboardShouldPersistTaps: 'handled' as const, onEndReachedThreshold: 0.6 };
+  const common = { contentContainerStyle: { paddingHorizontal: 16, paddingBottom: 24 }, keyboardShouldPersistTaps: 'handled' as const, onEndReachedThreshold: 0.6 };
   const more = (q: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown }) => () => {
     if (q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage();
   };
@@ -61,7 +62,7 @@ export function SearchResults({ query, onPickTag }: Props) {
     <View className="flex-1">
       {header}
       {tab === 'posts' ? (
-        <FlatList
+        <FlashList
           {...common}
           data={posts.items}
           keyExtractor={(p) => p.id}
@@ -70,7 +71,7 @@ export function SearchResults({ query, onPickTag }: Props) {
           ListEmptyComponent={<Placeholder loading={posts.isLoading} error={posts.isError} onRetry={() => posts.refetch()} emptyHint={t('mTryOtherQuery')} />}
         />
       ) : tab === 'people' ? (
-        <FlatList
+        <FlashList
           {...common}
           data={users.items}
           keyExtractor={(u) => u.id}
@@ -79,7 +80,7 @@ export function SearchResults({ query, onPickTag }: Props) {
           ListEmptyComponent={<Placeholder loading={users.isLoading} error={users.isError} onRetry={() => users.refetch()} emptyHint={t('mNoPeopleFound')} />}
         />
       ) : tab === 'groups' ? (
-        <FlatList
+        <FlashList
           {...common}
           data={groups.items}
           keyExtractor={(g) => g.id}
@@ -88,7 +89,7 @@ export function SearchResults({ query, onPickTag }: Props) {
           ListEmptyComponent={<Placeholder loading={groups.isLoading} error={groups.isError} onRetry={() => groups.refetch()} emptyHint={t('mNoGroupsFound')} />}
         />
       ) : (
-        <FlatList
+        <FlashList
           {...common}
           data={tags.data ?? []}
           keyExtractor={(t) => t.id}
