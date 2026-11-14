@@ -23,6 +23,18 @@ function* walk(dir) {
 }
 
 let bad = 0;
+
+// Фон сплэша в app.json (JSON не может импортировать токены) должен совпадать с colors.bg из src/theme/tokens.ts
+{
+  const tokens = readFileSync(join(ROOT, 'src/theme/tokens.ts'), 'utf8').match(/\bbg:\s*'(#[0-9a-fA-F]{6})'/)?.[1];
+  const app = JSON.parse(readFileSync(join(ROOT, 'app.json'), 'utf8'));
+  const splash = app.expo?.plugins?.find((p) => Array.isArray(p) && p[0] === 'expo-splash-screen')?.[1];
+  if (tokens && splash && splash.backgroundColor?.toLowerCase() !== tokens.toLowerCase()) {
+    console.log(`app.json  [splash-bg] Фон сплэша ${splash.backgroundColor} не совпадает с colors.bg ${tokens} из tokens.ts`);
+    bad++;
+  }
+}
+
 for (const base of ['app', 'src']) {
   for (const file of walk(join(ROOT, base))) {
     const rel = relative(ROOT, file);
