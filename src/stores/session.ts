@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { api, configureApiClient } from '../api/client';
+import { unregisterPush } from '../lib/push';
 import type { AuthUser } from '../types/api';
 
 const ACCESS_KEY = 'bloomly_access_token';
@@ -94,6 +95,7 @@ export const useSession = create<SessionState>((set, get) => ({
 
   logout: async () => {
     const refreshToken = get().refreshToken;
+    await unregisterPush();
     try {
       await api.post('/auth/logout', { refreshToken });
     } catch {

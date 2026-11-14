@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/nunito';
 import { useSession } from '../src/stores/session';
 import { wsClient } from '../src/lib/wsClient';
+import { usePushRegistration } from '../src/hooks/usePushRegistration';
 import type { Conversation, Message } from '../src/types/api';
 import { colors } from '../src/theme/tokens';
 
@@ -30,6 +31,7 @@ export default function RootLayout() {
   const hydrate = useSession((s) => s.hydrate);
   const isHydrated = useSession((s) => s.isHydrated);
   const isAuthenticated = useSession((s) => s.isAuthenticated);
+  usePushRegistration();
   const [fontsLoaded] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,

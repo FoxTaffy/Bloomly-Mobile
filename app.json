@@ -46,6 +46,12 @@
         {
           "microphonePermission": "Bloomly использует микрофон для записи голосовых сообщений в чате."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#4C67CF"
+        }
       ]
     ]
   }
