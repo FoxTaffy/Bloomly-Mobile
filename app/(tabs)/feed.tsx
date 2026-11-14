@@ -4,14 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Flower2, Search, Bell, Hash } from 'lucide-react-native';
-import { fetchStories } from '../../src/api/stories';
-import { fetchFeed, votePost, repawPost, createPost } from '../../src/api/posts';
-import { PostCard } from '../../src/components/PostCard';
-import { StoryRing, AddStoryButton } from '../../src/components/StoryRing';
-import { Avatar } from '../../src/components/Avatar';
-import { useSession } from '../../src/stores/session';
-import type { Post } from '../../src/types/api';
-import { colors } from '../../src/theme/tokens';
+import { fetchStories } from '@/api/stories';
+import { fetchFeed, votePost, repawPost, createPost } from '@/api/posts';
+import { PostCard } from '@/components/PostCard';
+import { StoryRing, AddStoryButton } from '@/components/StoryRing';
+import { Avatar } from '@/components/Avatar';
+import { useSession } from '@/stores/session';
+import type { Post } from '@/types/api';
+import { colors } from '@/theme/tokens';
 
 export default function FeedScreen() {
   const user = useSession((s) => s.user);

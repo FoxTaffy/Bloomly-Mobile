@@ -10,14 +10,14 @@ import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
 } from 'expo-audio';
-import { fetchMessages, sendMessage, markConversationRead } from '../../src/api/messages';
-import { uploadMedia } from '../../src/api/media';
-import { useChatSocket } from '../../src/hooks/useChatSocket';
-import { useSession } from '../../src/stores/session';
-import { Avatar } from '../../src/components/Avatar';
-import { MessageBubble } from '../../src/components/MessageBubble';
-import type { Conversation, Message } from '../../src/types/api';
-import { colors } from '../../src/theme/tokens';
+import { fetchMessages, sendMessage, markConversationRead } from '@/api/messages';
+import { uploadMedia } from '@/api/media';
+import { useChatSocket } from '@/hooks/useChatSocket';
+import { useSession } from '@/stores/session';
+import { Avatar } from '@/components/Avatar';
+import { MessageBubble } from '@/components/MessageBubble';
+import type { Conversation, Message } from '@/types/api';
+import { colors } from '@/theme/tokens';
 
 export default function ChatThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

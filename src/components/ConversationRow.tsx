@@ -1,10 +1,10 @@
 import { Pressable, Text, View } from 'react-native';
 import { Mic } from 'lucide-react-native';
 import { Avatar } from './Avatar';
-import { timeAgo } from '../lib/time';
-import type { Conversation } from '../types/api';
-import { useSession } from '../stores/session';
-import { colors } from '../theme/tokens';
+import { timeAgo } from '@/lib/time';
+import type { Conversation } from '@/types/api';
+import { useSession } from '@/stores/session';
+import { colors } from '@/theme/tokens';
 
 export function ConversationRow({ conversation, onPress }: { conversation: Conversation; onPress: () => void }) {
   const myId = useSession((s) => s.user?.id);

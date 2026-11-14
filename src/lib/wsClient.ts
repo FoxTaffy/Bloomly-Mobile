@@ -4,7 +4,7 @@
  * matter which screen is open, and other devices logged into the same
  * account see updates without a manual refresh.
  */
-import { useSession } from '../stores/session';
+import { useSession } from '@/stores/session';
 import { WS_URL } from './config';
 
 type Handler = (msg: Record<string, unknown>) => void;

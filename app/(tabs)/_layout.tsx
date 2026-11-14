@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
 import { House, Compass, MessageCircle, Grid3x3 } from 'lucide-react-native';
-import { useSession } from '../../src/stores/session';
-import { Avatar } from '../../src/components/Avatar';
-import { colors } from '../../src/theme/tokens';
+import { useSession } from '@/stores/session';
+import { Avatar } from '@/components/Avatar';
+import { colors } from '@/theme/tokens';
 
 export default function TabsLayout() {
   const user = useSession((s) => s.user);

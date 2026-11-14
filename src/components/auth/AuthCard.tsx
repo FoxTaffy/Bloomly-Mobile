@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import type { ReactNode } from 'react';
-import { colors } from '../../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 export function AuthCard({ children }: { children: ReactNode }) {
   return (

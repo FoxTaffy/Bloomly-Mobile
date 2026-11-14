@@ -5,8 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react-native';
-import { fetchGroup, joinGroup, leaveGroup } from '../../src/api/groups';
-import { colors } from '../../src/theme/tokens';
+import { fetchGroup, joinGroup, leaveGroup } from '@/api/groups';
+import { colors } from '@/theme/tokens';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -1,9 +1,9 @@
 import { Pressable, Text, View } from 'react-native';
 import { Heart, MessageCircle, UserPlus, AtSign, Repeat2, Bell } from 'lucide-react-native';
 import { Avatar } from './Avatar';
-import { timeAgo } from '../lib/time';
-import type { AppNotification } from '../types/api';
-import { colors } from '../theme/tokens';
+import { timeAgo } from '@/lib/time';
+import type { AppNotification } from '@/types/api';
+import { colors } from '@/theme/tokens';
 
 const TYPE_SUFFIX: Record<string, string> = {
   LIKE: 'оценил(а) твой пост',

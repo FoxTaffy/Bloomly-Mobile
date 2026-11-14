@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TextInput, TextInputProps, View } from 'react-native';
 import type { ReactNode } from 'react';
-import { colors } from '../../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 interface AuthInputProps extends TextInputProps {
   icon: ReactNode;

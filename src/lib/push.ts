@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import { registerExpoToken, unregisterExpoToken } from '../api/push';
-import { colors } from '../theme/tokens';
+import { registerExpoToken, unregisterExpoToken } from '@/api/push';
+import { colors } from '@/theme/tokens';
 
 const TOKEN_KEY = 'bloomly_push_token';
 export const DEFAULT_CHANNEL_ID = 'default';

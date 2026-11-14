@@ -2,9 +2,9 @@ import { View, Pressable, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
-import { useSession } from '../../src/stores/session';
-import { ProfileContent } from '../../src/components/ProfileContent';
-import { colors } from '../../src/theme/tokens';
+import { useSession } from '@/stores/session';
+import { ProfileContent } from '@/components/ProfileContent';
+import { colors } from '@/theme/tokens';
 
 export default function UserProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();

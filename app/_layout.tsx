@@ -15,11 +15,11 @@ import {
   Nunito_800ExtraBold,
   Nunito_900Black,
 } from '@expo-google-fonts/nunito';
-import { useSession } from '../src/stores/session';
-import { wsClient } from '../src/lib/wsClient';
-import { usePushRegistration } from '../src/hooks/usePushRegistration';
-import type { Conversation, Message } from '../src/types/api';
-import { colors } from '../src/theme/tokens';
+import { useSession } from '@/stores/session';
+import { wsClient } from '@/lib/wsClient';
+import { usePushRegistration } from '@/hooks/usePushRegistration';
+import type { Conversation, Message } from '@/types/api';
+import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 

@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import { ArrowRight } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { colors } from '../../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 export function AuthButton({
   onPress,

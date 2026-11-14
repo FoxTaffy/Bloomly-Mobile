@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { AppNotification } from '../types/api';
+import type { AppNotification } from '@/types/api';
 
 export async function fetchNotifications(): Promise<AppNotification[]> {
   const res = await api.get('/notifications');

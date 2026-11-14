@@ -1,7 +1,7 @@
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, TextStyle, StyleProp } from 'react-native';
-import { colors as palette } from '../../theme/tokens';
+import { colors as palette } from '@/theme/tokens';
 
 interface GradientTextProps {
   children: string;

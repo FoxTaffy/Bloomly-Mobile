@@ -5,9 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Calendar, MapPin } from 'lucide-react-native';
-import { fetchEvent, fetchEventAttendees, rsvpEvent } from '../../src/api/groups';
-import { Avatar } from '../../src/components/Avatar';
-import { colors } from '../../src/theme/tokens';
+import { fetchEvent, fetchEventAttendees, rsvpEvent } from '@/api/groups';
+import { Avatar } from '@/components/Avatar';
+import { colors } from '@/theme/tokens';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

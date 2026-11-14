@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSession } from '../../src/stores/session';
-import { colors } from '../../src/theme/tokens';
+import { useSession } from '@/stores/session';
+import { colors } from '@/theme/tokens';
 
 export default function OAuthCallbackScreen() {
   const { token, refreshToken } = useLocalSearchParams<{ token?: string; refreshToken?: string }>();

@@ -3,10 +3,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react-native';
-import { fetchMyGroups, fetchRecommendedGroups, fetchUpcomingEvents, fetchEventAttendees, rsvpEvent, joinGroup } from '../../src/api/groups';
-import { EventCard } from '../../src/components/EventCard';
-import { GroupRow } from '../../src/components/GroupRow';
-import { colors } from '../../src/theme/tokens';
+import { fetchMyGroups, fetchRecommendedGroups, fetchUpcomingEvents, fetchEventAttendees, rsvpEvent, joinGroup } from '@/api/groups';
+import { EventCard } from '@/components/EventCard';
+import { GroupRow } from '@/components/GroupRow';
+import { colors } from '@/theme/tokens';
 
 export default function GroupsScreen() {
   const router = useRouter();

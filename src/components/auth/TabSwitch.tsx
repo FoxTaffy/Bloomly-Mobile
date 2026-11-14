@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 interface Option {
   key: string;

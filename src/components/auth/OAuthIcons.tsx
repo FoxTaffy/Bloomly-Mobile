@@ -1,5 +1,5 @@
 import Svg, { Path } from 'react-native-svg';
-import { colors } from '../../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 export function YandexIcon({ size = 20 }: { size?: number }) {
   return (

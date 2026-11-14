@@ -5,10 +5,10 @@ import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronLeft } from 'lucide-react-native';
-import { fetchNotifications, markNotificationsRead } from '../src/api/notifications';
-import { acceptRelationship, declineRelationship } from '../src/api/relationships';
-import { NotificationRow } from '../src/components/NotificationRow';
-import { colors } from '../src/theme/tokens';
+import { fetchNotifications, markNotificationsRead } from '@/api/notifications';
+import { acceptRelationship, declineRelationship } from '@/api/relationships';
+import { NotificationRow } from '@/components/NotificationRow';
+import { colors } from '@/theme/tokens';
 
 const LAST_SEEN_KEY = 'bloomly_notifications_last_seen';
 

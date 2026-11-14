@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Story } from '../types/api';
+import type { Story } from '@/types/api';
 
 export async function fetchStories(): Promise<Story[]> {
   const res = await api.get('/stories');

@@ -1,7 +1,7 @@
 import { Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 interface AvatarProps {
   uri?: string | null;

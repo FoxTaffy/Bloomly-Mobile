@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Comment, Post } from '../types/api';
+import type { Comment, Post } from '@/types/api';
 
 export async function fetchTrendingTags(): Promise<{ id: string; name: string; count: number }[]> {
   const res = await api.get('/posts/trending-tags');

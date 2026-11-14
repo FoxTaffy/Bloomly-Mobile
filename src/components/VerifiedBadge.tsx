@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { BadgeCheck } from 'lucide-react-native';
-import { colors } from '../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 export function VerifiedBadge({ size = 16 }: { size?: number }) {
   return (

@@ -11,16 +11,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Mail, Lock, User, Eye, EyeOff, Key, ShieldCheck, ChevronLeft, Monitor, CircleAlert } from 'lucide-react-native';
-import { useSession } from '../../src/stores/session';
-import { loginWithOAuth } from '../../src/lib/oauth';
-import { AuroraBackground } from '../../src/components/auth/AuroraBackground';
-import { AuthCard } from '../../src/components/auth/AuthCard';
-import { GradientText } from '../../src/components/auth/GradientText';
-import { TabSwitch } from '../../src/components/auth/TabSwitch';
-import { AuthInput } from '../../src/components/auth/AuthInput';
-import { AuthButton } from '../../src/components/auth/AuthButton';
-import { YandexIcon, GoogleIcon, XIcon, TwitchIcon } from '../../src/components/auth/OAuthIcons';
-import { colors } from '../../src/theme/tokens';
+import { useSession } from '@/stores/session';
+import { loginWithOAuth } from '@/lib/oauth';
+import { AuroraBackground } from '@/components/auth/AuroraBackground';
+import { AuthCard } from '@/components/auth/AuthCard';
+import { GradientText } from '@/components/auth/GradientText';
+import { TabSwitch } from '@/components/auth/TabSwitch';
+import { AuthInput } from '@/components/auth/AuthInput';
+import { AuthButton } from '@/components/auth/AuthButton';
+import { YandexIcon, GoogleIcon, XIcon, TwitchIcon } from '@/components/auth/OAuthIcons';
+import { colors } from '@/theme/tokens';
 
 type Mode = 'login' | 'register' | 'verify' | 'forgot' | 'reset';
 

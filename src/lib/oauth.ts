@@ -1,7 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { API_URL } from './config';
-import { useSession } from '../stores/session';
+import { useSession } from '@/stores/session';
 
 export type OAuthProvider = 'yandex' | 'google' | 'twitter' | 'twitch';
 

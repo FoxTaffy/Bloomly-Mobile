@@ -1,6 +1,6 @@
 import { Dimensions, View } from 'react-native';
 import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
-import { colors } from '../../theme/tokens';
+import { colors } from '@/theme/tokens';
 
 const { width: W, height: H } = Dimensions.get('window');
 

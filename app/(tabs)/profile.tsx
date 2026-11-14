@@ -1,6 +1,6 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSession } from '../../src/stores/session';
-import { ProfileContent } from '../../src/components/ProfileContent';
+import { useSession } from '@/stores/session';
+import { ProfileContent } from '@/components/ProfileContent';
 
 export default function OwnProfileScreen() {
   const user = useSession((s) => s.user);

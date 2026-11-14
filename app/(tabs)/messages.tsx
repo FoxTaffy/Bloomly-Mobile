@@ -3,9 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react-native';
-import { fetchConversations } from '../../src/api/messages';
-import { ConversationRow } from '../../src/components/ConversationRow';
-import { colors } from '../../src/theme/tokens';
+import { fetchConversations } from '@/api/messages';
+import { ConversationRow } from '@/components/ConversationRow';
+import { colors } from '@/theme/tokens';
 
 export default function MessagesScreen() {
   const router = useRouter();

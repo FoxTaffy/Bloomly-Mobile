@@ -2,8 +2,8 @@ import { View, Text, TextInput, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Hash } from 'lucide-react-native';
-import { fetchTrendingTags } from '../../src/api/posts';
-import { colors } from '../../src/theme/tokens';
+import { fetchTrendingTags } from '@/api/posts';
+import { colors } from '@/theme/tokens';
 
 export default function DiscoverScreen() {
   const tagsQuery = useQuery({ queryKey: ['trending-tags'], queryFn: fetchTrendingTags });
