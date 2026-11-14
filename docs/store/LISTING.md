@@ -18,14 +18,14 @@ Bloomly — творческая социальная сеть для худож
 
 Что можно делать в приложении:
 • Публиковать посты: текст, фото и видео, теги, отметка 18+ и пометка «сгенерировано ИИ».
-• Читать ленту «Для вас», искать людей, группы, теги и посты, смотреть подборку «Интересное» с фильтрами.
-• Подписываться на авторов, комментировать и отвечать на комментарии, ставить оценки и делиться записями.
+• Читать ленту «Для вас», искать людей, группы, теги и посты, смотреть подборку популярного и новых постов с фильтрами по периоду и тегу.
+• Подписываться на авторов, комментировать и отвечать на комментарии, ставить оценки и делать репосты (RePaw).
 • Общаться в личных и групповых чатах: текстовые и голосовые сообщения.
 • Вступать в группы и отмечаться на событиях сообщества.
 • Получать уведомления о сообщениях и событиях, настроить их по категориям.
 • Скрывать или размывать контент 18+ (он недоступен, пока возраст не подтверждён).
 • Пожаловаться на публикацию, комментарий, сообщение, профиль или группу и заблокировать пользователя.
-• Пользоваться на русском или английском языке, войти по почте или через Google, Яндекс, X, Twitch, включить двухфакторную защиту входа.
+• Пользоваться на русском или английском языке, войти по почте или через Google, Яндекс, X, Twitch (вход с двухфакторной защитой поддерживается).
 • Удалить аккаунт можно прямо в настройках.
 
 Платных функций в приложении нет.
@@ -48,14 +48,14 @@ Bloomly is a creative social network for artists, the furry community and everyo
 
 What you can do in the app:
 • Publish posts: text, photos and videos, tags, an 18+ flag and an "AI-generated" label.
-• Read your "For you" feed, search for people, groups, tags and posts, and browse the Explore feed with filters.
-• Follow creators, comment and reply, vote on posts and share them.
+• Read your "For you" feed, search for people, groups, tags and posts, and browse popular and new posts with period and tag filters.
+• Follow creators, comment and reply, vote on posts and repost them (RePaw).
 • Chat in private and group conversations with text and voice messages.
 • Join groups and mark your attendance at community events.
 • Get notifications about messages and events, with settings per category.
 • Hide or blur 18+ content (it stays unavailable until your age is confirmed).
 • Report a post, comment, message, profile or group, and block users.
-• Use the app in Russian or English, sign in with email or with Google, Yandex, X or Twitch, and turn on two-factor sign-in.
+• Use the app in Russian or English, sign in with email or with Google, Yandex, X or Twitch (sign-in with two-factor protection is supported).
 • Delete your account right from the settings.
 
 There are no paid features in the app.
@@ -90,6 +90,6 @@ There are no paid features in the app.
 
 ## Что приложение 1.0 умеет, а чего нет (основа для проверки текстов)
 
-Умеет: регистрация и вход (почта, Google, Яндекс, X, Twitch, 2FA), возраст и онбординг, лента «Для вас», поиск и обзор, посты с фото и видео, теги, NSFW, пометка ИИ, комментарии и ответы, профили (подписка, блокировка, жалоба), группы (просмотр, вступление), события (просмотр, отметка), чаты (текст, голосовые), уведомления и push (сообщения, события), язык ru и en, режим 18+, офлайн-чтение последней страницы ленты, удаление аккаунта, ссылки на bloomly.fun.
+Умеет: регистрация и вход (почта, Google, Яндекс, X, Twitch; вход с 2FA, включить 2FA в приложении нельзя), возраст и онбординг, лента «Для вас», поиск и обзор, посты с фото и видео, теги, NSFW, пометка ИИ, комментарии и ответы, профили (подписка, блокировка, жалоба), группы (просмотр, вступление), события (просмотр, отметка), чаты (текст, голосовые), уведомления и push (сообщения, события), язык ru и en, режим 18+, офлайн-чтение последней страницы ленты, удаление аккаунта, ссылки на bloomly.fun.
 
-Не умеет и в текстах не упоминается: покупки и подписки, магазин, Dealers' Den, кошелёк, создание групп и событий, истории, закладки, друзья, отложенные посты и черновики, журналы, соавторы, редактирование профиля, Sign in with Apple.
+Не умеет и в текстах не упоминается: включение двухфакторной защиты, покупки и подписки, магазин, Dealers' Den, кошелёк, создание групп и событий, истории, закладки, друзья, отложенные посты и черновики, журналы, соавторы, редактирование профиля, Sign in with Apple.
