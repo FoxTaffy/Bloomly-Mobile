@@ -80,7 +80,7 @@
         {
           "photosPermission": "Bloomly обращается к вашей галерее, чтобы вы могли выбрать фото и видео для публикации в посте.",
           "cameraPermission": "Bloomly использует камеру, чтобы вы могли сделать фото для публикации в посте.",
-          "microphonePermission": false
+          "microphonePermission": "Bloomly использует микрофон для записи голосовых сообщений в чате."
         }
       ],
       [
