@@ -20,6 +20,7 @@ import { useLang } from '@/stores/lang';
 import { wsClient } from '@/lib/wsClient';
 import { AppStatusGate } from '@/components/AppStatusGate';
 import { usePushRegistration } from '@/hooks/usePushRegistration';
+import { usePushNavigation } from '@/hooks/usePushNavigation';
 import { useAppState } from '@/hooks/useAppState';
 import { syncOnResume } from '@/lib/chatSync';
 import type { Conversation, Message } from '@/shared/api-types';
@@ -30,6 +31,12 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
 });
+
+/** Рендерится внутри дерева навигации: навигация по нажатию на push возможна только после монтирования Stack. */
+function PushNavigator() {
+  usePushNavigation();
+  return null;
+}
 
 export default function RootLayout() {
   const hydrate = useSession((s) => s.hydrate);
@@ -155,6 +162,7 @@ export default function RootLayout() {
               <Stack.Screen name="(auth)" />
             </Stack.Protected>
           </Stack>
+          <PushNavigator />
           <AppStatusGate />
         </QueryClientProvider>
       </SafeAreaProvider>

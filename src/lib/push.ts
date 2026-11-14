@@ -7,6 +7,8 @@ import { colors } from '@/theme/tokens';
 
 const TOKEN_KEY = 'bloomly_push_token';
 export const DEFAULT_CHANNEL_ID = 'default';
+/** Бэкенд шлёт сообщения чатов в канал `messages` (push/service.ts), остальное — в `default`. */
+export const MESSAGES_CHANNEL_ID = 'messages';
 
 // Пока приложение открыто, показываем уведомление баннером.
 Notifications.setNotificationHandler({
@@ -25,6 +27,11 @@ async function ensureAndroidChannel(): Promise<void> {
   await Notifications.setNotificationChannelAsync(DEFAULT_CHANNEL_ID, {
     name: 'Bloomly',
     importance: Notifications.AndroidImportance.DEFAULT,
+    lightColor: colors.accent,
+  });
+  await Notifications.setNotificationChannelAsync(MESSAGES_CHANNEL_ID, {
+    name: 'Сообщения',
+    importance: Notifications.AndroidImportance.HIGH,
     lightColor: colors.accent,
   });
 }
