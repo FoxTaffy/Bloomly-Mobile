@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Play, Video as VideoIcon, Volume2, VolumeX } from 'lucide-react-native';
 import { useAppState } from '@/hooks/useAppState';
 import { useT } from '@/hooks/useT';
+import { mediaSource } from '@/lib/mediaAuth';
 import { useActiveVideo } from '@/stores/activeVideo';
 import { colors } from '@/theme/tokens';
 
@@ -87,7 +88,9 @@ export function PostVideo({ url, width, height, pageActive, postVisible, conceal
 function ActiveVideo({ url, width, height }: { url: string; width: number; height: number }) {
   const { t } = useT();
   const [muted, setMuted] = useState(true);
-  const player = useVideoPlayer(url, (p) => {
+  // Источник создаём один раз: смена токена посреди просмотра не должна пересоздавать плеер
+  const source = useMemo(() => mediaSource(url), [url]);
+  const player = useVideoPlayer(source, (p) => {
     p.muted = true; // звук выключен по умолчанию, включается кнопкой
     p.loop = false;
     p.staysActiveInBackground = false;

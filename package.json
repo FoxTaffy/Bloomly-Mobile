@@ -61,7 +61,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "rules": "node scripts/check-rules.mjs",
-    "check": "tsc --noEmit && node scripts/check-rules.mjs"
+    "check": "tsc --noEmit && node scripts/check-rules.mjs",
+    "test:media-host": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-media-host.mjs"
   },
   "private": true
 }

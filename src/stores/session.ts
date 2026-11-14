@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { Image } from 'expo-image';
 import * as SecureStore from 'expo-secure-store';
 import { api, configureApiClient } from '@/api/client';
 import { unregisterPush } from '@/lib/push';
@@ -146,6 +147,9 @@ export const useSession = create<SessionState>((set, get) => ({
       // best-effort — clear local session regardless
     }
     set({ token: null, refreshToken: null, user: null, isAuthenticated: false });
+    // Кэш картинок общий для приложения: закрытые файлы одного аккаунта не должны остаться для следующего
+    Image.clearMemoryCache().catch(() => {});
+    Image.clearDiskCache().catch(() => {});
     await Promise.all([
       SecureStore.deleteItemAsync(ACCESS_KEY),
       SecureStore.deleteItemAsync(REFRESH_KEY),

@@ -14,6 +14,7 @@ import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibilit
 import { useRepawPost, useVotePost } from '@/hooks/usePosts';
 import { useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
+import { mediaSource } from '@/lib/mediaAuth';
 import { isNotFound } from '@/shared/apiError';
 import { isVideoUrl, visualMedia } from '@/shared/media';
 import type { MessageKey } from '@/shared/i18n';
@@ -291,7 +292,7 @@ function MediaTile({ post, size, nsfwMode, onPress }: { post: Post; size: number
           <Video size={26} color={colors.mutedIcon} />
         </View>
       ) : first ? (
-        <Image source={{ uri: first }} style={{ width: '100%', height: '100%' }} contentFit="cover" blurRadius={post.is_nsfw && nsfwMode === 'blur' ? 30 : 0} />
+        <Image source={mediaSource(first)} style={{ width: '100%', height: '100%' }} contentFit="cover" blurRadius={post.is_nsfw && nsfwMode === 'blur' ? 30 : 0} />
       ) : (
         <View className="flex-1 items-center justify-center p-2">
           <Text numberOfLines={4} className="font-nunito text-xs text-brand-muted">{post.content}</Text>

@@ -3,6 +3,7 @@ import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react
 import { Image } from 'expo-image';
 import { PostVideo } from './PostVideo';
 import { useIsPostVisible } from '@/hooks/usePostVisibility';
+import { mediaSource } from '@/lib/mediaAuth';
 import { isVideoUrl, visualMedia } from '@/shared/media';
 
 interface PostMediaProps {
@@ -30,7 +31,7 @@ export function PostMedia({ postId, urls, width, nsfwBlur }: PostMediaProps) {
           isVideoUrl(url) ? (
             <PostVideo key={url} url={url} width={width} height={height} pageActive={i === page} postVisible={visible} concealed={nsfwBlur} />
           ) : (
-            <Image key={url} source={{ uri: url }} style={{ width, height }} contentFit="cover" blurRadius={nsfwBlur ? 40 : 0} />
+            <Image key={url} source={mediaSource(url)} style={{ width, height }} contentFit="cover" blurRadius={nsfwBlur ? 40 : 0} />
           ),
         )}
       </ScrollView>
