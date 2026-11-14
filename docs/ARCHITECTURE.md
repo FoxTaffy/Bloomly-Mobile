@@ -29,12 +29,12 @@ src/
   api/client.ts         axios: X-Client: mobile, X-Device-Id, Bearer (запросы: posts, groups, messages, …)
   api/<домен>.ts        запросы по доменам бэкенда (posts, groups, events…) + типы ответов
   stores/session.ts     zustand: только клиентское состояние (сессия, токены)
-  hooks/                хуки (сейчас useChatSocket; useWindowClass и хуки данных на TanStack Query — по мере экранов)
-  lib/                  config, oauth, wsClient, time; storage (SecureStore) — в планах
+  hooks/                useWindowClass, useNsfwMode, хуки данных на TanStack Query (usePosts, usePost, useGroups, useConversations, useNotifications, useSearch)
+  lib/                  config, oauth, wsClient, time, push; storage (SecureStore) — в планах
   theme/tokens.ts       единственный TS-файл с цветами и брейкпоинтами
-  components/ui/        общие примитивы (Screen, Button, Card, Field…): создаются, когда блок повторится 2+ раза
+  components/ui/        Screen, Button, Card, Chip, Field, EmptyState, ErrorState, Skeleton
   components/<домен>/   блоки конкретного раздела
-  types/                общие типы
+  shared/               типы API, ошибки API, чистая логика ленты/обзора (без React и Expo; i18n-словари — позже)
 scripts/check-rules.mjs проверка правил архитектуры
 ```
 
@@ -100,6 +100,31 @@ scripts/check-rules.mjs проверка правил архитектуры
 3. 18+ контент и NSFW-режим: требования магазинов приложений к модерации и возрастному рейтингу.
 4. EAS: аккаунт, bundle id `app.bloomly.mobile`, ключи APNs и FCM, профили preview/production.
 5. Deep links / universal links для `https://bloomly.fun/...` (assetlinks.json и apple-app-site-association на сервере).
+
+## Алиас импортов
+
+`@/` = `src/` (tsconfig `paths`). Внутри одной папки — `./`. Из `app/` в `src/` — только `@/`.
+
+## Статус (на ветке mobile/phase-2a)
+
+Сделано:
+- [x] Зависимости на Expo 57.0.33 / RN 0.86.3, `expo-doctor` 21/21.
+- [x] Алиас `@/`, `npm run check`, токены цветов (`theme/tokens.ts`).
+- [x] `components/ui`: Screen, Button, Card, Chip, Field, EmptyState, ErrorState, Skeleton; `useWindowClass`.
+- [x] Все экраны в `<Screen>`; хуки данных для постов, групп, чатов, уведомлений, поиска.
+- [x] Вкладка «Поиск»: обзор (тренды, «Актуальное/Новое», период, тег) и поиск (посты, люди, группы, теги).
+- [x] Пост `post/[id]`: комментарии и ответы; состояния: загрузка, ошибка, не найден, 18+, комментарии отключены.
+- [x] Режим обслуживания и замороженный аккаунт (экран поверх приложения).
+- [x] Push: регистрация токена, канал Android (нужен `eas init` для projectId).
+
+Не сделано:
+- [ ] Хуки данных для профиля, группы, события, диалога: эти экраны всё ещё вызывают `useQuery` с функциями из `src/api` напрямую.
+- [ ] Комментарии: голоса, стикеры, модерация, перевод (в вебе есть).
+- [ ] Поиск: вкладка «Всё» (в вебе — сводка по разделам), история запросов, сортировка постов.
+- [ ] Обзор: сетка медиа-плиток (как на вебе); сейчас обычные карточки.
+- [ ] Настройка NSFW (режим по умолчанию `hide`, переключатель только на экране поста), подтверждение 18+ в приложении.
+- [ ] Регистрация, онбординг, 18+, родительское согласие; i18n; создание поста с медиа; закладки; настройки.
+- [ ] Проверка в эмуляторе и на устройстве на compact и medium (сделана только сборка бандлов iOS и Android).
 
 ## Порядок работы над экраном
 
