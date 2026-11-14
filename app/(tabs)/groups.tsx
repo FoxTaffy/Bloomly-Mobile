@@ -1,8 +1,7 @@
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react-native';
-import { fetchUpcomingEvents, fetchEventAttendees, rsvpEvent } from '@/api/groups';
+import { useEventAttendees, useRsvp, useUpcomingEvents } from '@/hooks/useEvent';
 import { Screen } from '@/components/ui';
 import { useJoinGroup, useMyGroups, useRecommendedGroups } from '@/hooks/useGroups';
 import { EventCard } from '@/components/EventCard';
@@ -13,28 +12,15 @@ import { useT } from '@/hooks/useT';
 export default function GroupsScreen() {
   const { t } = useT();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
-  const eventsQuery = useQuery({ queryKey: ['events', 'upcoming'], queryFn: fetchUpcomingEvents });
+  const eventsQuery = useUpcomingEvents();
   const myGroupsQuery = useMyGroups();
   const recommendedQuery = useRecommendedGroups();
 
   const featured = eventsQuery.data?.[0];
 
-  const attendeesQuery = useQuery({
-    queryKey: ['event-attendees', featured?.id],
-    queryFn: () => fetchEventAttendees(featured!.id),
-    enabled: !!featured?.id,
-  });
-
-  const rsvpMutation = useMutation({
-    mutationFn: () => rsvpEvent(featured!.id, 'going'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events', 'upcoming'] });
-      queryClient.invalidateQueries({ queryKey: ['event-attendees', featured?.id] });
-    },
-  });
-
+  const attendeesQuery = useEventAttendees(featured?.id);
+  const rsvpMutation = useRsvp(featured?.id);
   const joinMutation = useJoinGroup();
 
   return (
@@ -52,7 +38,7 @@ export default function GroupsScreen() {
             event={featured}
             attendees={attendeesQuery.data ?? []}
             going={false}
-            onRsvp={() => rsvpMutation.mutate()}
+            onRsvp={() => rsvpMutation.mutate('going')}
             onPress={() => router.push(`/events/${featured.id}`)}
           />
         ) : null}

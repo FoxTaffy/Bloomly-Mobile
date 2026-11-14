@@ -3,12 +3,8 @@ import { View, Text, Pressable, FlatList, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Share2, Settings, UserPlus, UserCheck, LogOut } from 'lucide-react-native';
-import { fetchUserProfile } from '@/api/users';
-import { fetchUserPosts } from '@/api/posts';
-import { toggleFollow } from '@/api/follows';
-import { getOrCreateConversation } from '@/api/messages';
+import { useOpenConversation, useProfile, useToggleFollow, useUserPosts } from '@/hooks/useProfile';
 import { useSession } from '@/stores/session';
 import { Avatar } from './Avatar';
 import { VerifiedBadge } from './VerifiedBadge';
@@ -26,33 +22,14 @@ const TABS = [
 
 export function ProfileContent({ username, isOwn }: { username: string; isOwn: boolean }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const logout = useSession((s) => s.logout);
   const [tab, setTab] = useState<(typeof TABS)[number]['key']>('posts');
 
-  const profileQuery = useQuery({
-    queryKey: ['profile', username],
-    queryFn: () => fetchUserProfile(username),
-    enabled: !!username,
-  });
-
+  const profileQuery = useProfile(username);
   const profile = profileQuery.data;
-
-  const postsQuery = useQuery({
-    queryKey: ['profile-posts', profile?.id, tab],
-    queryFn: () => fetchUserPosts(profile!.id, tab),
-    enabled: !!profile?.id,
-  });
-
-  const followMutation = useMutation({
-    mutationFn: () => toggleFollow(profile!.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile', username] }),
-  });
-
-  const messageMutation = useMutation({
-    mutationFn: () => getOrCreateConversation(profile!.id),
-    onSuccess: (conv) => router.push(`/messages/${conv.id}`),
-  });
+  const postsQuery = useUserPosts(profile?.id, tab);
+  const followMutation = useToggleFollow(username);
+  const messageMutation = useOpenConversation();
 
   if (!profile) return null;
 
@@ -112,13 +89,13 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
             {!isOwn ? (
               <View className="absolute bottom-3 right-4 flex-row gap-2">
                 <Pressable
-                  onPress={() => messageMutation.mutate()}
+                  onPress={() => messageMutation.mutate(profile.id, { onSuccess: (conv) => router.push(`/messages/${conv.id}`) })}
                   className="h-9 w-9 items-center justify-center rounded-full bg-brand-card"
                 >
                   <Text className="text-brand-offwhite">💬</Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => followMutation.mutate()}
+                  onPress={() => followMutation.mutate(profile.id)}
                   className="flex-row items-center gap-1.5 rounded-full bg-brand-accent px-4 py-2"
                 >
                   {profile.is_following ? <UserCheck size={16} color={colors.offwhite} /> : <UserPlus size={16} color={colors.offwhite} />}

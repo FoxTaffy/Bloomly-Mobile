@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { ChevronLeft, Wifi, Send, Mic, Square } from 'lucide-react-native';
 import {
   useAudioRecorder,
@@ -10,13 +9,12 @@ import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
 } from 'expo-audio';
-import { fetchMessages, sendMessage, markConversationRead } from '@/api/messages';
-import { uploadMedia } from '@/api/media';
+import { useAppendMessage, useCachedConversation, useMarkConversationRead, useMessages, useSendMessage } from '@/hooks/useMessages';
 import { useChatSocket } from '@/hooks/useChatSocket';
 import { useSession } from '@/stores/session';
 import { Avatar } from '@/components/Avatar';
 import { MessageBubble } from '@/components/MessageBubble';
-import type { Conversation, Message } from '@/shared/api-types';
+import type { Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
 
@@ -24,44 +22,35 @@ export default function ChatThreadScreen() {
   const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const myId = useSession((s) => s.user?.id);
   const listRef = useRef<FlatList<Message>>(null);
   const [draft, setDraft] = useState('');
 
-  const conversation = queryClient.getQueryData<Conversation[]>(['conversations'])?.find((c) => c.id === id);
+  const conversation = useCachedConversation(id);
   const other = conversation && !conversation.is_group ? conversation.participants.find((p) => p.id !== myId) : null;
   const title = conversation?.is_group ? conversation.name ?? t('chatGroupFallbackName') : other?.display_name ?? other?.username ?? '...';
 
-  const messagesQuery = useQuery({
-    queryKey: ['messages', id],
-    queryFn: () => fetchMessages(id),
-    enabled: !!id,
-  });
-
-  const messages = useMemo(
-    () => [...(messagesQuery.data ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)),
-    [messagesQuery.data],
-  );
+  const messagesQuery = useMessages(id);
+  const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data]);
+  const markRead = useMarkConversationRead();
 
   useEffect(() => {
-    if (id) markConversationRead(id).catch(() => {});
+    if (id) markRead.mutate(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const append = useAppendMessage(id);
   const appendMessage = useCallback(
     (msg: Message) => {
-      queryClient.setQueryData<Message[]>(['messages', id], (prev) => (prev ? [...prev, msg] : [msg]));
+      append(msg);
       requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
     },
-    [id, queryClient],
+    [append],
   );
 
   const { connected } = useChatSocket(id, appendMessage);
 
-  const sendMutation = useMutation({
-    mutationFn: (body: { content: string; file_url?: string; media_type?: string }) => sendMessage(id, body),
-    onSuccess: (msg) => appendMessage(msg),
-  });
+  const { send: sendMutation, sendVoice } = useSendMessage(id, appendMessage);
 
   const onSend = () => {
     const text = draft.trim();
@@ -78,12 +67,8 @@ export default function ChatThreadScreen() {
       await recorder.stop();
       const uri = recorder.uri;
       if (uri) {
-        try {
-          const { url } = await uploadMedia(uri, 'messages', 'audio/m4a');
-          sendMutation.mutate({ content: '', file_url: url, media_type: 'voice' });
-        } catch {
-          // upload failed — drop silently for now
-        }
+        // не удалось загрузить — запись просто отбрасываем
+        await sendVoice(uri);
       }
       return;
     }

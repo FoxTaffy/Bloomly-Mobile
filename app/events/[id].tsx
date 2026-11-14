@@ -3,9 +3,8 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Calendar, MapPin } from 'lucide-react-native';
-import { fetchEvent, fetchEventAttendees, rsvpEvent } from '@/api/groups';
+import { useEvent, useEventAttendees, useRsvp } from '@/hooks/useEvent';
 import { Avatar } from '@/components/Avatar';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
@@ -14,22 +13,9 @@ export default function EventDetailScreen() {
   const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
-
-  const eventQuery = useQuery({ queryKey: ['event', id], queryFn: () => fetchEvent(id), enabled: !!id });
-  const attendeesQuery = useQuery({
-    queryKey: ['event-attendees', id],
-    queryFn: () => fetchEventAttendees(id),
-    enabled: !!id,
-  });
-
-  const rsvpMutation = useMutation({
-    mutationFn: (status: 'going' | 'maybe' | 'not_going') => rsvpEvent(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['event', id] });
-      queryClient.invalidateQueries({ queryKey: ['event-attendees', id] });
-    },
-  });
+  const eventQuery = useEvent(id);
+  const attendeesQuery = useEventAttendees(id);
+  const rsvpMutation = useRsvp(id);
 
   const event = eventQuery.data;
   if (!event) return null;
