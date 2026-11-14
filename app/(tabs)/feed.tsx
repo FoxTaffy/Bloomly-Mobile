@@ -10,7 +10,7 @@ import { PostCard } from '@/components/PostCard';
 import { StoryRing, AddStoryButton } from '@/components/StoryRing';
 import { Avatar } from '@/components/Avatar';
 import { useSession } from '@/stores/session';
-import type { Post } from '@/types/api';
+import type { Post } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
 export default function FeedScreen() {

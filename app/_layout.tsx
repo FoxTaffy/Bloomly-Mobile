@@ -18,7 +18,7 @@ import {
 import { useSession } from '@/stores/session';
 import { wsClient } from '@/lib/wsClient';
 import { usePushRegistration } from '@/hooks/usePushRegistration';
-import type { Conversation, Message } from '@/types/api';
+import type { Conversation, Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});

@@ -2,7 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Mic } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { timeAgo } from '@/lib/time';
-import type { Conversation } from '@/types/api';
+import type { Conversation } from '@/shared/api-types';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
 

@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Group, GroupEvent, EventAttendee, Post } from '@/types/api';
+import type { Group, GroupEvent, EventAttendee, Post } from '@/shared/api-types';
 
 export async function fetchMyGroups(): Promise<Group[]> {
   const res = await api.get('/groups/me');

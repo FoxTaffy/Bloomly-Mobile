@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 import { Mic, Lock } from 'lucide-react-native';
-import type { Message } from '@/types/api';
+import type { Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
 export function MessageBubble({ message, isMine }: { message: Message; isMine: boolean }) {

@@ -16,7 +16,7 @@ import { useChatSocket } from '@/hooks/useChatSocket';
 import { useSession } from '@/stores/session';
 import { Avatar } from '@/components/Avatar';
 import { MessageBubble } from '@/components/MessageBubble';
-import type { Conversation, Message } from '@/types/api';
+import type { Conversation, Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
 export default function ChatThreadScreen() {

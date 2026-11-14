@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
-import type { Story } from '@/types/api';
+import type { Story } from '@/shared/api-types';
 
 export function StoryRing({ story, onPress }: { story: Story; onPress?: () => void }) {
   return (

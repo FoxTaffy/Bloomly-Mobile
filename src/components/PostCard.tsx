@@ -6,7 +6,7 @@ import { Heart, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { VerifiedBadge } from './VerifiedBadge';
 import { timeAgo } from '@/lib/time';
-import type { Post, PostAuthor } from '@/types/api';
+import type { Post, PostAuthor } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
 // Feed list has px-4 (16+16) and the card has p-4 (16+16): media must fit inside both.

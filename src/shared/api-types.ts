@@ -19,6 +19,8 @@ export interface AuthUser {
   badge_type: string | null;
   email_verified: boolean;
   onboarding_done: boolean;
+  /** Сервер проверяет 18+ по дате рождения; без этого NSFW недоступен (как на вебе, useNsfwMode). */
+  is_adult?: boolean;
 }
 
 export interface PostAuthor {
@@ -183,3 +185,12 @@ export interface Comment {
   _count: { replies: number };
   replies?: Comment[];
 }
+
+/** Страница ответа с курсором: `nextCursor === null` — страниц больше нет (как на вебе, lib/feed.ts). */
+export interface CursorPage<T> {
+  items: T[];
+  nextCursor: string | null;
+}
+
+/** Режим показа NSFW (web: composables/useNsfwMode). Несовершеннолетним и гостям всегда 'hide'. */
+export type NsfwMode = 'hide' | 'blur' | 'show';

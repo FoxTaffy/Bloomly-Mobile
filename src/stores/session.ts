@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { api, configureApiClient } from '@/api/client';
 import { unregisterPush } from '@/lib/push';
-import type { AuthUser } from '@/types/api';
+import type { AuthUser } from '@/shared/api-types';
 
 const ACCESS_KEY = 'bloomly_access_token';
 const REFRESH_KEY = 'bloomly_refresh_token';

@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
-import type { Group } from '@/types/api';
+import type { Group } from '@/shared/api-types';
 
 export function GroupRow({
   group,

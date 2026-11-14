@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { UserProfile, UserSummary } from '@/types/api';
+import type { UserProfile, UserSummary } from '@/shared/api-types';
 
 export async function fetchUserProfile(idOrUsername: string): Promise<UserProfile> {
   const res = await api.get(`/users/${idOrUsername}`);

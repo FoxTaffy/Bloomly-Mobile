@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Star, Calendar } from 'lucide-react-native';
 import { Avatar } from './Avatar';
-import type { EventAttendee, GroupEvent } from '@/types/api';
+import type { EventAttendee, GroupEvent } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 
 export function EventCard({

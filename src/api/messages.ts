@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Conversation, Message } from '@/types/api';
+import type { Conversation, Message } from '@/shared/api-types';
 
 export async function fetchConversations(): Promise<Conversation[]> {
   const res = await api.get('/messages/conversations');
