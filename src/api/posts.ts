@@ -65,15 +65,26 @@ export async function fetchUserPosts(userId: string, tab: 'posts' | 'media' | 'l
   return res.data.data.posts as Post[];
 }
 
-export async function createPost(body: {
+/** Тело как у веба (PostComposer.vue payload + subscriberOnly). */
+export interface CreatePostBody {
   content?: string;
+  tags?: string[];
   isNsfw?: boolean;
+  isAiGenerated?: boolean;
   category?: string;
   mediaUrls?: string[];
   mediaOriginalUrls?: string[];
-}): Promise<Post> {
+  subscriberOnly?: boolean;
+}
+
+export async function createPost(body: CreatePostBody): Promise<Post> {
   const res = await api.post('/posts', body);
   return res.data.data.post as Post;
+}
+
+export async function suggestTags(q: string): Promise<{ name: string; count: number }[]> {
+  const res = await api.get('/posts/tags/suggest', { params: { q } });
+  return res.data.data.tags ?? [];
 }
 
 export async function votePost(id: string, value: -1 | 0 | 1) {

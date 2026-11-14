@@ -169,6 +169,7 @@ export default function RootLayout() {
               <Stack.Screen name="notifications" />
               <Stack.Screen name="post/[id]" />
               <Stack.Screen name="settings" />
+              <Stack.Screen name="create-post" options={{ presentation: 'modal', gestureEnabled: false }} />
               <Stack.Screen name="delete-account" />
               <Stack.Screen name="support" />
             </Stack.Protected>

@@ -1,13 +1,15 @@
-import { Tabs } from 'expo-router';
-import { House, Compass, MessageCircle, Grid3x3 } from 'lucide-react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { House, Compass, MessageCircle, Grid3x3, Plus } from 'lucide-react-native';
 import { useSession } from '@/stores/session';
 import { useUnreadMessages } from '@/hooks/useMessages';
+import { View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
 
 export default function TabsLayout() {
   const { t } = useT();
+  const router = useRouter();
   const user = useSession((s) => s.user);
   const unread = useUnreadMessages();
 
@@ -28,6 +30,26 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="discover"
         options={{ title: t('mSearchTitle'), tabBarIcon: ({ color, size }) => <Compass color={color} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="create"
+        options={{
+          title: t('composerCreateBtn'),
+          tabBarIcon: ({ size }) => (
+            <View className="h-9 w-9 items-center justify-center rounded-full bg-brand-accent">
+              <Plus color={colors.offwhite} size={size} />
+            </View>
+          ),
+          tabBarLabel: () => null,
+          tabBarAccessibilityLabel: t('composerCreateBtn'),
+        }}
+        listeners={{
+          // Не вкладка, а действие: открываем экран создания поста поверх вкладок
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push('/create-post');
+          },
+        }}
       />
       <Tabs.Screen
         name="messages"

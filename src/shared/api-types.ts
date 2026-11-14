@@ -21,6 +21,8 @@ export interface AuthUser {
   onboarding_done: boolean;
   /** Сервер проверяет 18+ по дате рождения; без этого NSFW недоступен (как на вебе, useNsfwMode). */
   is_adult?: boolean;
+  /** Тариф: определяет лимиты загрузки (free, lite, pro, business). */
+  subscription_tier?: string | null;
 }
 
 export interface PostAuthor {

@@ -40,7 +40,14 @@
       "expo-video",
       "expo-font",
       "expo-web-browser",
-      "expo-image-picker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Bloomly обращается к вашей галерее, чтобы вы могли выбрать фото и видео для публикации в посте.",
+          "cameraPermission": "Bloomly использует камеру, чтобы вы могли сделать фото для публикации в посте.",
+          "microphonePermission": false
+        }
+      ],
       [
         "expo-audio",
         {
