@@ -1,6 +1,12 @@
-import { Stack } from 'expo-router';
+import { ErrorScreen } from '@/components/ErrorScreen';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
+
+/** Ошибка внутри этой группы экранов: экран с повтором, остальное приложение продолжает работать. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <ErrorScreen error={error} retry={retry} />;
+}
 
 export default function AuthLayout() {
   const isAuthenticated = useSession((s) => s.isAuthenticated);

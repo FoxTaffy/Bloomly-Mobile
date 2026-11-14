@@ -46,15 +46,20 @@ export const useSession = create<SessionState>((set, get) => ({
   isAuthenticated: false,
 
   hydrate: async () => {
-    const [token, refreshToken, userJson] = await Promise.all([
-      SecureStore.getItemAsync(ACCESS_KEY),
-      SecureStore.getItemAsync(REFRESH_KEY),
-      SecureStore.getItemAsync(USER_KEY),
-    ]);
-    const user = userJson ? (JSON.parse(userJson) as AuthUser) : null;
-    set({ token, refreshToken, user, isAuthenticated: !!token && !!user, isHydrated: true });
-    if (refreshToken) {
-      await get().refresh();
+    try {
+      const [token, refreshToken, userJson] = await Promise.all([
+        SecureStore.getItemAsync(ACCESS_KEY),
+        SecureStore.getItemAsync(REFRESH_KEY),
+        SecureStore.getItemAsync(USER_KEY),
+      ]);
+      const user = userJson ? (JSON.parse(userJson) as AuthUser) : null;
+      set({ token, refreshToken, user, isAuthenticated: !!token && !!user, isHydrated: true });
+      if (refreshToken) {
+        await get().refresh();
+      }
+    } catch {
+      // Хранилище недоступно или данные повреждены: начинаем как гость, а не остаёмся на сплэше
+      set({ token: null, refreshToken: null, user: null, isAuthenticated: false, isHydrated: true });
     }
   },
 

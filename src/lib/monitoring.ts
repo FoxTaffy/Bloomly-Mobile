@@ -31,3 +31,9 @@ export function initMonitoring(): void {
 export function withMonitoring<T extends React.ComponentType<never>>(component: T): T {
   return (monitoringEnabled ? Sentry.wrap(component as never) : component) as T;
 }
+
+/** Отправляет пойманную ошибку в Sentry. Без DSN ничего не делает; события очищаются в beforeSend (scrub.ts). */
+export function reportError(error: unknown): void {
+  if (!monitoringEnabled) return;
+  Sentry.captureException(error);
+}

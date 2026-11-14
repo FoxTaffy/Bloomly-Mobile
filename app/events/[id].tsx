@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Calendar, MapPin } from 'lucide-react-native';
 import { useEvent, useEventAttendees, useRsvp } from '@/hooks/useEvent';
 import { Avatar } from '@/components/Avatar';
+import { DetailScreenState } from '@/components/DetailScreenState';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
 
@@ -18,7 +19,7 @@ export default function EventDetailScreen() {
   const rsvpMutation = useRsvp(id);
 
   const event = eventQuery.data;
-  if (!event) return null;
+  if (!event) return <DetailScreenState loading={eventQuery.isLoading} error={eventQuery.error} onRetry={() => eventQuery.refetch()} />;
 
   const starts = new Date(event.starts_at);
 

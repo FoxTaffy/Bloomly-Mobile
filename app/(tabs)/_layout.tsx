@@ -1,4 +1,5 @@
-import { Tabs, useRouter } from 'expo-router';
+import { ErrorScreen } from '@/components/ErrorScreen';
+import { Tabs, useRouter, type ErrorBoundaryProps } from 'expo-router';
 import { House, Compass, MessageCircle, Grid3x3, Plus } from 'lucide-react-native';
 import { useSession } from '@/stores/session';
 import { useUnreadMessages } from '@/hooks/useMessages';
@@ -6,6 +7,11 @@ import { View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
+
+/** Ошибка внутри этой группы экранов: экран с повтором, остальное приложение продолжает работать. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <ErrorScreen error={error} retry={retry} />;
+}
 
 export default function TabsLayout() {
   const { t } = useT();

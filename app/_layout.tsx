@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import '../global.css';
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient } from '@tanstack/react-query';
@@ -21,6 +21,7 @@ import { useLang } from '@/stores/lang';
 import { initMonitoring, withMonitoring } from '@/lib/monitoring';
 import { setupNetwork } from '@/lib/network';
 import { clearPersistedCache, persistOptions } from '@/lib/queryPersist';
+import { ErrorScreen } from '@/components/ErrorScreen';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { useNsfwPreference } from '@/hooks/useNsfwMode';
 import { wsClient } from '@/lib/wsClient';
@@ -47,6 +48,11 @@ function PushNavigator() {
   return null;
 }
 
+/** Необработанная ошибка отрисовки в любом месте приложения: экран с повтором вместо белого. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <ErrorScreen error={error} retry={retry} />;
+}
+
 function RootLayout() {
   const hydrate = useSession((s) => s.hydrate);
   const isHydrated = useSession((s) => s.isHydrated);
@@ -65,7 +71,7 @@ function RootLayout() {
       void syncOnResume(queryClient);
     },
   });
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
     Nunito_700Bold,
@@ -76,10 +82,14 @@ function RootLayout() {
   useEffect(() => {
     void useLang.getState().hydrate();
     void useNsfwPreference.getState().hydrate();
-    hydrate().finally(() => {
-      if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
-    });
-  }, [hydrate, fontsLoaded]);
+    void hydrate();
+  }, [hydrate]);
+
+  // Шрифты, которые не загрузились, не должны оставлять приложение на сплэше навсегда: идём дальше с системным шрифтом
+  const ready = isHydrated && (fontsLoaded || !!fontError);
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
 
   // Выход: кэш запросов принадлежит прошлому аккаунту, чужие данные не должны попасть в следующий вход
   useEffect(() => {
@@ -160,7 +170,7 @@ function RootLayout() {
     };
   }, [isAuthenticated]);
 
-  if (!isHydrated || !fontsLoaded) return null;
+  if (!ready) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

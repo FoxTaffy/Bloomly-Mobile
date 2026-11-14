@@ -89,7 +89,7 @@ export default function PostScreen() {
     );
   }
 
-  if (!post) return null;
+  if (!post) return <Screen>{back}<ErrorState onRetry={() => postQuery.refetch()} /></Screen>;
 
   // 18+: на вебе 'hide' скрывает такие посты. Взрослым даём открыть вручную, остальным — объяснение.
   if (post.is_nsfw && nsfwMode === 'hide') {

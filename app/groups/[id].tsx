@@ -2,6 +2,7 @@ import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ContentMenu } from '@/components/ContentMenu';
+import { DetailScreenState } from '@/components/DetailScreenState';
 import { Screen } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
@@ -17,7 +18,7 @@ export default function GroupDetailScreen() {
   const group = groupQuery.data;
   const joinMutation = useJoinGroup();
 
-  if (!group) return null;
+  if (!group) return <DetailScreenState loading={groupQuery.isLoading} error={groupQuery.error} onRetry={() => groupQuery.refetch()} />;
 
   return (
     <Screen>
