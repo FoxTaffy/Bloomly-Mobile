@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { ChevronLeft, TriangleAlert } from 'lucide-react-native';
 import { Button, Card, ErrorState, Field, Screen, Skeleton } from '@/components/ui';
 import { useDeleteAccount } from '@/hooks/useDeleteAccount';
@@ -56,11 +56,11 @@ export default function DeleteAccountScreen() {
             <TriangleAlert size={18} color={colors.error} />
             <Text className="font-nunito-extrabold text-base text-brand-error">{t('deleteAccountTitle')}</Text>
           </View>
-          <Text className="font-nunito text-sm leading-5 text-brand-offwhite">
-            {t('deleteModalDescPre')} <Text className="font-nunito-extrabold text-brand-error">{t('deleteModalDescHighlight')}</Text>
-            {t('deleteModalDescPost')}
+          <Text className="font-nunito text-sm leading-5 text-brand-offwhite">{t('mDeleteNeutral')}</Text>
+          <Text className="font-nunito text-sm leading-5 text-brand-muted">{t('mDeleteOpenDealsNote')}</Text>
+          <Text onPress={() => router.push('/legal/privacy' as Href)} accessibilityRole="link" className="py-1 font-nunito-bold text-sm text-brand-accent-minus">
+            {t('privacyTitle')}
           </Text>
-          <Text className="font-nunito text-sm leading-5 text-brand-muted">{t('mDeleteConsequences')}</Text>
         </Card>
 
         {requirements.isLoading ? (
