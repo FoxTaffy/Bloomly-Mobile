@@ -1,0 +1,27 @@
+# Apple: «App Privacy» (питательные метки), черновик
+
+Основа та же, что в DATA_SAFETY.md: только то, что приложение реально собирает. Данные уходят на сервер Bloomly и в службу push Expo. **Tracking (отслеживание): нет** — рекламных SDK и сопоставления данных с чужими нет, App Tracking Transparency не нужен.
+
+Во всех строках ниже данные **связаны с пользователем** (Linked to You), потому что привязаны к аккаунту.
+
+| Категория Apple | Тип данных | Что именно | Цели |
+|---|---|---|---|
+| Contact Info | Email Address | email аккаунта | App Functionality |
+| Contact Info | Name | отображаемое имя и username (публичны) | App Functionality |
+| Identifiers | User ID | id аккаунта | App Functionality |
+| Identifiers | Device ID | Expo push-токен (если разрешены уведомления) | App Functionality |
+| User Content | Audio Data | голосовые сообщения | App Functionality |
+| User Content | Other User Content | посты, комментарии, сообщения, жалобы | App Functionality |
+| Usage Data | Product Interaction | просмотры постов, оценки, подписки (лента «Для вас») | Product Personalization, App Functionality |
+| Other Data | Other Data Types | дата рождения, email родителя (13–15 лет), отметки согласий, симпатии профиля | App Functionality (проверка возраста, соблюдение закона) |
+
+## Не собираются
+
+Location, Contacts, Photos or Videos, Health & Fitness, Financial Info, Browsing History, Search History, Diagnostics (crash и performance), Purchases (покупок в приложении нет), Advertising Data, Sensitive Info как отдельная категория.
+
+## Оговорки
+
+- Push-токен обрабатывает Expo и системные службы доставки (APNs, FCM) как процессоры доставки: на метку это не влияет, в политике конфиденциальности это стоит указать.
+- Сервер сохраняет IP и название устройства в записи сессии (безопасность, управление входом): Apple относит это к Device ID / Other Data; перед отправкой сверить с политикой и при необходимости добавить строку «Identifiers → Device ID: App Functionality».
+- Описание метки «Other User Content» включает контент 18+, который пользователи публикуют сами; он скрыт по умолчанию (см. AGE_RATING.md).
+- Ссылка на политику конфиденциальности (обязательна): https://bloomly.fun/privacy.
