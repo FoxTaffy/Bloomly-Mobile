@@ -9,15 +9,21 @@ export const api = axios.create({
 let getToken: () => string | null = () => null;
 let doRefresh: () => Promise<string | null> = async () => null;
 let onUnauthorized: () => void = () => {};
+let onMaintenance: (active: boolean) => void = () => {};
+let onFrozen: (message: string) => void = () => {};
 
 export function configureApiClient(handlers: {
   getToken: () => string | null;
   onRefresh: () => Promise<string | null>;
   onUnauthorized: () => void;
+  onMaintenance?: (active: boolean) => void;
+  onFrozen?: (message: string) => void;
 }) {
   getToken = handlers.getToken;
   doRefresh = handlers.onRefresh;
   onUnauthorized = handlers.onUnauthorized;
+  onMaintenance = handlers.onMaintenance ?? onMaintenance;
+  onFrozen = handlers.onFrozen ?? onFrozen;
 }
 
 api.interceptors.request.use((config) => {
@@ -29,8 +35,20 @@ api.interceptors.request.use((config) => {
 let refreshPromise: Promise<string | null> | null = null;
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    onMaintenance(false);
+    return res;
+  },
   async (error: AxiosError) => {
+    const code = (error.response?.data as { error?: { code?: string; message?: string } } | undefined)?.error;
+    if (error.response?.status === 503 && code?.code === 'MAINTENANCE') {
+      onMaintenance(true);
+      return Promise.reject(error);
+    }
+    if (error.response?.status === 403 && code?.code === 'ACCOUNT_FROZEN') {
+      onFrozen(code.message ?? '');
+      return Promise.reject(error);
+    }
     const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
 
     if (error.response?.status === 401 && original && !original._retry && !original.url?.includes('/auth/refresh')) {

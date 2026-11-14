@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/nunito';
 import { useSession } from '@/stores/session';
 import { wsClient } from '@/lib/wsClient';
+import { AppStatusGate } from '@/components/AppStatusGate';
 import { usePushRegistration } from '@/hooks/usePushRegistration';
 import type { Conversation, Message } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
@@ -132,11 +133,13 @@ export default function RootLayout() {
               <Stack.Screen name="groups/[id]" />
               <Stack.Screen name="events/[id]" />
               <Stack.Screen name="notifications" />
+              <Stack.Screen name="post/[id]" />
             </Stack.Protected>
             <Stack.Protected guard={!isAuthenticated}>
               <Stack.Screen name="(auth)" />
             </Stack.Protected>
           </Stack>
+          <AppStatusGate />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

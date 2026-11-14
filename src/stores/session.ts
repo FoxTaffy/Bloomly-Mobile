@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { api, configureApiClient } from '@/api/client';
 import { unregisterPush } from '@/lib/push';
+import { useAppStatus } from './appStatus';
 import type { AuthUser } from '@/shared/api-types';
 
 const ACCESS_KEY = 'bloomly_access_token';
@@ -130,4 +131,6 @@ configureApiClient({
   onUnauthorized: () => {
     useSession.getState().logout();
   },
+  onMaintenance: (active) => useAppStatus.getState().setMaintenance(active),
+  onFrozen: (message) => useAppStatus.getState().setFrozen(message),
 });
