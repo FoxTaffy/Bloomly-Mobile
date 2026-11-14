@@ -167,6 +167,7 @@ export default function RootLayout() {
               <Stack.Screen name="notifications" />
               <Stack.Screen name="post/[id]" />
               <Stack.Screen name="settings" />
+              <Stack.Screen name="delete-account" />
             </Stack.Protected>
             <Stack.Protected guard={!isAuthenticated || needsOnboarding}>
               <Stack.Screen name="(auth)" />

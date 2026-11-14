@@ -115,6 +115,11 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        <Section title={t('mSettingsDanger')}>
+          <Text className="mb-3 font-nunito text-sm text-brand-muted">{t('deleteAccountTitle')}</Text>
+          <Button title={t('deleteMyAccountBtn')} variant="secondary" onPress={() => router.push('/delete-account')} />
+        </Section>
+
         <Text className="text-center font-nunito text-xs text-brand-muted">{t('mSettingsVersion', { v: Constants.expoConfig?.version ?? '' })}</Text>
       </ScrollView>
     </Screen>
