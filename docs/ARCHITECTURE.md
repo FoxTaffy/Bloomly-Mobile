@@ -30,7 +30,7 @@ src/
   api/<домен>.ts        запросы по доменам бэкенда (posts, groups, events…) + типы ответов
   stores/               zustand: session (токены), lang (язык), appStatus (обслуживание, заморозка)
   hooks/                useWindowClass, useNsfwMode, хуки данных на TanStack Query (usePosts, usePost, useGroups, useConversations, useNotifications, useSearch)
-  lib/                  config, oauth, wsClient, time, push; storage (SecureStore) — в планах
+  lib/                  config, oauth, wsClient, push, deviceId, monitoring (Sentry), network, queryPersist, chatSync
   theme/tokens.ts       единственный TS-файл с цветами и брейкпоинтами
   components/ui/        Screen, Button, Card, Chip, Field, EmptyState, ErrorState, Skeleton
   components/<домен>/   блоки конкретного раздела
@@ -105,7 +105,31 @@ scripts/check-rules.mjs проверка правил архитектуры
 
 `@/` = `src/` (tsconfig `paths`). Внутри одной папки — `./`. Из `app/` в `src/` — только `@/`.
 
-## Статус (ветка mobile/phase-4)
+## Статус (ветка mobile/phase-5)
+
+Сделано в Phase 5 (всё из предыдущих фаз остаётся):
+- [x] FlashList вместо FlatList: лента, обзор, поиск (4 вкладки), список диалогов, уведомления (без SectionList: заголовки строками, липкие), чат (старт снизу, подгрузка истории через `onStartReached`). Профиль и комментарии поста остаются на FlatList.
+- [x] Мониторинг ошибок Sentry (`lib/monitoring.ts`, очистка `shared/scrub.ts`): выключен без `EXPO_PUBLIC_SENTRY_DSN`; без пользователя, запроса, токенов, почты, id и текстов, без трассировок и сессий. Описано в `docs/store/DATA_SAFETY.md` и `APP_PRIVACY.md`.
+- [x] Офлайн: плашка «нет соединения» с повтором (NetInfo + `onlineManager`), `networkMode: offlineFirst`, кэш первой страницы ленты «Для вас» в AsyncStorage (только публичные посты без 18+ и без оценок читателя, 3 суток, стирается при выходе). Токены, сообщения и профиль на диск не пишутся.
+- [x] Версии: `app.json` 1.0.1 = `package.json` 1.0.1. `eas.json`: `appVersionSource: remote` и `autoIncrement` для production уже были.
+- [x] Проверка иконок и сплэша: `docs/store/ASSETS.md`.
+- [x] Тексты карточек (ru, en) и план скриншотов: `docs/store/LISTING.md`.
+
+Не сделано / ждёт решения:
+- [ ] Сплэш не настроен: плагин `expo-splash-screen` без параметров, `splash-icon.png` занимает весь холст (обрежется на Android 12+). Нужны макет и правка `app.json` (в этой фазе разрешены только версии).
+- [ ] Sentry: плагин `@sentry/react-native` в `app.json` и `getSentryExpoConfig` в `metro.config.js` не добавлялись (запрещено правилами фазы), поэтому загрузка sourcemaps и читаемые стеки на проде потребуют этих правок. Регион данных и «Prevent Storing of IP Addresses» настраиваются в проекте Sentry.
+- [ ] iPad: `supportsTablet: true` оставлен без изменений; решение владельца (скриншоты iPad и проверка раскладки medium/expanded либо отключение).
+- [ ] Английский текст карточек написан мной, нужна вычитка носителем.
+- [ ] Всё, что открыто ранее: Sign in with Apple, `eas init`, подпись, CI, `apple-app-site-association`, `assetlinks.json` для `app.bloomly.mobile`, адрес компании на правовых страницах, вопрос возраста 13+ и рейтинга 17+.
+
+Не проверено на устройстве и в эмуляторе (проверены `tsc`, `npm run check`, `expo export` для iOS и Android, чистая логика отдельным запуском: очистка событий Sentry, фильтр кэша ленты):
+- FlashList: плавность, высота ячеек с `mb-3`, чат (старт снизу, автопрокрутка, подгрузка истории, клавиатура), липкие заголовки уведомлений, pull-to-refresh и пагинация на всех списках;
+- Sentry: реальная отправка события и вид события на сервере (проверить, что в нём нет данных);
+- офлайн: перевод в авиарежим, плашка и повтор, чтение сохранённой ленты после перезапуска без сети, очистка при выходе;
+- вид сплэша и иконок на устройствах (в том числе Android 12+ и тематическая иконка);
+- всё, что перечислено в Phase 2b, 3 и 4 (push, возврат из фона, WebView, 2FA, загрузка медиа, deep links).
+
+## Статус Phase 4 (сделано ранее; актуальный список выше)
 
 Сделано в Phase 4 (всё из предыдущих фаз остаётся):
 - [x] Создание поста (`create-post`, кнопка «+» по центру вкладок): текст, фото и видео из галереи, фото с камеры, теги (подсказки), NSFW, пометка ИИ, видимость «всем / только подписчикам». Загрузка с прогрессом, повтор и удаление при ошибке, предпроверка лимитов по тарифу, ответы сервера FILE_LIMIT_EXCEEDED, файлы свыше 50 МБ частями (`expo-file-system`). Строки разрешений галереи и камеры в `app.json` (камера только для фото, микрофон не запрашивается).
