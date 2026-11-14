@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Camera, ImagePlus, RotateCcw, Video, X } from 'lucide-react-native';
 import { Avatar } from '@/components/Avatar';
+import { PermissionDeniedSheet } from '@/components/PermissionDeniedSheet';
 import { Button, Chip, Field, Screen } from '@/components/ui';
 import { usePublishPost, useTagSuggestions } from '@/hooks/useComposer';
 import { usePostMedia, type MediaItem } from '@/hooks/usePostMedia';
@@ -143,6 +144,7 @@ export default function CreatePostScreen() {
 
         {error ? <Text className="font-nunito-bold text-sm text-brand-error">{error}</Text> : null}
       </ScrollView>
+      <PermissionDeniedSheet gate={media.gate} />
     </Screen>
   );
 }

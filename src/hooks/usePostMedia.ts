@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { File as FsFile } from 'expo-file-system';
 import { uploadFile } from '@/api/media';
+import { usePermissionGate } from '@/hooks/usePermissionGate';
 import { useT } from '@/hooks/useT';
 import { apiErrorCode, apiErrorMessage } from '@/shared/apiError';
 import type { MessageKey } from '@/shared/i18n';
@@ -44,6 +45,7 @@ function sizeOf(a: ImagePicker.ImagePickerAsset): number {
  */
 export function usePostMedia() {
   const { t } = useT();
+  const gate = usePermissionGate();
   const tier = normalizeTier(useSession((s) => s.user?.subscription_tier));
   const [items, setItems] = useState<MediaItem[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
@@ -126,16 +128,24 @@ export function usePostMedia() {
   const pickFromLibrary = useCallback(async () => {
     const room = MAX_POST_MEDIA - itemsRef.current.length;
     if (room <= 0) return setNotice(t('mUploadMaxFiles', { n: MAX_POST_MEDIA }));
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, selectionLimit: room, quality });
-    if (!res.canceled) addAssets(res.assets);
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, selectionLimit: room, quality });
+      if (!res.canceled) addAssets(res.assets);
+    } catch {
+      // системный выбор фото обычно не требует разрешения; если он всё же не открылся, говорим об этом, а не молчим
+      setNotice(t('mPickFailed'));
+    }
   }, [addAssets, quality, t]);
 
   const takeWithCamera = useCallback(async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) return setNotice(t('mCameraDenied'));
-    const res = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality });
-    if (!res.canceled) addAssets(res.assets);
-  }, [addAssets, quality, t]);
+    if (!(await gate.ensure('camera'))) return; // отказ: объяснение и кнопка настроек показывает PermissionDeniedSheet
+    try {
+      const res = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality });
+      if (!res.canceled) addAssets(res.assets);
+    } catch {
+      setNotice(t('mPickFailed'));
+    }
+  }, [addAssets, gate, quality, t]);
 
   const remove = useCallback((id: number) => {
     aborts.current.get(id)?.abort();
@@ -157,5 +167,5 @@ export function usePostMedia() {
   const failed = items.some((i) => i.status === 'error');
   const done = items.filter((i) => i.status === 'done' && i.url);
 
-  return { items, notice, uploading, failed, mediaUrls: done.map((i) => i.url!), mediaOriginalUrls: done.map((i) => i.originalUrl ?? i.url!), pickFromLibrary, takeWithCamera, remove, retry, clear };
+  return { gate, items, notice, uploading, failed, mediaUrls: done.map((i) => i.url!), mediaOriginalUrls: done.map((i) => i.originalUrl ?? i.url!), pickFromLibrary, takeWithCamera, remove, retry, clear };
 }

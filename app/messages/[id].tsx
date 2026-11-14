@@ -4,14 +4,10 @@ import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { EmptyState, ErrorState, Screen, Skeleton } from '@/components/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Wifi, Send, Mic, Square } from 'lucide-react-native';
-import {
-  useAudioRecorder,
-  useAudioRecorderState,
-  RecordingPresets,
-  requestRecordingPermissionsAsync,
-} from 'expo-audio';
 import { useAppendMessage, useCachedConversation, useMarkConversationRead, useMessages, useOlderMessages, useSendMessage } from '@/hooks/useMessages';
+import { PermissionDeniedSheet } from '@/components/PermissionDeniedSheet';
 import { useChatSocket } from '@/hooks/useChatSocket';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useSession } from '@/stores/session';
 import { Avatar } from '@/components/Avatar';
 import { MessageBubble } from '@/components/MessageBubble';
@@ -64,23 +60,19 @@ export default function ChatThreadScreen() {
     sendMutation.mutate({ content: text });
   };
 
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
-  const recorderState = useAudioRecorderState(recorder);
+  const voice = useVoiceRecorder();
+  const [voiceError, setVoiceError] = useState<string | null>(null);
 
   const onToggleRecord = async () => {
-    if (recorderState.isRecording) {
-      await recorder.stop();
-      const uri = recorder.uri;
-      if (uri) {
-        // не удалось загрузить — запись просто отбрасываем
-        await sendVoice(uri);
-      }
+    setVoiceError(null);
+    if (voice.isRecording) {
+      const uri = await voice.finish();
+      if (!uri) return setVoiceError(t('mVoiceRecordFailed'));
+      // загрузка не удалась — не молчим, пользователь может записать заново
+      if (!(await sendVoice(uri))) setVoiceError(t('mVoiceSendFailed'));
       return;
     }
-    const { granted } = await requestRecordingPermissionsAsync();
-    if (!granted) return;
-    await recorder.prepareToRecordAsync();
-    recorder.record();
+    if ((await voice.start()) === 'failed') setVoiceError(t('mVoiceRecordFailed'));
   };
 
   return (
@@ -128,6 +120,8 @@ export default function ChatThreadScreen() {
           }
         />
 
+        {voice.isRecording ? <Text className="px-4 pt-2 font-nunito-bold text-xs text-brand-error">{t('mVoiceRecording')}</Text> : null}
+        {voiceError ? <Text className="px-4 pt-2 font-nunito-bold text-xs text-brand-error">{voiceError}</Text> : null}
         <View className="flex-row items-center gap-2 border-t border-brand-border px-3 py-2">
           <TextInput
             value={draft}
@@ -144,13 +138,14 @@ export default function ChatThreadScreen() {
           ) : (
             <Pressable
               onPress={onToggleRecord}
-              className={`h-11 w-11 items-center justify-center rounded-full ${recorderState.isRecording ? 'bg-brand-error' : 'bg-brand-accent'}`}
+              className={`h-11 w-11 items-center justify-center rounded-full ${voice.isRecording ? 'bg-brand-error' : 'bg-brand-accent'}`}
             >
-              {recorderState.isRecording ? <Square size={16} color={colors.offwhite} /> : <Mic size={18} color={colors.offwhite} />}
+              {voice.isRecording ? <Square size={16} color={colors.offwhite} /> : <Mic size={18} color={colors.offwhite} />}
             </Pressable>
           )}
         </View>
       </KeyboardAvoidingView>
+      <PermissionDeniedSheet gate={voice.gate} />
     </Screen>
   );
 }
