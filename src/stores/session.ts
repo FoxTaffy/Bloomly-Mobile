@@ -4,6 +4,8 @@ import { api, configureApiClient } from '@/api/client';
 import { unregisterPush } from '@/lib/push';
 import { useAppStatus } from './appStatus';
 import type { AuthUser } from '@/shared/api-types';
+import type { AgeConsentPayload } from '@/shared/age';
+import { completeSignup, saveOnboarding } from '@/api/auth';
 
 const ACCESS_KEY = 'bloomly_access_token';
 const REFRESH_KEY = 'bloomly_refresh_token';
@@ -18,12 +20,11 @@ interface SessionState {
   hydrate: () => Promise<void>;
   setSession: (token: string, refreshToken: string | undefined, user: AuthUser) => Promise<void>;
   login: (email: string, password: string, remember?: boolean) => Promise<void>;
-  register: (
-    username: string,
-    email: string,
-    password: string,
-    consent?: { personalData?: boolean; cookies?: boolean; marketingEmails?: boolean }
-  ) => Promise<void>;
+  register: (username: string, email: string, password: string, consent: AgeConsentPayload) => Promise<void>;
+  /** Дата рождения и согласия после OAuth / входа без даты рождения. 'parental-pending' — ждём согласия родителя. */
+  completeSignup: (signupToken: string, consent: AgeConsentPayload) => Promise<'ok' | 'parental-pending'>;
+  /** Сохранить шаг профиля (имя, дата рождения, симпатии) или пропустить. */
+  finishOnboarding: (data: { display_name?: string; birth_date?: string; likes?: string[]; dislikes?: string[] }) => Promise<void>;
   verifyEmail: (email: string, code: string, remember?: boolean) => Promise<void>;
   resendOtp: (email: string, purpose: 'register' | 'reset' | 'unfreeze') => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -68,7 +69,30 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   register: async (username, email, password, consent) => {
-    await api.post('/auth/register', { username, email, password, consent });
+    await api.post('/auth/register', { username, email, password, ...consent });
+  },
+
+  completeSignup: async (signupToken, consent) => {
+    const result = await completeSignup(signupToken, consent);
+    if (result.kind === 'parental-pending') return 'parental-pending';
+    await get().setSession(result.token, result.refreshToken, result.user);
+    return 'ok';
+  },
+
+  finishOnboarding: async (data) => {
+    const patch = await saveOnboarding({ onboarding_done: true, ...data });
+    const user = get().user;
+    if (!user) return;
+    let next = { ...user, ...patch, onboarding_done: true } as AuthUser;
+    // Дата рождения меняет is_adult (режим NSFW): берём пользователя с сервера, как после входа
+    try {
+      const me = await api.get('/auth/me');
+      next = { ...next, ...(me.data.data.user as AuthUser), onboarding_done: true };
+    } catch {
+      // оставляем локально объединённого
+    }
+    set({ user: next });
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(next));
   },
 
   verifyEmail: async (email, code, remember = true) => {

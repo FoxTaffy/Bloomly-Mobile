@@ -1,11 +1,12 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { API_URL } from './config';
+import { usePendingSignup } from '@/stores/pendingSignup';
 import { useSession } from '@/stores/session';
 
 export type OAuthProvider = 'yandex' | 'google' | 'twitter' | 'twitch';
 
-export async function loginWithOAuth(provider: OAuthProvider): Promise<'success' | 'cancel' | 'error'> {
+export async function loginWithOAuth(provider: OAuthProvider): Promise<'success' | 'signup' | 'cancel' | 'error'> {
   // В Expo Go это exp://..., в собранном приложении — bloomly://auth/callback.
   // Бэкенд не может угадать это заранее, поэтому шлём актуальный редирект явно.
   const redirectUrl = Linking.createURL('auth/callback');
@@ -14,6 +15,13 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<'success'
 
   if (result.type !== 'success' || !result.url) {
     return result.type === 'cancel' || result.type === 'dismiss' ? 'cancel' : 'error';
+  }
+
+  // Новый аккаунт: сервер вернул токен завершения регистрации, нужна дата рождения и согласия (экран (auth)/age)
+  const signupMatch = result.url.match(/[?&]signup=([^&]+)/);
+  if (signupMatch) {
+    usePendingSignup.getState().set(decodeURIComponent(signupMatch[1]));
+    return 'signup';
   }
 
   const tokenMatch = result.url.match(/[?&]token=([^&]+)/);

@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { usePendingSignup } from '@/stores/pendingSignup';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
 
 export default function OAuthCallbackScreen() {
   const { t } = useT();
-  const { token, refreshToken } = useLocalSearchParams<{ token?: string; refreshToken?: string }>();
+  const { token, refreshToken, signup } = useLocalSearchParams<{ token?: string; refreshToken?: string; signup?: string }>();
   const router = useRouter();
   const loginWithToken = useSession((s) => s.loginWithToken);
   const handled = useRef(false);
@@ -15,6 +16,12 @@ export default function OAuthCallbackScreen() {
   useEffect(() => {
     if (handled.current) return;
     handled.current = true;
+    // Ссылка bloomly://auth/callback?signup=… (вход начат в этом приложении): продолжаем регистрацию
+    if (signup && !token) {
+      usePendingSignup.getState().set(signup);
+      router.replace('/(auth)/age');
+      return;
+    }
     if (!token) {
       router.replace('/(auth)/login');
       return;
@@ -22,7 +29,7 @@ export default function OAuthCallbackScreen() {
     loginWithToken(token, refreshToken)
       .then(() => router.replace('/(tabs)/feed'))
       .catch(() => router.replace('/(auth)/login'));
-  }, [token, refreshToken, loginWithToken, router]);
+  }, [token, refreshToken, signup, loginWithToken, router]);
 
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-brand-bg">

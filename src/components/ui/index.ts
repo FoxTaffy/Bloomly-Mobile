@@ -1,6 +1,8 @@
 export { Button } from './Button';
 export { Card } from './Card';
+export { Checkbox } from './Checkbox';
 export { Chip } from './Chip';
+export { DateField } from './DateField';
 export { EmptyState } from './EmptyState';
 export { ErrorState } from './ErrorState';
 export { Field } from './Field';

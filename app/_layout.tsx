@@ -43,6 +43,8 @@ export default function RootLayout() {
   const hydrate = useSession((s) => s.hydrate);
   const isHydrated = useSession((s) => s.isHydrated);
   const isAuthenticated = useSession((s) => s.isAuthenticated);
+  // Веб: залогинен без пройденного онбординга → принудительно онбординг (router guard)
+  const needsOnboarding = useSession((s) => s.isAuthenticated && s.user?.onboarding_done === false);
   usePushRegistration();
 
   // WebSocket в фоне не живёт: сворачиваем — закрываем сокет (дальше работают push), возвращаемся — переподключаемся
@@ -156,7 +158,7 @@ export default function RootLayout() {
           <StatusBar style="light" />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
             <Stack.Screen name="auth/callback" />
-            <Stack.Protected guard={isAuthenticated}>
+            <Stack.Protected guard={isAuthenticated && !needsOnboarding}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="messages/[id]" />
               <Stack.Screen name="profile/[username]" />
@@ -166,7 +168,7 @@ export default function RootLayout() {
               <Stack.Screen name="post/[id]" />
               <Stack.Screen name="settings" />
             </Stack.Protected>
-            <Stack.Protected guard={!isAuthenticated}>
+            <Stack.Protected guard={!isAuthenticated || needsOnboarding}>
               <Stack.Screen name="(auth)" />
             </Stack.Protected>
           </Stack>

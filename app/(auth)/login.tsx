@@ -8,6 +8,10 @@ import {
   Image,
 } from 'react-native';
 import { Screen } from '@/components/ui';
+import { AgeConsentFields } from '@/components/auth/AgeConsentFields';
+import { useAgeConsent } from '@/hooks/useAgeConsent';
+import { usePendingSignup } from '@/stores/pendingSignup';
+import { useRouter, type Href } from 'expo-router';
 import { Mail, Lock, User, Eye, EyeOff, Key, ShieldCheck, ChevronLeft, Monitor, CircleAlert } from 'lucide-react-native';
 import { useSession } from '@/stores/session';
 import { loginWithOAuth } from '@/lib/oauth';
@@ -34,6 +38,8 @@ export default function AuthScreen() {
   const forgotPassword = useSession((s) => s.forgotPassword);
   const resetPassword = useSession((s) => s.resetPassword);
 
+  const router = useRouter();
+  const consent = useAgeConsent();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -106,7 +112,12 @@ export default function AuthScreen() {
       if (mode === 'login') {
         await login(email.trim(), password, remember);
       } else if (mode === 'register') {
-        await register(username.trim(), email.trim(), password);
+        // как на вебе: дата рождения и согласия обязательны до отправки
+        if (consent.validationError) {
+          setError(consent.validationError);
+          return;
+        }
+        await register(username.trim(), email.trim(), password, consent.payload());
         setMode('verify');
         setResendCountdown(60);
       } else if (mode === 'verify') {
@@ -121,6 +132,12 @@ export default function AuthScreen() {
       }
     } catch (e: any) {
       const code = e?.response?.data?.error?.code;
+      // Аккаунт без даты рождения: сессии нет, токен в ответе, ведём на возрастную проверку (как на вебе)
+      if (code === 'AGE_VERIFICATION_REQUIRED') {
+        usePendingSignup.getState().set(e?.response?.data?.data?.signupToken ?? null);
+        router.push('/(auth)/age');
+        return;
+      }
       if (mode === 'login' && code === 'EMAIL_NOT_VERIFIED') {
         setMode('verify');
         setResendCountdown(60);
@@ -139,6 +156,7 @@ export default function AuthScreen() {
     try {
       const result = await loginWithOAuth(provider);
       if (result === 'error') setError(t('loginOauthFailed'));
+      if (result === 'signup') router.push('/(auth)/age');
     } finally {
       setOauthLoading(null);
     }
@@ -363,6 +381,8 @@ export default function AuthScreen() {
                   </View>
                 ) : null}
 
+                {mode === 'register' ? <AgeConsentFields form={consent} /> : null}
+
                 {error ? (
                   <View
                     className="flex-row items-start gap-2.5 rounded-2xl border p-3.5"
@@ -430,9 +450,14 @@ export default function AuthScreen() {
                 </View>
               ) : null}
 
-              <Text className="mt-6 text-center font-nunito-semibold text-xs leading-relaxed text-white/20">
-                {t('mTermsConsent')}
-              </Text>
+              <View className="mt-6 flex-row flex-wrap items-center justify-center gap-x-4">
+                <Text onPress={() => router.push('/legal/terms' as Href)} accessibilityRole="link" className="py-2 font-nunito-semibold text-xs text-white/40">
+                  {t('ageConsentTermsLink')}
+                </Text>
+                <Text onPress={() => router.push('/legal/privacy' as Href)} accessibilityRole="link" className="py-2 font-nunito-semibold text-xs text-white/40">
+                  {t('ageConsentPrivacyLink')}
+                </Text>
+              </View>
             </AuthCard>
           </ScrollView>
       </Screen>
