@@ -104,7 +104,8 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "@sentry/react-native/expo"
     ]
   }
 }

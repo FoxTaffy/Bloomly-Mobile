@@ -89,6 +89,21 @@ metro.config.js      настройки Metro, без нужды не менят
 
 Аккаунты заводит владелец проекта на своё имя. Сборка и отправка в магазины описываются отдельно, когда до этого дойдём.
 
+## Sentry: ошибки и sourcemaps
+
+Мониторинг ошибок включается переменной `EXPO_PUBLIC_SENTRY_DSN`; пока её нет, SDK не запускается и ничего не отправляет (`src/lib/monitoring.ts`). В событиях нет персональных данных (`src/shared/scrub.ts`, список в `docs/store/DATA_SAFETY.md`).
+
+**Как собирается сейчас.** В `app.json` подключён плагин `@sentry/react-native/expo`, в `metro.config.js` — `getSentryExpoConfig`. Автозагрузка sourcemaps и символов при сборке **выключена**: в каждом профиле `eas.json` задано `SENTRY_DISABLE_AUTO_UPLOAD=true` (без токена iOS-сборка иначе падает на шаге загрузки, а на Android Gradle-плагин пытается загрузить маппинги). Проверено: `expo export` для iOS и Android проходит без `SENTRY_AUTH_TOKEN` и даже без сети.
+
+**Как включить позже** (когда есть проект в Sentry):
+1. В проекте Sentry: «Prevent Storing of IP Addresses» включить, регион данных (EU или US) выбрать при создании и отразить в политике конфиденциальности.
+2. Токен и данные проекта хранить только в секретах EAS, не в репозитории: `eas env:create --name SENTRY_AUTH_TOKEN --value <токен> --visibility secret --environment production` (так же `--environment preview`), затем `SENTRY_ORG` и `SENTRY_PROJECT` (slug организации и проекта; это не секреты, но они нужны sentry-cli) и `EXPO_PUBLIC_SENTRY_DSN` (видимость `plaintext` или `sensitive`: DSN попадает в приложение, это не секрет). Синтаксис команды `eas env:create` и значения `--visibility` сверить с `eas env:create --help`: он менялся между версиями EAS CLI.
+3. Убрать `SENTRY_DISABLE_AUTO_UPLOAD` из нужных профилей `eas.json` (или переопределить значением `false` в окружении EAS).
+4. Собрать приложение и проверить в Sentry, что событие приходит с читаемым стеком и в нём нет данных пользователя (`beforeSend` чистит их, но проверить глазами).
+5. Токен хранить по принципу минимальных прав: создать отдельный Internal Integration с правами на загрузку релизов и sourcemaps (`project:releases`, `org:read`), не личный токен.
+
+Не проверено: реальная нативная сборка с загрузкой (нужны аккаунт Sentry и токен), поведение шага iOS без токена (по скриптам плагина с `SENTRY_DISABLE_AUTO_UPLOAD=true` он пропускается).
+
 ## Что делать дальше
 
 1. Перенести вход: логин, двухфакторная проверка, проверка возраста.
