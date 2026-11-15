@@ -79,6 +79,12 @@ export interface Story {
   view_count: number;
 }
 
+export interface StoryViewer {
+  id: string;
+  created_at: string;
+  user: { id: string; username: string; display_name: string | null; avatar_url: string | null };
+}
+
 export interface UserProfile {
   id: string;
   username: string;

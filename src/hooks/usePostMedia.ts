@@ -43,7 +43,8 @@ function sizeOf(a: ImagePicker.ImagePickerAsset): number {
  * Вложения поста: выбор из галереи или камеры, предпроверка по тарифу, загрузка с прогрессом, повтор при ошибке.
  * Веб-аналог: components/MediaUpload.vue + composables/useUploadPrecheck.ts (папка posts, не больше 20 файлов).
  */
-export function usePostMedia() {
+export function usePostMedia(opts: { max?: number } = {}) {
+  const max = opts.max ?? MAX_POST_MEDIA;
   const { t } = useT();
   const gate = usePermissionGate();
   const tier = normalizeTier(useSession((s) => s.user?.subscription_tier));
@@ -100,8 +101,8 @@ export function usePostMedia() {
   const addAssets = useCallback(
     (assets: ImagePicker.ImagePickerAsset[]) => {
       setNotice(null);
-      const room = MAX_POST_MEDIA - itemsRef.current.length;
-      if (assets.length > room) setNotice(t('mUploadMaxFiles', { n: MAX_POST_MEDIA }));
+      const room = max - itemsRef.current.length;
+      if (assets.length > room) setNotice(t('mUploadMaxFiles', { n: max }));
       const fresh: MediaItem[] = [];
       for (const a of assets.slice(0, Math.max(0, room))) {
         const mime = defaultMime(a);
@@ -119,15 +120,15 @@ export function usePostMedia() {
       setItems((list) => [...list, ...fresh]);
       fresh.forEach((i) => void start(i));
     },
-    [limitMessage, start, t, tier],
+    [limitMessage, max, start, t, tier],
   );
 
   // Lite+ грузят фото как есть, на Free — сжатие JPEG (как на вебе: «стандартное сжатие»)
   const quality = FILE_LIMITS[tier].uncompressedPhotos ? 1 : 0.8;
 
   const pickFromLibrary = useCallback(async () => {
-    const room = MAX_POST_MEDIA - itemsRef.current.length;
-    if (room <= 0) return setNotice(t('mUploadMaxFiles', { n: MAX_POST_MEDIA }));
+    const room = max - itemsRef.current.length;
+    if (room <= 0) return setNotice(t('mUploadMaxFiles', { n: max }));
     try {
       const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, selectionLimit: room, quality });
       if (!res.canceled) addAssets(res.assets);
@@ -135,7 +136,7 @@ export function usePostMedia() {
       // системный выбор фото обычно не требует разрешения; если он всё же не открылся, говорим об этом, а не молчим
       setNotice(t('mPickFailed'));
     }
-  }, [addAssets, quality, t]);
+  }, [addAssets, max, quality, t]);
 
   const takeWithCamera = useCallback(async () => {
     if (!(await gate.ensure('camera'))) return; // отказ: объяснение и кнопка настроек показывает PermissionDeniedSheet

@@ -49,9 +49,9 @@
 | B14 | Статистика поста (PostStatsModal), список «кому понравилось» | `GET /posts/:id/stats`, `/posts/me/liked-by/:id` | missing | P2 | — | S | |
 | B15 | Закрытые посты «только подписчикам», медиа с токеном | `GET /media/private`, `/media/authz` | done (Phase 8b) | P0 | priv | — | |
 | B16 | NSFW: hide/blur/show, режим по возрасту | — | done (`useNsfwMode`) | P0 | 18+ | — | Проверить fail-closed на всех новых списках |
-| B17 | Истории: кольцо в ленте | `GET /stories` | **partial** | P0 | ugc | — | Кольца рисуются, `onPress` не передан |
-| B18 | Истории: просмотр (StoryViewer: отметка просмотра, оценка, ответ в чат, зрители) | `POST /stories/:id/view`, `/vote`, `GET /stories/:id/viewers`, `GET /stories/user/:id` | missing | P0 | ugc | M | `api/stories.ts` готов, UI нет |
-| B19 | Истории: создание | `POST /stories`, `DELETE /stories/:id` | **missing** | P0 | ugc | M | **Веб создавать истории не умеет** (`StoryMobileOnlyModal`: «только в приложении») — функция обязана быть в мобайле. Нужна камера/галерея (уже есть `expo-image-picker`) |
+| B17 | Истории: кольцо в ленте | `GET /stories` | done | P0 | ugc | — | Батч 1b: кольца по авторам (а не по историям), просмотренные приглушены (список id в AsyncStorage, ключ как на вебе) |
+| B18 | Истории: просмотр (StoryViewer: отметка просмотра, оценка, ответ в чат, зрители) | `POST /stories/:id/view`, `/vote`, `GET /stories/:id/viewers`, `GET /stories/user/:id` | done | P0 | ugc | M | Батч 1b: просмотр (`/stories/[userId]`): тап/удержание/свайп, фото 7 с и видео по длине, отметка просмотра, оценка, ответ в чат (формат веба `[story_reply:…]`, в чате рисуется карточкой), зрители и удаление для своей, жалоба/блок автора. Нет: двойной тап-«сердечко» (анимация без действия), «Bloomly-новости» в кольцах (`isBloomly`, источник `/updates`) |
+| B19 | Истории: создание | `POST /stories`, `DELETE /stories/:id` | done | P0 | ugc | M | Батч 1b: `/create-story`: фото из галереи/камеры, видео из галереи; загрузка в папку `posts`, затем `POST /stories`. Нет: съёмка видео камерой, редактор/стикеры/текст на истории (на вебе их тоже нет) |
 | B20 | Мульти-авторские посты (CoauthorPicker, CoauthorInvite) | `GET /posts/:id/coauthors`, `POST /posts/:id/coauthors/respond`, `coauthorIds` в `POST /posts` | missing | P2 | ugc | M | Приглашение соавтора приходит уведомлением, ответ нужен для полноты |
 | B21 | Черновики и отложенные посты (ScheduledPostsList) | `GET/POST/PATCH/DELETE /posts/scheduled`, `/publish-now` | missing | P1 | — | M | Черновиков в виде отдельной сущности в вебе нет, есть только отложенные |
 | B22 | Комиксы (ComicReader, postType=comic) | `postType: 'comic'` | missing | P2 | ugc | M | Читалка без создания |
@@ -114,7 +114,7 @@
 | F8 | Группа-чат: участники, роли, приглашения, настройки | `/messages/conversations/:id/members*`, `/group` | missing | P1 | — | M | Только участие; без админ-инструментов |
 | F9 | Запросы на переписку (message request) | `POST /messages/conversations/:id/request` | missing | P1 | ugc | S | Антиспам-механика; нужна для UGC-политики |
 | F10 | Медиа беседы и статистика | `GET .../media`, `/media-stats` | missing | P2 | — | S | |
-| F11 | Карточки в чате: `post_share`, `group_share`, `story`, `sticker` | типы сообщений | missing | P0 | ugc | S | Без рендера эти сообщения будут «пустыми» у получателя; минимум — текстовая заглушка/ссылка |
+| F11 | Карточки в чате: `post_share`, `group_share`, `story`, `sticker` | типы сообщений | partial | P0 | ugc | S | Без рендера эти сообщения будут «пустыми» у получателя; минимум — текстовая заглушка/ссылка Ответ на историю (`story_reply`) рисуется карточкой с батча 1b. |
 | F12 | Платёжные карточки: `payment_request`, `payment_confirmation`, `tip`, `order_update` | `POST /messages/messages/:id/pay` | OUT | — | pay | S | Показывать безопасную плашку «доступно в веб-версии», кнопку оплаты не рисовать |
 | F13 | Групповой инбокс бизнеса `/groups/:id/inbox`, `/dm` | | web | — | pay | — | Управление группой |
 | F14 | Вставка стикеров в чат (StickerPanel) | `/stickers/*` | OUT | — | pay | — | Стикеры живут в Shop; получение можно только отрисовать (F11) |
@@ -222,9 +222,9 @@
 
 | Статус | Кол-во |
 |---|---|
-| done | 38 |
+| done | 41 |
 | partial | 18 |
-| missing | 47 |
+| missing | 44 |
 | OUT (деньги/магазины; из них 5 — раздел 12) | 15 |
 | web (не портируем) | 12 |
 

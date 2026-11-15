@@ -25,6 +25,7 @@ import { clearPersistedCache, persistOptions } from '@/lib/queryPersist';
 import { ErrorScreen } from '@/components/ErrorScreen';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { useNsfwPreference } from '@/hooks/useNsfwMode';
+import { useSeenStories } from '@/stores/seenStories';
 import { wsClient } from '@/lib/wsClient';
 import { AppStatusGate } from '@/components/AppStatusGate';
 import { usePushRegistration } from '@/hooks/usePushRegistration';
@@ -83,6 +84,7 @@ function RootLayout() {
   useEffect(() => {
     void useLang.getState().hydrate();
     void useNsfwPreference.getState().hydrate();
+    void useSeenStories.getState().hydrate();
     void hydrate();
   }, [hydrate]);
 
@@ -201,6 +203,9 @@ function RootLayout() {
               <Stack.Screen name="post/[id]" />
               <Stack.Screen name="settings" />
               <Stack.Screen name="create-post" options={{ presentation: 'modal', gestureEnabled: false }} />
+              <Stack.Screen name="create-story" options={{ presentation: 'modal', gestureEnabled: false }} />
+              {/* Просмотр историй: чёрный экран на всё окно, закрывается жестом вниз и кнопкой «назад» */}
+              <Stack.Screen name="stories/[userId]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false, contentStyle: { backgroundColor: colors.black } }} />
               <Stack.Screen name="delete-account" />
               <Stack.Screen name="support" />
             </Stack.Protected>

@@ -8,11 +8,14 @@ interface AvatarProps {
   name?: string | null;
   size?: number;
   ring?: boolean;
+  /** Кольцо историй уже просмотрено: приглушённое, без градиента. */
+  ringSeen?: boolean;
 }
 
 const RING_COLORS: [string, string] = [colors.accent, colors.purple];
+const RING_SEEN_COLORS: [string, string] = [colors.border, colors.border];
 
-export function Avatar({ uri, name, size = 44, ring = false }: AvatarProps) {
+export function Avatar({ uri, name, size = 44, ring = false, ringSeen = false }: AvatarProps) {
   const initial = (name ?? '?').trim().charAt(0).toUpperCase();
   const inner = ring ? size - 6 : size;
 
@@ -36,7 +39,7 @@ export function Avatar({ uri, name, size = 44, ring = false }: AvatarProps) {
 
   return (
     <LinearGradient
-      colors={RING_COLORS}
+      colors={ringSeen ? RING_SEEN_COLORS : RING_COLORS}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{ width: size, height: size, borderRadius: size / 2, padding: 3 }}

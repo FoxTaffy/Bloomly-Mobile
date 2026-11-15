@@ -6,10 +6,10 @@ import { ArrowDownUp, Flower2, Search, Bell, Hash } from 'lucide-react-native';
 import { Chip, EmptyState, ErrorState, Screen, Sheet, Skeleton } from '@/components/ui';
 import { useCreatePost, useInfinitePosts } from '@/hooks/usePosts';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
-import { useStories } from '@/hooks/useStories';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { PostCard } from '@/components/PostCard';
-import { StoryRing, AddStoryButton } from '@/components/StoryRing';
+import { useStoryGroups } from '@/hooks/useStories';
+import { StoriesBar } from '@/components/story/StoriesBar';
 import { Avatar } from '@/components/Avatar';
 import { useSession } from '@/stores/session';
 import type { Post } from '@/shared/api-types';
@@ -37,7 +37,7 @@ export default function FeedScreen() {
   const user = useSession((s) => s.user);
   const [draft, setDraft] = useState('');
 
-  const storiesQuery = useStories();
+  const storiesQuery = useStoryGroups();
   const router = useRouter();
   const [mode, setMode] = useState<FeedMode>('for-you');
   const [sort, setSort] = useState<FeedSort>('smart');
@@ -98,15 +98,7 @@ export default function FeedScreen() {
         }
         ListHeaderComponent={
           <View>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={storiesQuery.data ?? []}
-              keyExtractor={(s) => s.id}
-              contentContainerClassName="gap-3 pb-4"
-              ListHeaderComponent={<AddStoryButton />}
-              renderItem={({ item }) => <StoryRing story={item} />}
-            />
+            <StoriesBar />
 
             <View className="mb-4 flex-row items-center gap-3 rounded-2xl border border-brand-border bg-brand-card px-3 py-2">
               <Avatar uri={user?.avatar_url} name={user?.display_name ?? user?.username} size={32} />
