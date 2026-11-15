@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { BackHandler, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, View } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { useWindowClass } from '@/hooks/useWindowClass';
 
@@ -37,8 +37,8 @@ export function Screen({ children, edges = ['top'], keyboard = false, onBackPres
   return (
     <SafeAreaView className={`flex-1 ${transparent ? '' : 'bg-brand-bg'} ${className ?? ''}`} edges={edges}>
       {keyboard ? (
-        // На Android окно меняет размер само (softwareKeyboardLayoutMode: resize), на iOS нужен отступ.
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+        // Android 15+ рисует edge-to-edge: окно при появлении клавиатуры не сжимается, поэтому отступ нужен на обеих платформах.
+        <KeyboardAvoidingView behavior="padding" className="flex-1">
           {body}
         </KeyboardAvoidingView>
       ) : (
