@@ -193,6 +193,19 @@ export interface Group {
   accent_color: string | null;
   members_count: number;
   description: string | null;
+  /** Тип группы (event, creative, static, news, shop, community, brand): определяет, какие разделы показывает веб. */
+  type?: string;
+  owner_id?: string;
+  /** Закрытая группа: вступление — по заявке. */
+  is_public?: boolean;
+  /** Группа 18+: показывается только при включённом режиме NSFW (как посты). */
+  is_nsfw?: boolean;
+  is_verified?: boolean;
+  about_text?: string | null;
+  rules_text?: string | null;
+  faq?: { q: string; a: string }[] | null;
+  reviews_avg?: number;
+  reviews_count?: number;
 }
 
 export interface GroupEvent {

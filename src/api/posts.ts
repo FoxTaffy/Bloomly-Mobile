@@ -23,7 +23,7 @@ const STATUS_BATCH = 50;
 
 type ViewerState = { id: string; userVote?: -1 | 0 | 1; repawed?: boolean; favourited?: boolean };
 
-async function attachMyVote(posts: Post[]): Promise<Post[]> {
+export async function attachMyVote(posts: Post[]): Promise<Post[]> {
   const states = new Map<string, ViewerState>();
   for (let i = 0; i < posts.length; i += STATUS_BATCH) {
     const ids = posts.slice(i, i + STATUS_BATCH).map((p) => p.id);

@@ -123,13 +123,13 @@
 
 | ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
 |---|---|---|---|---|---|---|---|
-| G1 | `/groups`: каталог, поиск, мои, рекомендованные, тренды | `GET /groups`, `/groups/me`, `/discover`, `/trending`, `/search` | partial `(tabs)/groups` | P1 | ugc | S | Мои + рекомендации + поиск есть; тренды/рубрики нет |
-| G2 | `/groups/:slug`: шапка, описание, посты группы, участники, события, отзывы | `GET /groups/:id`, `/posts`, `/members`, `/events`, `/reviews` | **partial** `groups/[id]` | P1 | ugc | M | Экран: баннер, имя, описание, кнопка «Вступить». **Нет:** ленты постов группы (хотя `fetchGroupPosts` есть), участников, событий, отзывов |
-| G3 | Вступить / выйти / заявка на вступление | `POST /groups/:id/join`, `/leave`, `GET/DELETE /groups/:id/join-request` | partial | P1 | ugc | S | Кнопка «Вступить» показывается всегда: нет состояния «вы участник» и «выйти» (`leaveGroup` в API есть, UI нет); закрытые группы с заявкой не поддержаны |
-| G4 | Пост в группу (GroupPostComposer) для участников | `POST /groups/:id/posts` | missing | P1 | ugc | S | Member-level действие |
+| G1 | `/groups`: каталог, поиск, мои, рекомендованные, тренды | `GET /groups`, `/groups/me`, `/discover`, `/trending`, `/search` | partial | P1 | ugc | S | Батч 5: мои, рекомендованные, поиск, приглашения. Нет: тренды/рубрики |
+| G2 | `/groups/:slug`: шапка, описание, посты группы, участники, события, отзывы | `GET /groups/:id`, `/posts`, `/members`, `/events`, `/reviews` | done | P1 | ugc | M | Батч 5: экран группы: шапка (18+, закрытая, рейтинг), вкладки «Посты» (с подгрузкой), «О группе», «События», «Участники», «Отзывы» (чтение); закрытая группа для не-участника — замок вместо ошибки; группа 18+ — как посты (режим NSFW) |
+| G3 | Вступить / выйти / заявка на вступление | `POST /groups/:id/join`, `/leave`, `GET/DELETE /groups/:id/join-request` | done | P1 | ugc | S | Батч 5: вступить / подать заявку / отозвать заявку / выйти с подтверждением; состояние по `/groups/me` и `/join-request`. Без сопроводительного текста заявки |
+| G4 | Пост в группу (GroupPostComposer) для участников | `POST /groups/:id/posts` | web | P1 | ugc | S | **Исправление плана:** на вебе публиковать в группе может роль выше «участник» (`myRoleWeight >= 1`), это не member-level → управление группой, не портируем |
 | G5 | Подписка на группу, уведомления, закрепить | `POST/DELETE /groups/:id/subscribe`, `PATCH /groups/:id/notify`, `/pin` | missing | P2 | — | S | |
-| G6 | Приглашения в группы | `GET /groups/invites/me`, `POST /groups/invites/:id` | missing | P1 | — | S | Принять/отклонить |
-| G7 | Отзывы и рейтинг группы (читать) | `GET /groups/:id/reviews`, `/my-rating` | missing | P2 | ugc | S | Писать отзыв — member-level, но после заказа (деньги) → читать только |
+| G6 | Приглашения в группы | `GET /groups/invites/me`, `POST /groups/invites/:id` | done | P1 | — | S | Батч 5: приглашения на вкладке «Группы»: принять / отклонить (с учётом режима 18+) |
+| G7 | Отзывы и рейтинг группы (читать) | `GET /groups/:id/reviews`, `/my-rating` | partial | P2 | ugc | S | Батч 5: вкладка «Отзывы» с рейтингом (чтение). Писать отзыв — после заказа (деньги), не портируем |
 | G8 | Заказы/комиссии, Kanban, todo, команда, роли, баланс, донаты, комиссия | `/groups/:id/orders*`, `/kanban`, `/todo*`, `/balance`, `/donate` | web / OUT | — | pay | — | `GroupOrderView`, dashboard, business, admin — веб; донаты и заказы = деньги |
 | G9 | Создание группы, настройки группы (`GroupSettingsView`, 3380 строк) | `POST /groups`, `PATCH /groups/:id` | web | — | — | — | Управление группой за пределами member-level |
 | G10 | `/my-todolist` | `GET /groups/:id/todo` | web | — | — | — | Рабочий инструмент владельцев |
@@ -138,12 +138,12 @@
 
 | ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
 |---|---|---|---|---|---|---|---|
-| H1 | `/events/:id` (EventPage): детали, RSVP, участники | `GET /groups/events/:id`, `/my-rsvp`, `/attendees`, `POST/DELETE /groups/events/:id/rsvp` | done `events/[id]` | P1 | — | — | Через `/groups/events`, как и веб `EventDetailView` |
-| H2 | Каталог `/events`: список, фильтры, карта, facets, регион | `GET /events`, `/events/facets`, `/events/map`, `/events/map/places` | **missing** | P1 | — | L | Мобайл знает только «ближайшие события групп» (`GET /groups/events?upcoming`) и показывает их на вкладке «Группы». Каталог — отдельный модуль бэкенда `/events` |
+| H1 | `/events/:id` (EventPage): детали, RSVP, участники | `GET /groups/events/:id`, `/my-rsvp`, `/attendees`, `POST/DELETE /groups/events/:id/rsvp` | done | P1 | — | — | Батч 5: **исправлено:** `events/[id]` теперь сначала берёт каталог `/events/:id`, затем афишу группы (раньше каталожные события и ссылки из пушей `event_in_city` открывались как «не найдено»); «Иду/Возможно» показывает и снимает свою отметку |
+| H2 | Каталог `/events`: список, фильтры, карта, facets, регион | `GET /events`, `/events/facets`, `/events/map`, `/events/map/places` | partial | P1 | — | L | Батч 5: `/events`: список с поиском, вкладками (предстоящие/завершённые/отменённые), типом, периодом, городом, «организатор подтверждён», подгрузкой. Нет: карта, геопоиск «рядом», регион, свой период |
 | H3 | Рекомендованные события, выбор места | `GET /events/recommended`, `/events/place`, `PUT /events/recommended/place` | missing | P2 | priv | S | Геолокация только по явному выбору города (без GPS) |
-| H4 | Подписка на события города (+ пуш `event_in_city`) | `GET/POST/DELETE /events/city-subscriptions` | missing | P1 | — | S | Пуш-категория `events` уже есть |
+| H4 | Подписка на события города (+ пуш `event_in_city`) | `GET/POST/DELETE /events/city-subscriptions` | done | P1 | — | S | Батч 5: подписка на город (`/events/city-subscriptions`) из каталога при выбранном городе |
 | H5 | Серии/издания мероприятия (EventEditionSwitcher), под-события | `GET /events/series*`, `/groups/events/:id/subevents` | missing | P2 | — | S | |
-| H6 | Билетные тарифы события (цены) | `tickets` внутри `GET /groups/events/:id` | missing | P2 | pay | S | Только показ цены; покупки в приложении нет (эндпоинта покупки не найдено). Ссылки на внешние билеты — отдельное решение |
+| H6 | Билетные тарифы события (цены) | `tickets` внутри `GET /groups/events/:id` | partial | P2 | pay | S | Батч 5: цены и уровни билетов — только справка («билеты в приложении не продаются»); ссылка на регистрацию/билеты **не показывается** (может вести к оплате); показан «Сайт мероприятия» (https) |
 | H7 | `/my-tickets`, `/my-applications` | не найдено/Den | OUT | — | pay | — | Билеты/заявки Den |
 | H8 | Подача события, редактирование, мои события, заявка организатора, организатор, пакетные claims | `POST /events`, `PATCH /events/:id`, `/events/mine`, `/events/claims*`, `/events/organizers*` | web | — | — | — | Управление, не member-level |
 | H9 | «Скоро» (Soon badges) | `POST /groups/events/:id/soon` | web | — | — | — | Настройка владельца |
@@ -222,11 +222,11 @@
 
 | Статус | Кол-во |
 |---|---|
-| done | 50 |
-| partial | 24 |
-| missing | 29 |
+| done | 54 |
+| partial | 25 |
+| missing | 23 |
 | OUT (деньги/магазины; из них 5 — раздел 12) | 15 |
-| web (не портируем) | 12 |
+| web (не портируем) | 13 |
 
 (`OUT-ish` в D13/J15 посчитаны как OUT. Статусы в таблицах — по состоянию на дату среза; при правках пересчитывать.)
 
