@@ -73,3 +73,66 @@ export async function fetchAchievements(userId: string): Promise<AchievementsDat
   const res = await api.get(`/achievements/users/${encodeURIComponent(userId)}`);
   return res.data.data as AchievementsData;
 }
+
+// ── Фурсона, фурсьют, альбомы (только чтение; веб: composables/profile/useProfileFursonas.ts, AlbumsPanel.vue) ──────
+
+export interface Fursona {
+  id: string;
+  name: string;
+  species: string[];
+  species_other: string | null;
+  colors: string[];
+  likes_dislikes_visible: boolean;
+  likes: string[];
+  dislikes: string[];
+  is_primary: boolean;
+  cover_image_url: string | null;
+}
+
+export async function fetchFursonas(userId: string): Promise<Fursona[]> {
+  const res = await api.get(`/users/${userId}/fursonas`);
+  return (res.data.data.fursonas ?? []) as Fursona[];
+}
+
+export interface FursonaReference {
+  id: string;
+  image_url: string;
+  artist_name?: string | null;
+}
+
+export async function fetchFursonaReferences(userId: string, fursonaId: string): Promise<FursonaReference[]> {
+  const res = await api.get(`/users/${userId}/fursonas/${fursonaId}/references`);
+  return (res.data.data.referenceImages ?? []) as FursonaReference[];
+}
+
+export interface Fursuit {
+  id: string;
+  image_url: string | null;
+  maker_id: string | null;
+  description: string | null;
+  is_nsfw: boolean;
+}
+
+export async function fetchFursuits(userId: string): Promise<Fursuit[]> {
+  const res = await api.get(`/users/${userId}/fursuits`);
+  return (res.data.data.fursuits ?? []) as Fursuit[];
+}
+
+export interface Album {
+  id: string;
+  title: string;
+  description: string | null;
+  privacy: 'public' | 'friends' | 'private';
+  items: { media_url: string }[];
+  _count?: { items: number };
+}
+
+export async function fetchAlbums(userId: string): Promise<Album[]> {
+  const res = await api.get('/albums', { params: { userId } });
+  return (res.data.data.albums ?? []) as Album[];
+}
+
+export async function fetchAlbum(id: string): Promise<Album> {
+  const res = await api.get(`/albums/${id}`);
+  return res.data.data.album as Album;
+}

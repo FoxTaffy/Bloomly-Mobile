@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, Linking, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, Linking, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -11,7 +11,9 @@ import { VerifiedBadge } from './VerifiedBadge';
 import { Button, Card, EmptyState, ErrorState, Sheet, Skeleton } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
-import { useAchievements, useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
+import { AlbumsTab } from '@/components/profile/AlbumsTab';
+import { FursonaTab } from '@/components/profile/FursonaTab';
+import { isPostTab, useAchievements, useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
 import { useAuthorNotify } from '@/hooks/usePostActions';
 import { mediaSource } from '@/lib/mediaAuth';
@@ -28,6 +30,8 @@ const TABS: { key: ProfileTab; label: MessageKey; ownOnly?: boolean }[] = [
   { key: 'posts', label: 'postsTab' },
   { key: 'repaws', label: 'repawsTab' },
   { key: 'media', label: 'mediaTab' },
+  { key: 'fursona', label: 'mFursonaTab' },
+  { key: 'albums', label: 'mAlbumsTab' },
   { key: 'archive', label: 'mArchiveTab', ownOnly: true },
 ];
 
@@ -89,9 +93,13 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
   const media = tab === 'media';
   const pinnedId = profile?.pinned_post_id ?? null;
   // Закреплённый пост показан отдельно сверху вкладки «Посты», в списке его нет (web: visiblePosts)
-  const listPosts = tab === 'posts' && pinnedId ? (postsQuery.data ?? []).filter((p) => p.id !== pinnedId) : (postsQuery.data ?? []);
+  const listPosts = !isPostTab(tab) ? [] : tab === 'posts' && pinnedId ? (postsQuery.data ?? []).filter((p) => p.id !== pinnedId) : (postsQuery.data ?? []);
 
-  const empty = postsQuery.isLoading ? (
+  const empty = tab === 'fursona' && profile ? (
+    <FursonaTab userId={profile.id} isOwn={isOwn} />
+  ) : tab === 'albums' && profile ? (
+    <AlbumsTab userId={profile.id} />
+  ) : postsQuery.isLoading ? (
     <View className="gap-3 px-4">
       <Skeleton height={120} />
     </View>
@@ -282,14 +290,14 @@ function ProfileHeader(props: {
         <AboutInfo profile={profile} isOwn={isOwn} />
         <AchievementsRow userId={profile.id} />
 
-        <View className="mb-3 mt-6 flex-row border-b border-brand-border" accessibilityRole="tablist">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3 mt-6 grow-0 border-b border-brand-border" accessibilityRole="tablist">
           {TABS.filter((x) => !x.ownOnly || isOwn).map((x) => (
             <Pressable key={x.key} onPress={() => onTab(x.key)} accessibilityRole="tab" accessibilityState={{ selected: tab === x.key }} className="mr-6 pb-3">
               <Text className={tab === x.key ? 'font-nunito-bold text-brand-accent' : 'font-nunito text-brand-muted'}>{t(x.label)}</Text>
               {tab === x.key ? <View className="mt-2 h-0.5 rounded-full bg-brand-accent" /> : null}
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
         {props.pinned ? (
           <View className="mb-1">
             <View className="mb-2 flex-row items-center gap-1.5">

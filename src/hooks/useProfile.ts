@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toggleFollow } from '@/api/follows';
 import { getOrCreateConversation } from '@/api/messages';
 import { fetchUserPosts, pinPost, unpinPost } from '@/api/posts';
-import { blockUser, fetchAchievements, fetchBlockStatus, fetchUserProfile, unblockUser } from '@/api/users';
+import { blockUser, fetchAchievements, fetchAlbum, fetchAlbums, fetchBlockStatus, fetchFursonaReferences, fetchFursonas, fetchFursuits, fetchUserProfile, unblockUser } from '@/api/users';
 
-export type ProfileTab = 'posts' | 'media' | 'likes' | 'repaws' | 'archive';
+export type ProfileTab = 'posts' | 'media' | 'likes' | 'repaws' | 'archive' | 'fursona' | 'albums';
+/** Вкладки со списком постов; «Фурсона» и «Альбомы» — свои данные. */
+export const isPostTab = (tab: ProfileTab): tab is 'posts' | 'media' | 'likes' | 'repaws' | 'archive' => tab !== 'fursona' && tab !== 'albums';
 
 /** Профиль по имени пользователя или id. 403/404 = не найден (retry отключён). */
 export function useProfile(username: string) {
@@ -12,7 +14,7 @@ export function useProfile(username: string) {
 }
 
 export function useUserPosts(userId: string | undefined, tab: ProfileTab) {
-  return useQuery({ queryKey: ['profile-posts', userId, tab], queryFn: () => fetchUserPosts(userId!, tab), enabled: !!userId });
+  return useQuery({ queryKey: ['profile-posts', userId, tab], queryFn: () => fetchUserPosts(userId!, tab as Exclude<ProfileTab, 'fursona' | 'albums'>), enabled: !!userId && isPostTab(tab) });
 }
 
 export function useToggleFollow(username: string) {
@@ -63,4 +65,24 @@ export function useTogglePin() {
 /** Значки профиля. Сбой не ломает страницу: блока просто не будет (как на вебе). */
 export function useAchievements(userId: string | undefined) {
   return useQuery({ queryKey: ['achievements', userId], queryFn: () => fetchAchievements(userId!), enabled: !!userId, retry: false, staleTime: 60_000 });
+}
+
+export function useFursonas(userId: string | undefined, enabled: boolean) {
+  return useQuery({ queryKey: ['fursonas', userId], queryFn: () => fetchFursonas(userId!), enabled: enabled && !!userId, retry: false });
+}
+
+export function useFursonaReferences(userId: string | undefined, fursonaId: string | undefined) {
+  return useQuery({ queryKey: ['fursona-refs', userId, fursonaId], queryFn: () => fetchFursonaReferences(userId!, fursonaId!), enabled: !!userId && !!fursonaId, retry: false });
+}
+
+export function useFursuits(userId: string | undefined, enabled: boolean) {
+  return useQuery({ queryKey: ['fursuits', userId], queryFn: () => fetchFursuits(userId!), enabled: enabled && !!userId, retry: false });
+}
+
+export function useAlbums(userId: string | undefined, enabled: boolean) {
+  return useQuery({ queryKey: ['albums', userId], queryFn: () => fetchAlbums(userId!), enabled: enabled && !!userId, retry: false });
+}
+
+export function useAlbum(id: string | null) {
+  return useQuery({ queryKey: ['album', id], queryFn: () => fetchAlbum(id!), enabled: !!id, retry: false });
 }

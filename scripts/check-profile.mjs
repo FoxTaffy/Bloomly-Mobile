@@ -1,4 +1,5 @@
 // Проверка правил @ника: src/shared/username.ts. Запуск: npm run test:profile.
+import { speciesLabel } from '../src/shared/fursonaSpecies.ts';
 import { normalizeUsername, usernameBreaksRules, usernameValid } from '../src/shared/username.ts';
 
 let bad = 0;
@@ -14,6 +15,10 @@ eq(usernameValid('fo__x'), false, 'двойное «_»');
 eq(usernameValid('12345'), false, 'только цифры');
 eq(usernameValid('aaaa'), false, 'один и тот же символ');
 eq(usernameBreaksRules(''), false, 'пустой не нарушает форму (длину проверяют отдельно)');
+
+eq(speciesLabel('Fox', 'ru'), 'Лис', 'вид фурсоны по-русски');
+eq(speciesLabel('Fox', 'en'), 'Fox', 'вид фурсоны по-английски');
+eq(speciesLabel('Unknown Kind', 'ru'), 'Unknown Kind', 'неизвестный вид — как есть');
 
 if (bad) { console.log(`Провалено проверок: ${bad}`); process.exit(1); }
 console.log('Ники: все проверки пройдены');
