@@ -34,3 +34,17 @@ export function webPathToRoute(url: string | null | undefined): string | null {
   if (event) return `/events/${event[1]}`;
   return null;
 }
+
+/**
+ * Путь, с которым открыто приложение по ссылке (`+native-intent`): известный адрес веба → маршрут приложения,
+ * неизвестный путь своего приложения/сайта уходит в +not-found (брендированный экран), а не молча на главную.
+ * OAuth-возврат не трогаем: его обрабатывает app/auth/callback.tsx. Пустой путь → главная (index).
+ */
+export function systemPathToRoute(path: string): string {
+  if (/(^|[/:])auth\/callback/.test(path)) return path;
+  const mapped = webPathToRoute(path);
+  if (mapped) return mapped;
+  const clean = path.split(/[?#]/)[0];
+  if (!clean || clean === '/' || clean === '//') return '/';
+  return clean.startsWith('/') ? clean : `/${clean}`;
+}
