@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { createPost, fetchExplorePage, fetchFeedPage, fetchTrendingTags, votePost } from '@/api/posts';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
+import { patchPostEverywhere } from '@/hooks/usePostActions';
 import { FEED_CACHE_MAX_AGE_MS } from '@/shared/feedCache';
 import type { CursorPage, Post } from '@/shared/api-types';
 import { appendUnique, isSortableMode, type ExplorePeriod, type ExploreSort, type FeedMode, type FeedSort } from '@/shared/feed';
@@ -52,37 +53,31 @@ export function useTrendingTags() {
 
 /**
  * Оценка поста ▲/▼ как на вебе (PostCard.vue → vote): оптимистично, повтор той же стрелки снимает голос,
- * рейтинг берётся из ответа сервера, при ошибке откат. Ленты не перезапрашиваем: порядок постов не прыгает.
+ * рейтинг берётся из ответа сервера, при ошибке откат. Состояние лежит в кэше запросов, а не в карточке:
+ * список переиспользует карточки, и локальная оценка переезжала бы на чужой пост. Ленты не перезапрашиваем.
  */
 export function usePostVote(post: Post) {
-  const [vote, setVote] = useState<-1 | 0 | 1>(post.my_vote ?? 0);
-  const [rating, setRating] = useState(post.rating ?? 0);
+  const qc = useQueryClient();
   const pending = useRef(false);
-
-  // Состояние читателя приходит позже поста (/posts/status) или после обновления списка
-  useEffect(() => setVote(post.my_vote ?? 0), [post.my_vote]);
-  useEffect(() => setRating(post.rating ?? 0), [post.rating]);
+  const vote: -1 | 0 | 1 = post.my_vote ?? 0;
+  const rating = post.rating ?? 0;
 
   const cast = useCallback(
     async (value: 1 | -1) => {
       if (pending.current) return;
       pending.current = true;
-      const prev = vote;
-      const prevRating = rating;
-      const next: -1 | 0 | 1 = prev === value ? 0 : value;
-      setVote(next);
-      setRating(prevRating + (next - prev));
+      const next: -1 | 0 | 1 = vote === value ? 0 : value;
+      patchPostEverywhere(qc, post.id, (p) => ({ ...p, my_vote: next, rating: rating + (next - vote) }));
       try {
         const serverRating = await votePost(post.id, value);
-        if (serverRating !== null) setRating(serverRating);
+        if (serverRating !== null) patchPostEverywhere(qc, post.id, (p) => ({ ...p, rating: serverRating }));
       } catch {
-        setVote(prev);
-        setRating(prevRating);
+        patchPostEverywhere(qc, post.id, (p) => ({ ...p, my_vote: vote, rating }));
       } finally {
         pending.current = false;
       }
     },
-    [post.id, vote, rating],
+    [qc, post.id, vote, rating],
   );
 
   return { vote, rating, cast };
