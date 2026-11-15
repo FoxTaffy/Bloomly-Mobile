@@ -165,6 +165,7 @@ export default function AuthScreen() {
       const result = await loginWithOAuth(provider);
       if (result === 'error') setError(t('loginOauthFailed'));
       if (result === 'signup') router.push('/(auth)/age');
+      if (result === 'mfa') router.push('/(auth)/two-factor');
     } finally {
       setOauthLoading(null);
     }
