@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import '../global.css';
 import { useEffect } from 'react';
-import { Stack, type ErrorBoundaryProps } from 'expo-router';
+import { Stack, useRouter, type ErrorBoundaryProps, type Href } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient } from '@tanstack/react-query';
@@ -17,6 +17,7 @@ import {
   Nunito_900Black,
 } from '@expo-google-fonts/nunito';
 import { useSession } from '@/stores/session';
+import { usePendingRoute } from '@/stores/pendingRoute';
 import { useLang } from '@/stores/lang';
 import { initMonitoring, withMonitoring } from '@/lib/monitoring';
 import { setupNetwork } from '@/lib/network';
@@ -90,6 +91,15 @@ function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
+
+  const router = useRouter();
+  // Ссылка на защищённый адрес, открытая без входа: после входа (и онбординга) открываем её
+  const pendingPath = usePendingRoute((s) => s.path);
+  useEffect(() => {
+    if (!isAuthenticated || needsOnboarding || !pendingPath) return;
+    const target = usePendingRoute.getState().take();
+    if (target) router.replace(target as Href);
+  }, [isAuthenticated, needsOnboarding, pendingPath, router]);
 
   // Выход: кэш запросов принадлежит прошлому аккаунту, чужие данные не должны попасть в следующий вход
   useEffect(() => {
