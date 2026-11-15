@@ -1,0 +1,28 @@
+name: EAS Update
+
+# Пуш в main → обновление по воздуху на канал preview (JS-код без пересборки APK).
+# Нативные изменения (пакеты, иконка, app.json, версия) по-прежнему требуют новой сборки.
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: eas-update
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci --legacy-peer-deps
+      - run: npm run check
+      - run: eas update --channel preview --message "${{ github.sha }}" --non-interactive
