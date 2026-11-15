@@ -1,12 +1,13 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { API_URL } from './config';
+import { usePendingMfa } from '@/stores/pendingMfa';
 import { usePendingSignup } from '@/stores/pendingSignup';
 import { useSession } from '@/stores/session';
 
 export type OAuthProvider = 'yandex' | 'google' | 'twitter' | 'twitch';
 
-export async function loginWithOAuth(provider: OAuthProvider): Promise<'success' | 'signup' | 'cancel' | 'error'> {
+export async function loginWithOAuth(provider: OAuthProvider): Promise<'success' | 'signup' | 'mfa' | 'cancel' | 'error'> {
   // В Expo Go это exp://..., в собранном приложении — bloomly://auth/callback.
   // Бэкенд не может угадать это заранее, поэтому шлём актуальный редирект явно.
   const redirectUrl = Linking.createURL('auth/callback');
@@ -22,6 +23,19 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<'success'
   if (signupMatch) {
     usePendingSignup.getState().set(decodeURIComponent(signupMatch[1]));
     return 'signup';
+  }
+
+  // У аккаунта включена 2FA: сервер отдаёт токен второго шага вместо сессии (как web OAuthCallbackView)
+  const mfaMatch = result.url.match(/[?&]mfaToken=([^&]+)/);
+  if (mfaMatch) {
+    const methodMatch = result.url.match(/[?&]method=([^&]+)/);
+    usePendingMfa.getState().set({
+      mfaToken: decodeURIComponent(mfaMatch[1]),
+      method: methodMatch ? decodeURIComponent(methodMatch[1]) : null,
+      email: '',
+      remember: true,
+    });
+    return 'mfa';
   }
 
   const tokenMatch = result.url.match(/[?&]token=([^&]+)/);

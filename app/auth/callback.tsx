@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { usePendingMfa } from '@/stores/pendingMfa';
 import { usePendingSignup } from '@/stores/pendingSignup';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
@@ -8,7 +9,7 @@ import { useT } from '@/hooks/useT';
 
 export default function OAuthCallbackScreen() {
   const { t } = useT();
-  const { token, refreshToken, signup } = useLocalSearchParams<{ token?: string; refreshToken?: string; signup?: string }>();
+  const { token, refreshToken, signup, mfaToken, method } = useLocalSearchParams<{ token?: string; refreshToken?: string; signup?: string; mfaToken?: string; method?: string }>();
   const router = useRouter();
   const loginWithToken = useSession((s) => s.loginWithToken);
   const handled = useRef(false);
@@ -22,6 +23,12 @@ export default function OAuthCallbackScreen() {
       router.replace('/(auth)/age');
       return;
     }
+    // 2FA после OAuth: продолжаем на экране второго фактора
+    if (mfaToken && !token) {
+      usePendingMfa.getState().set({ mfaToken, method: method ?? null, email: '', remember: true });
+      router.replace('/(auth)/two-factor');
+      return;
+    }
     if (!token) {
       router.replace('/(auth)/login');
       return;
@@ -29,7 +36,7 @@ export default function OAuthCallbackScreen() {
     loginWithToken(token, refreshToken)
       .then(() => router.replace('/(tabs)/feed'))
       .catch(() => router.replace('/(auth)/login'));
-  }, [token, refreshToken, signup, loginWithToken, router]);
+  }, [token, refreshToken, signup, mfaToken, method, loginWithToken, router]);
 
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-brand-bg">
