@@ -25,9 +25,11 @@ interface PostCardProps {
   onRemoved?: () => void;
   /** On the post screen the card is already open, so tapping it should not navigate again. */
   interactive?: boolean;
+  /** Карточка на своём профиле: в меню появляется «Закрепить / Открепить». */
+  pin?: { pinned: boolean };
 }
 
-export function PostCard({ post, onRemoved, interactive = true }: PostCardProps) {
+export function PostCard({ post, onRemoved, interactive = true, pin }: PostCardProps) {
   const { t } = useT();
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
@@ -84,7 +86,7 @@ export function PostCard({ post, onRemoved, interactive = true }: PostCardProps)
             <Text className="text-xs font-semibold text-brand-accent-minus">{t('mPinned')}</Text>
           </View>
         ) : null}
-        <PostMenu post={post} onRemoved={onRemoved} />
+        <PostMenu post={post} onRemoved={onRemoved} pin={pin} />
       </View>
 
       {nsfwLocked ? (

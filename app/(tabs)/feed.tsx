@@ -6,6 +6,7 @@ import { ArrowDownUp, Flower2, Search, Bell, Hash } from 'lucide-react-native';
 import { Chip, EmptyState, ErrorState, Screen, Sheet, Skeleton } from '@/components/ui';
 import { useCreatePost, useInfinitePosts } from '@/hooks/usePosts';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
+import { useUnreadNotifications } from '@/hooks/useNotifications';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { PostCard } from '@/components/PostCard';
 import { useStoryGroups } from '@/hooks/useStories';
@@ -39,6 +40,7 @@ export default function FeedScreen() {
 
   const storiesQuery = useStoryGroups();
   const router = useRouter();
+  const unreadNotifs = useUnreadNotifications().data ?? 0;
   const [mode, setMode] = useState<FeedMode>('for-you');
   const [sort, setSort] = useState<FeedSort>('smart');
   const [sortOpen, setSortOpen] = useState(false);
@@ -69,8 +71,13 @@ export default function FeedScreen() {
             <Search size={18} color={colors.offwhite} />
           </Pressable>
           <Link href="/notifications" asChild>
-            <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-brand-card">
+            <Pressable accessibilityRole="button" accessibilityLabel={t('notificationsMenuItem')} className="h-10 w-10 items-center justify-center rounded-full bg-brand-card">
               <Bell size={18} color={colors.offwhite} />
+              {unreadNotifs > 0 ? (
+                <View className="absolute -right-1 -top-1 min-w-5 items-center rounded-full bg-brand-accent px-1">
+                  <Text className="font-nunito-bold text-xs text-brand-offwhite">{unreadNotifs > 99 ? '99+' : unreadNotifs}</Text>
+                </View>
+              ) : null}
             </Pressable>
           </Link>
         </View>

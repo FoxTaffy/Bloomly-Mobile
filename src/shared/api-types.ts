@@ -99,6 +99,10 @@ export interface UserProfile {
   website?: string | null;
   likes?: string[];
   dislikes?: string[];
+  likes_dislikes_visible?: boolean;
+  /** Закреплённый пост: id и краткое содержимое (поля поста неполные: без состояния читателя). */
+  pinned_post_id?: string | null;
+  pinnedPost?: Post | null;
   profile_visibility?: 'everyone' | 'friends' | 'only_me';
   friends_list_visibility?: 'everyone' | 'friends' | 'only_me';
   messages_privacy?: 'everyone' | 'friends' | 'nobody';

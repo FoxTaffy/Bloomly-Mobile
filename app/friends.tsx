@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, MessageCircle, MoreHorizontal, Search, UserPlus } from 'lucide-react-native';
 import { Avatar } from '@/components/Avatar';
 import { Button, Card, Chip, EmptyState, ErrorState, Field, Screen, Sheet, Skeleton } from '@/components/ui';
-import { useFriendList, useRemoveFriend, useSendFriendRequest, useSuggestions, useUnfollow } from '@/hooks/useFriends';
+import { useFriendList, useRemoveFriend, useRequestActions, useRequests, useSendFriendRequest, useSuggestions, useUnfollow } from '@/hooks/useFriends';
 import { useOpenConversation, useToggleBlock } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
 import { apiErrorMessage } from '@/shared/apiError';
@@ -78,6 +78,8 @@ export default function FriendsScreen() {
               <Button title={t('addButton')} loading={send.isPending} disabled={!addText.trim()} onPress={() => invite(addText)} />
             </View>
             {notice ? <Text className={`font-nunito text-xs ${notice.ok ? 'text-brand-success' : 'text-brand-error'}`}>{notice.text}</Text> : null}
+
+            <RequestsSection />
 
             <View className="flex-row flex-wrap gap-2" accessibilityRole="tablist">
               {TABS.map((x) => (
@@ -196,5 +198,50 @@ function PersonMenu({ user, isFriend, isFollowing, onClose }: { user: FriendUser
         </View>
       ) : null}
     </Sheet>
+  );
+}
+
+/** Заявки в друзья: входящие (принять / отклонить) и исходящие (отозвать). Раздела нет, пока заявок нет. */
+function RequestsSection() {
+  const { t } = useT();
+  const router = useRouter();
+  const incoming = useRequests('incoming');
+  const outgoing = useRequests('outgoing');
+  const { respond, cancel } = useRequestActions();
+  const rows = [
+    ...(incoming.data ?? []).map((r) => ({ ...r, dir: 'in' as const })),
+    ...(outgoing.data ?? []).map((r) => ({ ...r, dir: 'out' as const })),
+  ];
+  if (rows.length === 0) return null;
+  const busy = respond.isPending || cancel.isPending;
+
+  return (
+    <View className="gap-2">
+      <Text className="font-nunito-extrabold text-base text-brand-offwhite">{t('mFriendRequestsTitle')} · {rows.length}</Text>
+      {rows.map((r) => (
+        <Card key={`${r.dir}:${r.id}`} padding="sm" className="flex-row items-center gap-3" onPress={() => router.push(`/profile/${r.user.username}`)}>
+          <Avatar uri={r.user.avatar_url} name={r.user.display_name ?? r.user.username} size={40} />
+          <View className="flex-1">
+            <Text numberOfLines={1} className="font-nunito-bold text-brand-offwhite">{r.user.display_name ?? r.user.username}</Text>
+            <Text numberOfLines={1} className="font-nunito text-xs text-brand-muted">{r.dir === 'in' ? t('mFriendRequestsIn') : t('mFriendRequestsOut')} · @{r.user.username}</Text>
+          </View>
+          {r.dir === 'in' ? (
+            <View className="flex-row gap-2">
+              <Pressable onPress={() => respond.mutate({ id: r.id, accept: true })} disabled={busy} accessibilityRole="button" className="rounded-full bg-brand-accent px-3 py-1.5 active:opacity-80">
+                <Text className="font-nunito-bold text-xs text-brand-offwhite">{t('mFriendAccept')}</Text>
+              </Pressable>
+              <Pressable onPress={() => respond.mutate({ id: r.id, accept: false })} disabled={busy} accessibilityRole="button" className="rounded-full bg-brand-card px-3 py-1.5 active:opacity-80">
+                <Text className="font-nunito-bold text-xs text-brand-muted">{t('mFriendReject')}</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable onPress={() => cancel.mutate(r.id)} disabled={busy} accessibilityRole="button" className="rounded-full bg-brand-card px-3 py-1.5 active:opacity-80">
+              <Text className="font-nunito-bold text-xs text-brand-muted">{t('mFriendCancel')}</Text>
+            </Pressable>
+          )}
+        </Card>
+      ))}
+      {respond.isError || cancel.isError ? <Text className="font-nunito text-xs text-brand-error">{t('friendsActionError')}</Text> : null}
+    </View>
   );
 }

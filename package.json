@@ -65,7 +65,8 @@
     "check": "tsc --noEmit && node scripts/check-rules.mjs",
     "test:media-host": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-media-host.mjs",
     "test:route": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-route.mjs",
-    "test:stories": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-stories.mjs"
+    "test:stories": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-stories.mjs",
+    "test:profile": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-profile.mjs"
   },
   "private": true
 }

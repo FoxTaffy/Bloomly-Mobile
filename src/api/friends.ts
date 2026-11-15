@@ -26,3 +26,24 @@ export async function sendFriendRequest(targetId: string) {
 export async function removeFriend(friendId: string) {
   await api.delete(`/friends/${friendId}`);
 }
+
+// Заявки в друзья. Бэкенд готов, но на вебе списка заявок нет (только счётчик): экран — решение владельца (батч 2б).
+export interface FriendRequest {
+  id: string;
+  status: string;
+  createdAt: string;
+  user: FriendUser;
+}
+
+export async function fetchRequests(direction: 'incoming' | 'outgoing'): Promise<FriendRequest[]> {
+  const res = await api.get(direction === 'incoming' ? '/friends/requests' : '/friends/requests/outgoing');
+  return (res.data.data ?? []) as FriendRequest[];
+}
+
+export async function respondRequest(id: string, accept: boolean) {
+  await api.post(`/friends/requests/${id}/${accept ? 'accept' : 'reject'}`);
+}
+
+export async function cancelRequest(id: string) {
+  await api.delete(`/friends/requests/${id}`);
+}

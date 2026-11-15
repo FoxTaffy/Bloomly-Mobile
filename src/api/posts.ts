@@ -81,8 +81,9 @@ export async function createComment(postId: string, content: string, parentId?: 
   return res.data.data.comment as Comment;
 }
 
-export async function fetchUserPosts(userId: string, tab: 'posts' | 'media' | 'likes' | 'repaws' = 'posts'): Promise<Post[]> {
-  const suffix = tab === 'posts' ? '' : `/${tab}`;
+export async function fetchUserPosts(userId: string, tab: 'posts' | 'media' | 'likes' | 'repaws' | 'archive' = 'posts'): Promise<Post[]> {
+  // «Архив» — только свои архивированные посты (бэкенд: /user/:id/archived)
+  const suffix = tab === 'posts' ? '' : tab === 'archive' ? '/archived' : `/${tab}`;
   const res = await api.get(`/posts/user/${userId}${suffix}`);
   return attachMyVote(res.data.data.posts as Post[]);
 }
@@ -169,4 +170,19 @@ export async function voteComment(commentId: string, value: 1 | -1): Promise<num
 
 export async function deleteComment(commentId: string) {
   await api.delete(`/posts/comments/${commentId}`);
+}
+
+/** Посты, которые лайкнул человек (из уведомления о пачке лайков; веб: NotificationLikesView). */
+export async function fetchLikedBy(userId: string): Promise<{ posts: Post[]; liker: { id: string; username: string; display_name: string | null } | null }> {
+  const res = await api.get(`/posts/me/liked-by/${userId}`);
+  const d = res.data.data;
+  return { posts: await attachMyVote((d.posts ?? []) as Post[]), liker: d.liker ?? null };
+}
+
+export async function pinPost(id: string) {
+  await api.put(`/users/me/pin/${id}`);
+}
+
+export async function unpinPost() {
+  await api.delete('/users/me/pin');
 }

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, Linking, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Bell, BellOff, Ban, Bookmark, Ellipsis, Lock, MessageCircle, Pencil, Settings, Users, Snowflake, UserCheck, UserPlus, UserX, Video } from 'lucide-react-native';
+import { Bell, BellOff, Ban, Globe, MapPin, Pin, Bookmark, Ellipsis, Lock, MessageCircle, Pencil, Settings, Users, Snowflake, UserCheck, UserPlus, UserX, Video } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { PostCard } from './PostCard';
 import { ReportSheet } from './ReportSheet';
@@ -23,10 +23,11 @@ import { colors } from '@/theme/tokens';
 
 const GRID_GAP = 4;
 const CONTENT_MAX_WIDTH = 720; // как в ui/Screen на широких окнах
-const TABS: { key: ProfileTab; label: MessageKey }[] = [
+const TABS: { key: ProfileTab; label: MessageKey; ownOnly?: boolean }[] = [
   { key: 'posts', label: 'postsTab' },
   { key: 'repaws', label: 'repawsTab' },
   { key: 'media', label: 'mediaTab' },
+  { key: 'archive', label: 'mArchiveTab', ownOnly: true },
 ];
 
 /** Профиль (веб: components/profile/ProfilePage.vue). Состояния: загрузка, ошибка, не найден, заблокировал вас, скрыт, заморожен, 18+. */
@@ -85,6 +86,9 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
   const contentWidth = Math.min(width, CONTENT_MAX_WIDTH);
   const gridItem = (contentWidth - 32 - GRID_GAP * 2) / 3;
   const media = tab === 'media';
+  const pinnedId = profile?.pinned_post_id ?? null;
+  // Закреплённый пост показан отдельно сверху вкладки «Посты», в списке его нет (web: visiblePosts)
+  const listPosts = tab === 'posts' && pinnedId ? (postsQuery.data ?? []).filter((p) => p.id !== pinnedId) : (postsQuery.data ?? []);
 
   const empty = postsQuery.isLoading ? (
     <View className="gap-3 px-4">
@@ -110,6 +114,8 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
       onMessage={() => messageMutation.mutate(profile.id, { onSuccess: (conv) => router.push(`/messages/${conv.id}`) })}
       onMenu={() => setMenuOpen(true)}
       onSettings={() => router.push('/settings')}
+      pinned={tab === 'posts' && profile.pinnedPost ? { ...profile.pinnedPost, author_id: profile.id } : null}
+      canPin={isOwn}
     />
   );
 
@@ -119,7 +125,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
       <FlatList<Post>
         {...viewable.props}
         key={media ? 'grid' : 'list'}
-        data={postsQuery.data ?? []}
+        data={listPosts}
         keyExtractor={(p) => p.id}
         numColumns={media ? 3 : 1}
         columnWrapperStyle={media ? { gap: GRID_GAP, paddingHorizontal: 16 } : undefined}
@@ -130,7 +136,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
           media ? (
             <MediaTile post={item} size={gridItem} nsfwMode={nsfwMode} onPress={() => router.push(`/post/${item.id}`)} />
           ) : (
-            <PostCard post={item} />
+            <PostCard post={item} pin={isOwn && tab === 'posts' ? { pinned: false } : undefined} />
           )
         }
       />
@@ -174,6 +180,8 @@ function ProfileHeader(props: {
   onMessage: () => void;
   onMenu: () => void;
   onSettings: () => void;
+  pinned: Post | null;
+  canPin: boolean;
 }) {
   const { t, locale } = useT();
   const router = useRouter();
@@ -270,14 +278,73 @@ function ProfileHeader(props: {
           </View>
         ) : null}
 
+        <AboutInfo profile={profile} isOwn={isOwn} />
+
         <View className="mb-3 mt-6 flex-row border-b border-brand-border" accessibilityRole="tablist">
-          {TABS.map((x) => (
+          {TABS.filter((x) => !x.ownOnly || isOwn).map((x) => (
             <Pressable key={x.key} onPress={() => onTab(x.key)} accessibilityRole="tab" accessibilityState={{ selected: tab === x.key }} className="mr-6 pb-3">
               <Text className={tab === x.key ? 'font-nunito-bold text-brand-accent' : 'font-nunito text-brand-muted'}>{t(x.label)}</Text>
               {tab === x.key ? <View className="mt-2 h-0.5 rounded-full bg-brand-accent" /> : null}
             </Pressable>
           ))}
         </View>
+        {props.pinned ? (
+          <View className="mb-1">
+            <View className="mb-2 flex-row items-center gap-1.5">
+              <Pin size={13} color={colors.accentMinus} />
+              <Text className="font-nunito-bold text-xs text-brand-accent-minus">{t('mPinnedPost')}</Text>
+            </View>
+            <PostCard post={props.pinned} pin={props.canPin ? { pinned: true } : undefined} />
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+/** Блок «О себе»: местоположение, сайт, «Нравится» / «Не нравится» (веб: ProfileAboutInfo.vue; остальное — позже). */
+function AboutInfo({ profile, isOwn }: { profile: UserProfile; isOwn: boolean }) {
+  const { t } = useT();
+  const likes = profile.likes ?? [];
+  const dislikes = profile.dislikes ?? [];
+  // Владелец скрыл симпатии — видит их только он сам
+  const showLikes = (likes.length > 0 || dislikes.length > 0) && (profile.likes_dislikes_visible !== false || isOwn);
+  const site = profile.website && /^https?:\/\//i.test(profile.website) ? profile.website : profile.website ? `https://${profile.website}` : null;
+  if (!profile.location && !site && !showLikes) return null;
+  return (
+    <View className="mt-4 gap-3">
+      {profile.location ? (
+        <View className="flex-row items-center gap-2">
+          <MapPin size={14} color={colors.mutedIcon} />
+          <Text className="flex-1 font-nunito text-sm text-brand-offwhite">{profile.location}</Text>
+        </View>
+      ) : null}
+      {site ? (
+        <Pressable onPress={() => void Linking.openURL(site).catch(() => {})} accessibilityRole="link" className="flex-row items-center gap-2 active:opacity-70">
+          <Globe size={14} color={colors.mutedIcon} />
+          <Text numberOfLines={1} className="flex-1 font-nunito text-sm text-brand-accent-minus underline">{profile.website}</Text>
+        </Pressable>
+      ) : null}
+      {showLikes ? (
+        <View className="gap-2">
+          {likes.length > 0 ? <TagRow label={t('fursonaLikesLabel')} tags={likes} tone="success" /> : null}
+          {dislikes.length > 0 ? <TagRow label={t('fursonaDislikesLabel')} tags={dislikes} tone="error" /> : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function TagRow({ label, tags, tone }: { label: string; tags: string[]; tone: 'success' | 'error' }) {
+  return (
+    <View className="gap-1.5">
+      <Text className={`font-nunito-bold text-xs ${tone === 'success' ? 'text-brand-success' : 'text-brand-error'}`}>{label}</Text>
+      <View className="flex-row flex-wrap gap-1.5">
+        {tags.map((x) => (
+          <View key={x} className="rounded-full border border-brand-border bg-brand-card px-3 py-1">
+            <Text className="font-nunito text-xs text-brand-offwhite">{x}</Text>
+          </View>
+        ))}
       </View>
     </View>
   );

@@ -151,6 +151,8 @@ export function notifTarget(item: NotifItem): string | null {
   if (isSystemType(n.type) || hasRequestActions(n.type) || isDen(n.type) || n.type.startsWith('STICKER_ACCESS')) return null;
   if (n.senderGroup?.slug) return `/groups/${n.senderGroup.slug}`;
   if (['FOLLOW', 'RELATIONSHIP_ACCEPTED'].includes(n.type) && n.sender?.username) return `/profile/${n.sender.username}`;
+  // Пачка лайков одного человека на несколько постов — страница «кто и что лайкнул» (web: notification-likes)
+  if (n.type === 'LIKE' && item.posts > 1 && n.sender_id) return `/notifications/likes/${n.sender_id}`;
   if (n.post_id) return `/post/${n.post_id}`;
   return n.sender?.username ? `/profile/${n.sender.username}` : null;
 }

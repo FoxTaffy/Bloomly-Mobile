@@ -200,6 +200,7 @@ function RootLayout() {
               <Stack.Screen name="groups/[id]" />
               <Stack.Screen name="events/[id]" />
               <Stack.Screen name="notifications" />
+              <Stack.Screen name="notifications/likes/[userId]" />
               <Stack.Screen name="post/[id]" />
               <Stack.Screen name="settings" />
               <Stack.Screen name="create-post" options={{ presentation: 'modal', gestureEnabled: false }} />

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchFriendList, fetchSuggestions, removeFriend, sendFriendRequest, type FriendTab } from '@/api/friends';
+import { cancelRequest, fetchFriendList, fetchRequests, fetchSuggestions, removeFriend, respondRequest, sendFriendRequest, type FriendTab } from '@/api/friends';
 import { toggleFollow } from '@/api/follows';
 
 export function useFriendList(tab: FriendTab) {
@@ -32,4 +32,17 @@ export function useRemoveFriend() {
 export function useUnfollow() {
   const refresh = useRefreshLists();
   return useMutation({ mutationFn: (id: string) => toggleFollow(id), onSuccess: refresh });
+}
+
+export function useRequests(direction: 'incoming' | 'outgoing') {
+  return useQuery({ queryKey: ['friends', 'requests', direction], queryFn: () => fetchRequests(direction) });
+}
+
+/** Принять, отклонить, отозвать: после принятия человек переезжает между вкладками, поэтому обновляем всё про друзей. */
+export function useRequestActions() {
+  const refresh = useRefreshLists();
+  return {
+    respond: useMutation({ mutationFn: ({ id, accept }: { id: string; accept: boolean }) => respondRequest(id, accept), onSuccess: refresh }),
+    cancel: useMutation({ mutationFn: (id: string) => cancelRequest(id), onSuccess: refresh }),
+  };
 }

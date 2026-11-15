@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { AtSign, Bell, Calendar, FileText, Heart, MessageCircle, Repeat2, ShieldAlert, UserCheck, UserPlus, Users } from 'lucide-react-native';
+import { AtSign, Bell, Calendar, FileText, Heart, MessageCircle, Repeat2, ShieldAlert, Trash2, UserCheck, UserPlus, Users } from 'lucide-react-native';
 import type { ComponentType } from 'react';
 import { Avatar } from './Avatar';
 import { useTimeAgo } from '@/hooks/useTimeAgo';
@@ -25,9 +25,11 @@ interface Props {
   onPress: () => void;
   onAccept?: () => void;
   onDecline?: () => void;
+  /** Удалить (пачка — все уведомления пачки); на вебе — кнопка на строке. */
+  onDelete?: () => void;
 }
 
-export function NotificationRow({ item, decision, onPress, onAccept, onDecline }: Props) {
+export function NotificationRow({ item, decision, onPress, onAccept, onDecline, onDelete }: Props) {
   const { t } = useT();
   const timeAgo = useTimeAgo();
   const n = item.notif;
@@ -81,6 +83,11 @@ export function NotificationRow({ item, decision, onPress, onAccept, onDecline }
         ) : null}
       </View>
       {item.unread ? <View className="mt-2 h-2 w-2 rounded-full bg-brand-accent" /> : null}
+      {onDelete ? (
+        <Pressable onPress={onDelete} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('mDelete')} className="h-8 w-8 items-center justify-center active:opacity-60">
+          <Trash2 size={16} color={colors.mutedIcon} />
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 }

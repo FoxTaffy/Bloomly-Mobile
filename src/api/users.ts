@@ -61,3 +61,9 @@ export async function updateMyProfile(body: ProfilePatch): Promise<UserProfile> 
   const res = await api.patch('/users/me', body);
   return res.data.data.user as UserProfile;
 }
+
+/** Смена @ника: 409 USERNAME_TAKEN — занят, 422 USERNAME_INVALID — не подходит (текст — в ответе сервера). */
+export async function updateUsername(username: string): Promise<{ username: string }> {
+  const res = await api.patch('/users/me/username', { username });
+  return res.data.data.user as { username: string };
+}

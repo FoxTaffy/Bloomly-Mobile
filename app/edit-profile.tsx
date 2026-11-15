@@ -10,14 +10,16 @@ import { Button, Chip, ErrorState, Field, Screen, Skeleton } from '@/components/
 import { useProfile } from '@/hooks/useProfile';
 import { useProfileImage } from '@/hooks/useProfileImage';
 import { useT } from '@/hooks/useT';
-import { updateMyProfile, type PrivacyLevel, type ProfilePatch } from '@/api/users';
-import { apiErrorMessage } from '@/shared/apiError';
+import { updateMyProfile, updateUsername, type PrivacyLevel, type ProfilePatch } from '@/api/users';
+import { normalizeUsername, usernameValid, USERNAME_MAX } from '@/shared/username';
+import { apiErrorCode, apiErrorMessage } from '@/shared/apiError';
 import type { MessageKey } from '@/shared/i18n';
 import { useSession } from '@/stores/session';
 import { colors } from '@/theme/tokens';
 
 // Поля формы и их сохранённые значения: на сервер уходят только изменённые (веб: useProfileForm.buildPayload)
 interface Form {
+  username: string;
   display_name: string;
   bio: string;
   pronouns: string;
@@ -65,6 +67,7 @@ export default function EditProfileScreen() {
     const p = profile.data;
     if (!p) return null;
     return {
+      username: p.username,
       display_name: p.display_name ?? '',
       bio: p.bio ?? '',
       pronouns: p.pronouns ?? '',
@@ -91,16 +94,20 @@ export default function EditProfileScreen() {
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => (f ? { ...f, [k]: v } : f));
   const changed = (initial && form ? (Object.keys(form) as (keyof Form)[]).filter((k) => !same(form[k], initial[k])) : []) as (keyof Form)[];
+  const usernameBad = !!form && changed.includes('username') && !usernameValid(form.username);
   const dirty = changed.length > 0;
 
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const body: Record<string, unknown> = {};
-      for (const k of changed) body[k] = form![k];
-      return updateMyProfile(body as ProfilePatch);
+      for (const k of changed) if (k !== 'username') body[k] = form![k];
+      // Ник меняется отдельным запросом (как на вебе: OWN_ENDPOINT); если он занят, остальное не сохраняем
+      if (changed.includes('username')) await updateUsername(form!.username);
+      const user = Object.keys(body).length ? await updateMyProfile(body as ProfilePatch) : null;
+      return { user, username: form!.username };
     },
-    onSuccess: (user) => {
-      patchUser({ display_name: user.display_name, avatar_url: user.avatar_url, bio: user.bio });
+    onSuccess: ({ user, username }) => {
+      patchUser({ username, ...(user ? { display_name: user.display_name, avatar_url: user.avatar_url, bio: user.bio } : {}) });
       qc.invalidateQueries({ queryKey: ['profile'] });
       router.back();
     },
@@ -132,7 +139,7 @@ export default function EditProfileScreen() {
           <X size={18} color={colors.offwhite} />
         </Pressable>
         <Text className="font-nunito-extrabold text-lg text-brand-offwhite">{t('mEditProfileTitle')}</Text>
-        <Button title={t('mSave')} loading={save.isPending} disabled={!dirty || avatar.uploading || banner.uploading} onPress={() => save.mutate()} className="min-h-9 px-4 py-2" />
+        <Button title={t('mSave')} loading={save.isPending} disabled={!dirty || usernameBad || avatar.uploading || banner.uploading} onPress={() => save.mutate()} className="min-h-9 px-4 py-2" />
       </View>
 
       {profile.isLoading || (!form && !profile.isError) ? (
@@ -158,6 +165,10 @@ export default function EditProfileScreen() {
           </View>
 
           <Section title={t('secBasic')}>
+            <Labeled label={t('mUsernameLabel')} count={form.username.length} max={USERNAME_MAX}>
+              <Field value={form.username} onChangeText={(v) => set('username', normalizeUsername(v))} maxLength={USERNAME_MAX} autoCapitalize="none" autoCorrect={false} icon={<Text className="font-nunito-bold text-brand-muted">@</Text>} />
+              {usernameBad ? <Text className="font-nunito text-xs text-brand-error">{t('mUsernameRules')}</Text> : null}
+            </Labeled>
             <Labeled label={t('displayNameLabel')} count={form.display_name.length} max={50}>
               <Field value={form.display_name} onChangeText={(v) => set('display_name', v)} placeholder={t('displayNamePlaceholder')} maxLength={50} />
             </Labeled>
@@ -193,7 +204,7 @@ export default function EditProfileScreen() {
             ))}
           </Section>
 
-          {save.isError ? <Text className="font-nunito-bold text-sm text-brand-error">{apiErrorMessage(save.error) ?? t('settingsProfileSaveError')}</Text> : null}
+          {save.isError ? <Text className="font-nunito-bold text-sm text-brand-error">{apiErrorCode(save.error) === 'USERNAME_TAKEN' ? t('mUsernameTaken') : (apiErrorMessage(save.error) ?? t('settingsProfileSaveError'))}</Text> : null}
         </ScrollView>
       )}
     </Screen>

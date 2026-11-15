@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toggleFollow } from '@/api/follows';
 import { getOrCreateConversation } from '@/api/messages';
-import { fetchUserPosts } from '@/api/posts';
+import { fetchUserPosts, pinPost, unpinPost } from '@/api/posts';
 import { blockUser, fetchBlockStatus, fetchUserProfile, unblockUser } from '@/api/users';
 
-export type ProfileTab = 'posts' | 'media' | 'likes' | 'repaws';
+export type ProfileTab = 'posts' | 'media' | 'likes' | 'repaws' | 'archive';
 
 /** Профиль по имени пользователя или id. 403/404 = не найден (retry отключён). */
 export function useProfile(username: string) {
@@ -48,5 +48,14 @@ export function useToggleBlock(userId: string) {
       qc.invalidateQueries({ queryKey: ['profile'] });
       qc.invalidateQueries({ queryKey: ['feed'] });
     },
+  });
+}
+
+/** Закрепить свой пост в профиле или открепить (веб: PUT /users/me/pin/:id, DELETE /users/me/pin). */
+export function useTogglePin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ postId, pinned }: { postId: string; pinned: boolean }) => (pinned ? unpinPost() : pinPost(postId)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
   });
 }

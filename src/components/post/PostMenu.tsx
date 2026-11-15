@@ -5,7 +5,7 @@ import { Ellipsis } from 'lucide-react-native';
 import { ReportSheet } from '@/components/ReportSheet';
 import { Button, Sheet } from '@/components/ui';
 import { useAuthorNotify, usePostActions } from '@/hooks/usePostActions';
-import { useBlockStatus, useToggleBlock } from '@/hooks/useProfile';
+import { useBlockStatus, useToggleBlock, useTogglePin } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
 import { WEB_URL } from '@/lib/config';
 import type { Post } from '@/shared/api-types';
@@ -17,7 +17,7 @@ import { colors } from '@/theme/tokens';
  * Меню «⋯» поста. Перенос меню из web components/PostCard.vue: свой пост — правка (7 дней), архив, комментарии, удаление;
  * чужой — «не интересно», уведомления об авторе, жалоба, блокировка. Закрепление и статистика — отдельные батчи.
  */
-export function PostMenu({ post, onRemoved }: { post: Post; onRemoved?: () => void }) {
+export function PostMenu({ post, onRemoved, pin }: { post: Post; onRemoved?: () => void; pin?: { pinned: boolean } }) {
   const { t } = useT();
   const router = useRouter();
   const myId = useSession((s) => s.user?.id);
@@ -26,6 +26,7 @@ export function PostMenu({ post, onRemoved }: { post: Post; onRemoved?: () => vo
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const actions = usePostActions(post);
+  const togglePin = useTogglePin();
 
   const author = post.author;
   const isOwn = !!myId && (myId === post.author_id || myId === author?.id);
@@ -82,6 +83,14 @@ export function PostMenu({ post, onRemoved }: { post: Post; onRemoved?: () => vo
                 close();
                 router.push(`/create-post?edit=${post.id}` as Href);
               }}
+            />
+          ) : null}
+          {isOwn && pin ? (
+            <Button
+              title={pin.pinned ? t('mUnpinPost') : t('mPinPost')}
+              variant="secondary"
+              loading={togglePin.isPending}
+              onPress={() => togglePin.mutate({ postId: post.id, pinned: pin.pinned }, { onSuccess: close, onError: () => setFailed(true) })}
             />
           ) : null}
           {isOwn ? (
