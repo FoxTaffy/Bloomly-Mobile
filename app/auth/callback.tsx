@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { View, Text, ActivityIndicator, Image } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { usePendingMfa } from '@/stores/pendingMfa';
 import { usePendingSignup } from '@/stores/pendingSignup';
 import { useSession } from '@/stores/session';
@@ -13,6 +13,23 @@ export default function OAuthCallbackScreen() {
   const router = useRouter();
   const loginWithToken = useSession((s) => s.loginWithToken);
   const handled = useRef(false);
+  const isAuthenticated = useSession((s) => s.isAuthenticated);
+
+  // Экран остаётся в стеке под экраном 2FA: когда сессия появилась (вход завершён где угодно), уходим с него,
+  // иначе после успешного кода пользователь застревает на «Входим через OAuth…».
+  useEffect(() => {
+    if (isAuthenticated) router.replace('/');
+  }, [isAuthenticated, router]);
+
+  // Страховка: если экран в фокусе 10 секунд и никуда не ушли (навигация потерялась), возвращаем на вход, а не оставляем спиннер.
+  useFocusEffect(
+    useCallback(() => {
+      const timer = setTimeout(() => {
+        if (!useSession.getState().isAuthenticated) router.replace('/(auth)/login');
+      }, 10_000);
+      return () => clearTimeout(timer);
+    }, [router]),
+  );
 
   useEffect(() => {
     if (handled.current) return;
