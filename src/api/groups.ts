@@ -3,12 +3,13 @@ import type { Group, GroupEvent, EventAttendee, Post } from '@/shared/api-types'
 
 export async function fetchMyGroups(): Promise<Group[]> {
   const res = await api.get('/groups/me');
-  return res.data.data.groups as Group[];
+  // Сервер отдаёт строки членства, сама группа лежит во вложенном `group`.
+  return ((res.data.data.memberships ?? []) as { group: Group }[]).map((m) => m.group);
 }
 
 export async function fetchRecommendedGroups(): Promise<Group[]> {
   const res = await api.get('/groups/discover');
-  return res.data.data.groups as Group[];
+  return (res.data.data.groups ?? []) as Group[];
 }
 
 export async function searchGroups(q: string, page = 1): Promise<Group[]> {

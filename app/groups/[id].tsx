@@ -41,7 +41,7 @@ export default function GroupDetailScreen() {
         </View>
         <View className="p-4">
           <Text className="mb-1 text-2xl font-extrabold text-brand-offwhite">{group.name}</Text>
-          <Text className="mb-4 text-brand-muted">{group.member_count.toLocaleString(locale)} {t('membersCount')}</Text>
+          <Text className="mb-4 text-brand-muted">{group.members_count.toLocaleString(locale)} {t('membersCount')}</Text>
           {group.description ? <Text className="mb-4 leading-5 text-brand-offwhite">{group.description}</Text> : null}
           <Pressable onPress={() => joinMutation.mutate(id)} className="rounded-2xl bg-brand-accent py-3.5">
             <Text className="text-center font-bold text-brand-offwhite">{t('mJoinGroup')}</Text>

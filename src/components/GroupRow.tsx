@@ -23,7 +23,7 @@ export function GroupRow({
         <Text className="font-bold text-brand-offwhite" numberOfLines={1}>
           {group.name}
         </Text>
-        <Text className="text-xs text-brand-muted">{group.member_count.toLocaleString(locale)} {t('membersCount')}</Text>
+        <Text className="text-xs text-brand-muted">{group.members_count.toLocaleString(locale)} {t('membersCount')}</Text>
       </View>
       {actionLabel && onAction ? (
         <Pressable onPress={onAction} className="rounded-full bg-brand-accent-plus-plus px-4 py-2">

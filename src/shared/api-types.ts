@@ -131,7 +131,7 @@ export interface Group {
   avatar_url: string | null;
   banner_url: string | null;
   accent_color: string | null;
-  member_count: number;
+  members_count: number;
   description: string | null;
 }
 
