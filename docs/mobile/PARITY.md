@@ -1,0 +1,267 @@
+# Паритет веб → мобайл: инвентаризация и план батчей
+
+Фаза A (только анализ, код не менялся). Дата среза: 2026-11-15, мобайл `main` (рабочее дерево, 88 коммитов), веб `frontend/` v5.108.7.
+Статус мобайла проверен **чтением кода** `app/`, `src/` (не по `ARCHITECTURE.md`). На устройстве ничего не запускалось.
+
+Условные обозначения.
+- Статус: **done** (есть и работает по коду), **partial** (есть часть или кнопка без действия), **missing** (нет), **OUT** (не делаем в v1.0 по правилам), **web** (только веб).
+- Риск магазинов: **pay** — платежи/цифровые товары, **ugc** — пользовательский контент (нужны жалоба, блок, модерация), **18+** — NSFW/возраст, **priv** — личные данные/разрешения.
+- Усилие: S (≤1 дня), M (2–4 дня), L (≥1 недели).
+- Бэкенд: эндпоинты веб-клиента (`frontend/src`). «нет» = на бэкенде не нашлось, см. `BACKEND_GAPS.md`.
+
+Сводка по инвентарю (строк в таблицах ниже): см. раздел «Счётчики» в конце.
+
+---
+
+## 1. Вход, регистрация, возраст
+
+| ID | Веб (маршрут / компонент) | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| A1 | `/login` LoginView: вход email+пароль | `POST /auth/login` | done `(auth)/login` | P0 | — | — | |
+| A2 | Регистрация (там же) + OTP-подтверждение почты | `POST /auth/register`, `/verify-email`, `/resend-otp` | done | P0 | priv | — | |
+| A3 | 2FA при входе (email/TOTP) | `POST /auth/login/2fa/verify`, `/resend` | done `(auth)/two-factor` | P0 | — | — | |
+| A4 | Сброс пароля | `POST /auth/forgot-password`, `/reset-password` | done | P0 | — | — | |
+| A5 | OAuth (Google/Discord и др.) | `/auth/oauth/:provider`, `/oauth/native-config`, `/oauth/native-exchange`, `/oauth/complete` | done `auth/callback` | P0 | — | — | Sign in with Apple — открытый вопрос владельца (если есть соцвход, Apple требует его) |
+| A6 | `/onboarding/age-verification` дата рождения + согласия после OAuth | `POST /auth/oauth/complete` | done `(auth)/age` | P0 | 18+ | — | |
+| A7 | `/onboarding` (имя, дата рождения, интересы) | `PATCH /users/me` | done `(auth)/onboarding` | P0 | 18+ | — | |
+| A8 | `/parental-consent` (родитель переходит по письму) | `GET /auth/parental-consent/:token`, `POST /auth/parental-consent` | web | — | priv | — | Родитель открывает ссылку из письма в браузере; в приложении нужна только подсказка «ждём согласие» (проверить, есть ли она) |
+| A9 | Разморозка аккаунта | `POST /auth/unfreeze/request`, `/unfreeze/verify` | partial | P1 | — | S | Замороженный аккаунт показывается (`AppStatusGate`), но запроса на разморозку в `src/api/auth.ts` нет |
+| A10 | `/unsubscribe` (отписка от писем по ссылке) | `POST /auth/unsubscribe` | web | — | — | — | Открывается из письма в браузере |
+| A11 | Режим обслуживания, бан, заморозка | 503 `MAINTENANCE`, 403 `ACCOUNT_FROZEN` | done `AppStatusGate` | P0 | — | — | Бан-экран (`BannedAccountModal`) — проверить отдельно |
+
+## 2. Лента и посты
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| B1 | Лента «Для вас» (`/`, MainLayout, FeedTabs) | `GET /posts/personalized`, `/posts/check-new`, `/posts/status` | done `(tabs)/feed` | P0 | ugc | — | Курсорная пагинация, кэш на диск |
+| B2 | Вкладки ленты: Подписки, Общее, Фото, NSFW + сортировка (Умная/новые/старые/лучшие за сутки…) | `GET /posts` с параметрами | done | P0 | 18+ | M | Батч 1a: 5 вкладок (NSFW только при режиме show) и сортировка общих вкладок, `feedRequest` = веб `feedUrl` |
+| B3 | Кнопка поиска в шапке ленты | — | done | P0 | — | S | Батч 1a: ведёт на вкладку «Поиск» |
+| B4 | Быстрый ввод поста в ленте | `POST /posts` | done (текст) | P0 | ugc | — | |
+| B5 | Полный редактор поста (PostComposer): текст, до N медиа, теги, NSFW, ИИ-метка, видимость «подписчикам» | `POST /posts`, `/media/upload*`, `/posts/tags/suggest` | done `create-post` | P0 | ugc 18+ | — | |
+| B6 | Рич-текст в посте (RichTextEditor, LinkifiedText), упоминания `@user` (MentionTextarea) | `GET /users/search` | partial | P0 | ugc | M | Батч 1a: ссылки и `@упоминания` кликабельны в постах и комментариях (`PostText`), теги — чипы, ведут в поиск. Нет: автодополнение `@` при вводе, рич-текст |
+| B7 | Карточка поста: оценка ▲/▼ | `POST /posts/:id/vote` | done | P0 | — | — | |
+| B8 | RePaw (репост) | `POST /posts/:id/repaw` | done | P0 | ugc | S | Батч 1a: переключатель с состоянием `repawed` из `/posts/status`, свой пост репостнуть нельзя |
+| B9 | Избранное/закладка на посте | `POST /posts/:id/favourite` | done | P0 | — | S | Батч 1a: кнопка закладки с состоянием `favourited`. Метки закладок — с экраном закладок (E4) |
+| B10 | Меню поста: копировать ссылку, поделиться (SharePostModal), не интересно, уведомления об авторе | `POST /posts/:id/not-interested`, `POST /users/:id/notify-toggle`, `GET /users/:id/notify-status` | partial | P0 | ugc | M | Батч 1a: «Поделиться» (системный лист, в нём «Скопировать»), «Не интересно» с отменой, уведомления об авторе, жалоба, блок. Нет: отправка поста в чат (батч 3), отдельный пункт «Копировать ссылку» (нужен `expo-clipboard`) |
+| B11 | Свои посты: редактировать, удалить, архив, закрыть комментарии | `PATCH/DELETE /posts/:id`, `/archive`, `/comments-toggle` | partial | P0 | ugc | M | Батч 1a: правка (7 дней: текст, теги, NSFW, ИИ), удаление, архив, вкл/откл комментариев. Нет: добавление медиа при правке, закреп (D4), статистика (B14) |
+| B12 | Страница поста + комментарии, ответы, свёртка | `GET /posts/:id`, `/comments`, `POST /comments` | done `post/[id]` | P0 | ugc | — | |
+| B13 | Комментарии: оценка, удаление своего, жалоба на комментарий | `POST /posts/comments/:id/vote`, `DELETE /posts/comments/:id` | done | P0 | ugc | S | Батч 1a: оценка ▲/▼, удаление своего (и модератором), жалоба — на автора с цитатой (цели `comment` на бэкенде нет) |
+| B14 | Статистика поста (PostStatsModal), список «кому понравилось» | `GET /posts/:id/stats`, `/posts/me/liked-by/:id` | missing | P2 | — | S | |
+| B15 | Закрытые посты «только подписчикам», медиа с токеном | `GET /media/private`, `/media/authz` | done (Phase 8b) | P0 | priv | — | |
+| B16 | NSFW: hide/blur/show, режим по возрасту | — | done (`useNsfwMode`) | P0 | 18+ | — | Проверить fail-closed на всех новых списках |
+| B17 | Истории: кольцо в ленте | `GET /stories` | **partial** | P0 | ugc | — | Кольца рисуются, `onPress` не передан |
+| B18 | Истории: просмотр (StoryViewer: отметка просмотра, оценка, ответ в чат, зрители) | `POST /stories/:id/view`, `/vote`, `GET /stories/:id/viewers`, `GET /stories/user/:id` | missing | P0 | ugc | M | `api/stories.ts` готов, UI нет |
+| B19 | Истории: создание | `POST /stories`, `DELETE /stories/:id` | **missing** | P0 | ugc | M | **Веб создавать истории не умеет** (`StoryMobileOnlyModal`: «только в приложении») — функция обязана быть в мобайле. Нужна камера/галерея (уже есть `expo-image-picker`) |
+| B20 | Мульти-авторские посты (CoauthorPicker, CoauthorInvite) | `GET /posts/:id/coauthors`, `POST /posts/:id/coauthors/respond`, `coauthorIds` в `POST /posts` | missing | P2 | ugc | M | Приглашение соавтора приходит уведомлением, ответ нужен для полноты |
+| B21 | Черновики и отложенные посты (ScheduledPostsList) | `GET/POST/PATCH/DELETE /posts/scheduled`, `/publish-now` | missing | P1 | — | M | Черновиков в виде отдельной сущности в вебе нет, есть только отложенные |
+| B22 | Комиксы (ComicReader, postType=comic) | `postType: 'comic'` | missing | P2 | ugc | M | Читалка без создания |
+| B23 | Реклама (AdSlot, AdRequestModal) | `/ads/*` | OUT | — | pay | — | Рекламный кабинет = деньги |
+| B24 | Листинг Dealers' Den в посте (PostListingCard/Picker) | `listingId` в `PATCH /posts/:id` | OUT | — | pay | — | Ведёт в Den |
+| B25 | Автоперевод постов | сторонний сервис из браузера | web | — | priv | — | Отправляет текст третьей стороне; в мобайле не переносить без решения по приватности |
+| B26 | Виджеты ленты: тренды, интересное, рекомендованные люди, карточка Den | `GET /posts/trending-tags`, `/users/recommended` | partial | P1 | — | S | Тренды есть в «Обзоре»; рекомендованных людей нет; карточка Den — OUT |
+| B27 | Горячие клавиши, командная палитра | — | web | — | — | — | |
+
+## 3. Обзор и поиск
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| C1 | `/explore`: Актуальное/Новое, период, тег, тренды | `GET /posts/personalized?scope=explore`, `/posts` | done `ExploreFeed` | P0 | ugc 18+ | — | Веб-раскладка «плитки» (masonry) заменена списком |
+| C2 | `/search`: вкладки Всё/Люди/Посты/Группы/Теги | `/posts/search`, `/posts/search/tags`, `/users/search`, `/groups/search` | partial `SearchResults` | P0 | — | S | Есть посты/люди/группы/теги; нет вкладки «Всё» и истории запросов; синонимы тегов учтены |
+| C3 | Поиск по сообщениям | `GET /messages/search` | partial | P1 | priv | S | Сейчас поиск по названию диалога (локальный фильтр) |
+
+## 4. Профили
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| D1 | `/profile/:username`: шапка, аватар, баннер, био, счётчики, подписка, сообщение | `GET /users/:id`, `POST /follows/:id/toggle` | done | P0 | ugc | — | |
+| D2 | Вкладки профиля: Посты, RePaw, Медиа | `GET /posts/user/:id`, `/repaws` | done | P0 | ugc | — | Тип `likes` есть, вкладки нет (на вебе её тоже нет в `ProfileContent`) |
+| D3 | Вкладки только для владельца: Архив, Статистика; для чужого: Общие группы | `GET /posts/user/:id?archived`, `/users/me/profile-stats`, `GET /groups/common/:id` | missing | P1 | — | M | |
+| D4 | Закреплённый пост профиля | `PUT/DELETE /users/me/pin` | missing | P1 | — | S | Отображение закрепа + управление |
+| D5 | Блок «О себе» (about, контакты, дата рождения, интересы, ссылки), статус-пузырь | `GET /users/:id` | partial | P1 | priv | M | Показано только био; полей about/интересов/ссылок нет |
+| D6 | Фурсона/фурсьют: вкладки, референсы | `GET /users/:id/fursonas`, `/fursuits`, `/fursona/reference` | missing | P2 | — | L | Специфика сообщества, не блокирует релиз |
+| D7 | Достижения, доверие, значки | `GET /achievements/users/:id`, `/activities/trust/:id` | missing | P2 | — | S | |
+| D8 | Подписки: Подписаться/Отписаться; уведомления об авторе | `POST /follows/:id/toggle`, `/users/:id/notify-toggle` | partial | P0 | — | S | Подписка есть; колокольчик нет |
+| D9 | Дружба/отношения (партнёр): запрос, принять, отклонить | `/friends/request`, `/relationships/*` | partial | P1 | — | M | Принять/отклонить из уведомлений есть; запрос и профиль-кнопки нет |
+| D10 | Блокировка и жалоба на пользователя | `POST/DELETE /users/:id/block`, `/admin/reports` | done | P0 | ugc | — | |
+| D11 | Верификация-бейдж и роли | `GET /verification/status`… | partial | P1 | — | S | Бейдж показывается (`VerifiedBadge`), заявка — в разделе «Аккаунт» |
+| D12 | Альбомы | `GET/POST/PATCH/DELETE /albums` | missing | P2 | ugc | M | |
+| D13 | Now Playing (Spotify/Last.fm) | `/spotify/*`, `/lastfm/*` | OUT-ish | P2 | priv | M | Требует OAuth сторонних сервисов; не в v1.0 |
+| D14 | QR-визитка профиля | клиентская | missing | P2 | — | S | |
+| D15 | Онлайн-статус/присутствие | WS, `GET /users/online` | missing | P1 | priv | S | |
+
+## 5. Друзья, подписчики, закладки
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| E1 | `/friends`: вкладки Друзья/Подписчики/Подписки, онлайн-фильтр, поиск | `GET /friends`, `/friends/followers`, `/friends/following` | **missing** | P0 | — | M | Экрана нет вообще (в `ARCHITECTURE` значится P1) |
+| E2 | Заявки в друзья (входящие/исходящие), принять/отклонить | `GET /friends/requests`, `/requests/outgoing`, `POST /friends/request`, `/requests/:id/accept|reject`, `DELETE` | missing | P0 | — | M | |
+| E3 | Дни рождения друзей, рядом, подсказки | `GET /friends/birthdays`, `/birthdays/nearby`, `/suggestions` | missing | P2 | priv | S | |
+| E4 | `/bookmarks`: посты, люди, группы, метки, массовые действия, отмена | `GET /posts/me/bookmarks`, `/bookmarks/*` | **missing** | P0 | — | M | Закладки нужны вместе с B9; карточки листингов Den — пропускаем |
+| E5 | `/subscriptions` (платные планы) | `/payments/subscription*` | OUT | — | pay | — | Покупка подписки |
+| E6 | Список подписок на города (события) | `GET /events/city-subscriptions` | missing | P1 | — | S | См. раздел 8 |
+
+## 6. Сообщения
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| F1 | Список диалогов, непрочитанные, поиск | `GET /messages/conversations`, `/unread` | done `(tabs)/messages` | P0 | priv | — | |
+| F2 | Чат: текст, подгрузка истории, прочитано, realtime, печатает… | `GET/POST /messages/conversations/:id/messages`, `/read`, WS | done `messages/[id]` | P0 | priv | — | |
+| F3 | Голосовые сообщения | `/media/upload` | done | P0 | priv | — | |
+| F4 | Новый личный диалог / новая группа, поиск человека | `POST /messages/conversations`, `/messages/groups`, `GET /users/search` | partial | P0 | — | S | Диалог открывается из профиля; кнопки «Новый чат» и групповых чатов нет |
+| F5 | Вложения: фото, видео, файлы, альбом | `POST /messages/.../messages` с `file_url` | missing | P0 | ugc priv | M | API принимает `file_url`/`media_type`; в UI только текст и голос |
+| F6 | Действия с сообщением: ответ, правка, удаление, пересылка, реакции | `PATCH/DELETE /messages/messages/:id`, `/forward`, `/reactions` | missing | P0 | — | M | `reply_to_id` в API есть |
+| F7 | Управление диалогом: закрепить, без звука, архив, метка, удалить | `PUT/DELETE .../pin`, `PATCH .../mute|archive|label|pin-chat`, `DELETE ...?scope` | missing | P1 | — | M | |
+| F8 | Группа-чат: участники, роли, приглашения, настройки | `/messages/conversations/:id/members*`, `/group` | missing | P1 | — | M | Только участие; без админ-инструментов |
+| F9 | Запросы на переписку (message request) | `POST /messages/conversations/:id/request` | missing | P1 | ugc | S | Антиспам-механика; нужна для UGC-политики |
+| F10 | Медиа беседы и статистика | `GET .../media`, `/media-stats` | missing | P2 | — | S | |
+| F11 | Карточки в чате: `post_share`, `group_share`, `story`, `sticker` | типы сообщений | missing | P0 | ugc | S | Без рендера эти сообщения будут «пустыми» у получателя; минимум — текстовая заглушка/ссылка |
+| F12 | Платёжные карточки: `payment_request`, `payment_confirmation`, `tip`, `order_update` | `POST /messages/messages/:id/pay` | OUT | — | pay | S | Показывать безопасную плашку «доступно в веб-версии», кнопку оплаты не рисовать |
+| F13 | Групповой инбокс бизнеса `/groups/:id/inbox`, `/dm` | | web | — | pay | — | Управление группой |
+| F14 | Вставка стикеров в чат (StickerPanel) | `/stickers/*` | OUT | — | pay | — | Стикеры живут в Shop; получение можно только отрисовать (F11) |
+
+## 7. Группы
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| G1 | `/groups`: каталог, поиск, мои, рекомендованные, тренды | `GET /groups`, `/groups/me`, `/discover`, `/trending`, `/search` | partial `(tabs)/groups` | P1 | ugc | S | Мои + рекомендации + поиск есть; тренды/рубрики нет |
+| G2 | `/groups/:slug`: шапка, описание, посты группы, участники, события, отзывы | `GET /groups/:id`, `/posts`, `/members`, `/events`, `/reviews` | **partial** `groups/[id]` | P1 | ugc | M | Экран: баннер, имя, описание, кнопка «Вступить». **Нет:** ленты постов группы (хотя `fetchGroupPosts` есть), участников, событий, отзывов |
+| G3 | Вступить / выйти / заявка на вступление | `POST /groups/:id/join`, `/leave`, `GET/DELETE /groups/:id/join-request` | partial | P1 | ugc | S | Кнопка «Вступить» показывается всегда: нет состояния «вы участник» и «выйти» (`leaveGroup` в API есть, UI нет); закрытые группы с заявкой не поддержаны |
+| G4 | Пост в группу (GroupPostComposer) для участников | `POST /groups/:id/posts` | missing | P1 | ugc | S | Member-level действие |
+| G5 | Подписка на группу, уведомления, закрепить | `POST/DELETE /groups/:id/subscribe`, `PATCH /groups/:id/notify`, `/pin` | missing | P2 | — | S | |
+| G6 | Приглашения в группы | `GET /groups/invites/me`, `POST /groups/invites/:id` | missing | P1 | — | S | Принять/отклонить |
+| G7 | Отзывы и рейтинг группы (читать) | `GET /groups/:id/reviews`, `/my-rating` | missing | P2 | ugc | S | Писать отзыв — member-level, но после заказа (деньги) → читать только |
+| G8 | Заказы/комиссии, Kanban, todo, команда, роли, баланс, донаты, комиссия | `/groups/:id/orders*`, `/kanban`, `/todo*`, `/balance`, `/donate` | web / OUT | — | pay | — | `GroupOrderView`, dashboard, business, admin — веб; донаты и заказы = деньги |
+| G9 | Создание группы, настройки группы (`GroupSettingsView`, 3380 строк) | `POST /groups`, `PATCH /groups/:id` | web | — | — | — | Управление группой за пределами member-level |
+| G10 | `/my-todolist` | `GET /groups/:id/todo` | web | — | — | — | Рабочий инструмент владельцев |
+
+## 8. События
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| H1 | `/events/:id` (EventPage): детали, RSVP, участники | `GET /groups/events/:id`, `/my-rsvp`, `/attendees`, `POST/DELETE /groups/events/:id/rsvp` | done `events/[id]` | P1 | — | — | Через `/groups/events`, как и веб `EventDetailView` |
+| H2 | Каталог `/events`: список, фильтры, карта, facets, регион | `GET /events`, `/events/facets`, `/events/map`, `/events/map/places` | **missing** | P1 | — | L | Мобайл знает только «ближайшие события групп» (`GET /groups/events?upcoming`) и показывает их на вкладке «Группы». Каталог — отдельный модуль бэкенда `/events` |
+| H3 | Рекомендованные события, выбор места | `GET /events/recommended`, `/events/place`, `PUT /events/recommended/place` | missing | P2 | priv | S | Геолокация только по явному выбору города (без GPS) |
+| H4 | Подписка на события города (+ пуш `event_in_city`) | `GET/POST/DELETE /events/city-subscriptions` | missing | P1 | — | S | Пуш-категория `events` уже есть |
+| H5 | Серии/издания мероприятия (EventEditionSwitcher), под-события | `GET /events/series*`, `/groups/events/:id/subevents` | missing | P2 | — | S | |
+| H6 | Билетные тарифы события (цены) | `tickets` внутри `GET /groups/events/:id` | missing | P2 | pay | S | Только показ цены; покупки в приложении нет (эндпоинта покупки не найдено). Ссылки на внешние билеты — отдельное решение |
+| H7 | `/my-tickets`, `/my-applications` | не найдено/Den | OUT | — | pay | — | Билеты/заявки Den |
+| H8 | Подача события, редактирование, мои события, заявка организатора, организатор, пакетные claims | `POST /events`, `PATCH /events/:id`, `/events/mine`, `/events/claims*`, `/events/organizers*` | web | — | — | — | Управление, не member-level |
+| H9 | «Скоро» (Soon badges) | `POST /groups/events/:id/soon` | web | — | — | — | Настройка владельца |
+
+## 9. Уведомления и пуши
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| I1 | `/notifications`: вкладки (Все/Лайки/Комментарии/Подписки/Den/Система), группировка, «прочитать все» | `GET /notifications`, `/count`, `POST /read` | done | P0 | — | — | Вкладка Den: проверить, что ссылки не уводят в оплату |
+| I2 | Принять/отклонить запрос отношений из уведомления | `POST /relationships/:id/accept|decline` | done | P0 | — | — | |
+| I3 | `/notifications/likes/:userId` (кто лайкнул) | `GET /notifications?...` | missing | P1 | — | S | Детализация группы лайков |
+| I4 | Удаление/восстановление уведомлений | `POST /notifications/delete`, `/restore`, `DELETE` | missing | P1 | — | S | |
+| I5 | Живое обновление (SSE-тикет) | `POST /notifications/stream-ticket`, `GET /notifications/stream` | missing | P1 | — | S | Мобайл обновляет по запросу/на фокусе; WS мобайла несёт только чат |
+| I6 | Пуш на устройство: сообщения и события | `POST /push/expo-token`, `PATCH /push/prefs` | done | P0 | priv | — | Категорий всего две (`messages`, `events`), «события» включают лайки/комменты — см. BACKEND_GAPS |
+| I7 | Типы уведомлений: LIKE, REPAW, COMMENT, MENTION, FOLLOW, FRIEND_*, RELATIONSHIP_*, den_*, system (automod, frame, sticker pack, achievement, bug hunter, event_in_city, admin_broadcast) | | partial | P0 | — | S | Тексты есть (`shared/notifications.ts`); куда вести `STICKER_ACCESS*`, `den_*` — нигде (безопасно) |
+| I8 | Тосты уведомлений в приложении (NotifToast) | | missing | P2 | — | S | |
+| I9 | Баннер «включить пуши» (PushPrompt) | | done (`usePushPermission` в настройках) | P1 | priv | — | |
+
+## 10. Настройки и аккаунт
+
+| ID | Веб (`/settings/profile`, 14 секций) | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| J1 | Основное: имя, username, био, аватар, баннер | `PATCH /users/me`, `/users/me/username`, `/media/upload` | **missing** | P0 | ugc priv | M | Профиль в приложении можно только смотреть; редактировать нельзя. Нужна загрузка аватара/баннера |
+| J2 | Контакты и соцсети | `PATCH /users/me` | missing | P1 | priv | S | |
+| J3 | Приватность (кто видит профиль/посты/онлайн) | `PATCH /users/me` | missing | P1 | priv | S | |
+| J4 | Интересы | `PATCH /users/me` | missing | P1 | — | S | |
+| J5 | Язык интерфейса | локально | done | P0 | — | — | RU/EN (веб: 8 языков) |
+| J6 | NSFW-режим | `PATCH /users/me` | done | P0 | 18+ | — | |
+| J7 | Пуши (messages/events) | `/push/prefs` | done | P0 | — | — | |
+| J8 | Email-уведомления | `GET/PUT /email-preferences` | missing | P1 | — | S | |
+| J9 | Безопасность: смена пароля, смена почты, 2FA (email/TOTP), сессии, привязанные аккаунты | `/auth/change-password`, `/auth/change-email/*`, `/auth/2fa/*`, `/auth/sessions`, `/auth/linked-accounts`, `/auth/link-start` | missing | P1 | priv | L | Привязка OAuth требует `link-start` + браузер. TOTP-QR показывать без новых зависимостей (`react-native-svg` уже есть) |
+| J10 | Верификация (заявка на бейдж) | `/verification/*` | missing | P2 | — | S | |
+| J11 | Экспорт данных | `POST /auth/export-data` | missing | P1 | priv | S | Требование приватности магазинов |
+| J12 | Удаление аккаунта | `DELETE /users/me/account`, `/account/code` | done `delete-account` | P0 | priv | — | Обязательно для Apple/Google |
+| J13 | Биллинг: карты, автопродление, кошелёк, пополнение BLM | `/users/me/payment-methods`, `/payments/*`, `/wallet/*` | OUT | — | pay | — | |
+| J14 | Автоматизация, Telegram-импорт | `/automation*`, `/stickers/import/telegram` | web | — | — | — | |
+| J15 | Музыка (Spotify/Last.fm) | | OUT-ish | P2 | priv | — | См. D13 |
+| J16 | Оформление профиля (рамки аватара, темы) | `/avatar-frames/*` | OUT | — | pay | — | Рамки — Shop |
+
+## 11. Поддержка, помощь, юридическое
+
+| ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
+|---|---|---|---|---|---|---|---|
+| K1 | `/terms`, `/privacy`, `/dmca` | статика/клиент | done `legal/[doc]` | P0 | — | — | Dealers' Den terms и safe-deals — OUT |
+| K2 | `/support`: тикеты (создать, переписка, вложения) | `GET/POST /support/tickets`, `/tickets/:id/messages` | **partial** `support` | P1 | ugc | M | Сейчас только почтовые адреса; API тикетов в приложении не подключён |
+| K3 | `/help`: FAQ, жалоба на баг, мои обращения, контакты | `useFaq` (локально) + `/support/*` | missing | P1 | — | S | FAQ — статический, переносится без бэкенда |
+| K4 | Жалоба на контент (ReportModal) | `POST /admin/reports` | done `ReportSheet` | P0 | ugc | — | Покрыты пост/группа/пользователь; добавить комментарий и сообщение вместе с B13/F6 |
+| K5 | Cookie-баннер, аналитика Яндекс.Метрика | | web | — | priv | — | В приложении не нужен; трекеров нет |
+
+## 12. Магазин и Dealers' Den (v1.0: вне приложения)
+
+| ID | Веб | Мобайл | Решение |
+|---|---|---|---|
+| L1 | `/shop`: стикеры и рамки аватара, покупка за BLM | OUT | Каждый товар покупается; чтения «без пути к покупке» не получится — экран каталога сам является витриной покупки. |
+| L2 | `/stickers/:id`, `/stickers/invite/:code`: страница пака | OUT | Кнопки «получить/купить» на самой странице. Ссылка из чата → открывать в браузере. |
+| L3 | `/dealers-den`, `/dealers-den/:id`, seller, fair | OUT | Из лота ведут «заявка → заказ → оплата в escrow»; разделить нельзя без риска. Ссылки из постов/уведомлений открывать в браузере. |
+| L4 | `/groups/:slug/orders/:id`, `/payment/result` | OUT | Деньги |
+| L5 | `/dealers-den/safe-deals`, `/dealers-den-terms` | OUT | Только как часть Den |
+
+Если владелец хочет «витрину без покупок», это отдельное решение (см. «Решения»): предлагаю не делать в v1.0.
+
+## 13. Realtime и пуш (поведение)
+
+| ID | Веб | Мобайл | Заметки |
+|---|---|---|---|
+| R1 | WebSocket: `new_message`, `group_message`, `typing`, присутствие | done для чата (`useChatSocket`, `wsClient`) | Присутствие (онлайн) не используется |
+| R2 | SSE уведомлений по тикету | missing | I5 |
+| R3 | Web Push | не нужен | Мобайл использует Expo push |
+| R4 | Expo push: сообщения + события | done | Тап открывает нужный экран (`usePushNavigation`), проверить глубокие ссылки на новые экраны после каждого батча |
+
+---
+
+## Счётчики
+
+Посчитаны скриптом по строкам разделов 1–12 (130 строк; раздел 13 — описание поведения, в счёт не входит).
+
+| Статус | Кол-во |
+|---|---|
+| done | 38 |
+| partial | 18 |
+| missing | 47 |
+| OUT (деньги/магазины; из них 5 — раздел 12) | 15 |
+| web (не портируем) | 12 |
+
+(`OUT-ish` в D13/J15 посчитаны как OUT. Статусы в таблицах — по состоянию на дату среза; при правках пересчитывать.)
+
+---
+
+## Рекомендуемый план батчей (после вашего «go batch N»)
+
+Каждый батч самодостаточен и проверяем на телефоне. Ветки `mobile/parity-<n>`, один батч за раз.
+
+**Батч 1. Лента и посты до полноты (P0).** B2 вкладки и сортировка ленты, B3 поиск из шапки, B6 кликабельные ссылки/теги/упоминания (отображение; ввод `@` — тут же), B8–B11 действия поста (репост с отменой, закладка, меню, свои посты: правка/удаление/архив/комментарии), B13 комментарии (оценка, удаление), B17–B19 **истории: просмотр и создание**. Бэкенд: всё есть. Эффект на магазины: UGC — удаление своего и жалобы уже закрываем.
+
+**Батч 2. Люди и закладки (P0/P1).** E1–E2 друзья/подписчики/заявки, E4 закладки, D3–D5, D8–D9, D15, J1–J4 редактирование профиля (аватар/баннер — новые данные, обновить `DATA_SAFETY`/`APP_PRIVACY`), I3–I5.
+
+**Батч 3. Сообщения до полноты (P0/P1).** F4–F11: новый чат и группы, вложения (фото/видео/файлы), ответ/правка/удаление/пересылка/реакции, управление диалогом, запросы на переписку, рендер карточек (`post_share`, `group_share`, `sticker`, платёжные — безопасная плашка).
+
+**Батч 4. Группы и события (P1).** G1–G7 (экран группы: посты, участники, события, вступить/выйти/заявка, приглашения, пост в группу), H2–H6 каталог событий, подписка на город, серии. Каталог с картой — самая дорогая часть; карту можно отложить (список + фильтры).
+
+**Батч 5. Аккаунт, безопасность, поддержка (P1).** J8–J11 (почта, пароль, 2FA, сессии, экспорт данных), A9 разморозка, K2–K3 тикеты и FAQ, J10 верификация.
+
+**Батч 6. Творческие и «приятные» функции (P2).** B20 соавторы, B21 отложенные, B22 комиксы (чтение), D6–D7 фурсона/достижения, D12 альбомы, D14 QR, I8 тосты, B14 статистика, E3, H3.
+
+## Риски
+
+1. **Магазины и UGC.** Уже есть жалоба и блок; нужно добавить удаление своего контента (батч 1) и жалобы на комментарий/сообщение. 18+ — fail-closed на каждом новом списке (вкладки ленты, группа, закладки, поиск).
+2. **Магазины и деньги.** В сообщениях и уведомлениях приходят платёжные типы (`payment_request`, `tip`, `den_*`, `STICKER_ACCESS*`). Показывать нейтральную плашку без кнопок оплаты и без внешней ссылки на оплату; ссылки на Shop/Den из контента — тоже плашка (иначе это «steering»).
+3. **Новые разрешения/данные.** Истории и вложения чата: камера/галерея/файлы (камера и галерея уже есть; `expo-document-picker` для файлов — новая зависимость, понадобится причина и запись в Data Safety). Города событий: только выбор вручную, без геолокации.
+4. **Расхождение двух модулей событий.** Веб использует `/groups/events` (события групп) и `/events` (каталог). Мобайл знает только первое.
+5. **Реалтайм.** WS мобайла несёт только чат; уведомления без SSE (устареют до фокуса).
+6. **Верифицировано по коду, не на устройстве.** Весь «done» выше — статус по чтению.
+
+## Решения, которые нужны от вас
+
+1. Подтвердить: Shop и Dealers' Den полностью вне v1.0 (включая «только просмотр») и ссылки на них из контента показывать нейтральной плашкой.
+2. Порядок батчей: оставляем батч 1 (лента + истории) первым? Истории создаются только в приложении — есть ли ограничения по формату (видео/длительность) и нужен ли редактор?
+3. Вложения чата: разрешаем файлы (нужен `expo-document-picker`) или только фото/видео в v1.0?
+4. Каталог событий в батче 4: сразу с картой (MapLibre — нативная зависимость) или списком и фильтрами?
+5. Языки: оставляем RU/EN или переносим остальные 6 языков веба (ключи уже в `frontend/src/locales`)?
+6. Sign in with Apple и ветка `mobile/parity-0` (см. примечание в отчёте): создание ветки и коммит были заблокированы системой прав — нужна ваша команда или разрешение.
