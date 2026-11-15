@@ -16,7 +16,7 @@ import { fetchNotifyStatus, toggleNotify } from '@/api/users';
 import type { Comment, Post } from '@/shared/api-types';
 
 /** Ключи запросов, в которых лежат посты (ленты, обзор, поиск, профиль, один пост). */
-const POST_QUERY_ROOTS = new Set(['feed', 'explore', 'search', 'profile-posts', 'post']);
+const POST_QUERY_ROOTS = new Set(['feed', 'explore', 'search', 'profile-posts', 'post', 'bookmarks']);
 
 type Patch = (post: Post) => Post | null;
 
@@ -34,10 +34,14 @@ function patchData(data: unknown, id: string, patch: Patch): unknown {
   }
   if (isPost(data)) return data.id === id ? (patch(data) ?? data) : data;
   if (data && typeof data === 'object') {
-    const obj = data as { pages?: unknown[]; items?: unknown[] };
+    const obj = data as { pages?: unknown[]; items?: unknown[]; posts?: unknown[] };
     if (Array.isArray(obj.pages)) {
       const pages = obj.pages.map((page) => patchData(page, id, patch));
       return pages.some((page, i) => page !== obj.pages![i]) ? { ...obj, pages } : data;
+    }
+    if (Array.isArray(obj.posts)) {
+      const posts = patchData(obj.posts, id, patch);
+      return posts !== obj.posts ? { ...obj, posts } : data;
     }
     if (Array.isArray(obj.items)) {
       const items = patchData(obj.items, id, patch);
@@ -99,6 +103,8 @@ export function usePostActions(post: Post) {
         try {
           const favourited = await favouritePost(id);
           patchPostEverywhere(qc, id, (p) => ({ ...p, favourited }));
+          // Список закладок меняется: пост появился или исчез
+          qc.invalidateQueries({ queryKey: ['bookmarks', 'posts'] });
         } catch {
           patchPostEverywhere(qc, id, (p) => ({ ...p, favourited: was }));
         }

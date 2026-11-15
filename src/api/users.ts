@@ -34,3 +34,30 @@ export async function toggleNotify(userId: string): Promise<boolean> {
   const res = await api.post(`/users/${userId}/notify-toggle`);
   return !!res.data?.data?.notifyPosts;
 }
+
+/** Поля профиля, которые можно менять в приложении (веб: SettingsBasicSection, SettingsInterestsSection, SettingsPrivacySection). */
+export interface ProfilePatch {
+  display_name?: string;
+  bio?: string;
+  pronouns?: string;
+  location?: string;
+  website?: string;
+  avatar_url?: string;
+  avatar_video_url?: string | null;
+  banner_url?: string;
+  likes?: string[];
+  dislikes?: string[];
+  profile_visibility?: PrivacyLevel;
+  friends_list_visibility?: PrivacyLevel;
+  messages_privacy?: PrivacyLevel;
+  comments_privacy?: PrivacyLevel;
+  mentions_privacy?: PrivacyLevel;
+  online_status_visibility?: PrivacyLevel;
+}
+export type PrivacyLevel = 'everyone' | 'friends' | 'nobody' | 'only_me';
+
+/** Тело PATCH — только изменённые поля (как на вебе: чужое устаревшее значение не затирает свежее). */
+export async function updateMyProfile(body: ProfilePatch): Promise<UserProfile> {
+  const res = await api.patch('/users/me', body);
+  return res.data.data.user as UserProfile;
+}

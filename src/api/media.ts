@@ -15,7 +15,7 @@ export interface UploadFileInput {
   name: string;
   mime: string;
   size: number;
-  folder: 'posts' | 'avatars' | 'stories' | 'messages';
+  folder: 'posts' | 'avatars' | 'banners' | 'messages';
   /** Доля отправленного, 0..1. */
   onProgress?: (fraction: number) => void;
   signal?: AbortSignal;
@@ -117,7 +117,7 @@ export function uploadFile(f: UploadFileInput): Promise<UploadResult> {
 /** Короткая загрузка одного файла без прогресса (голосовые сообщения). */
 export async function uploadMedia(
   uri: string,
-  folder: 'posts' | 'avatars' | 'stories' | 'messages',
+  folder: 'posts' | 'avatars' | 'banners' | 'messages',
   mimeType = 'image/jpeg',
 ): Promise<{ url: string; videoUrl?: string }> {
   const name = uri.split('/').pop() ?? `upload-${Date.now()}`;

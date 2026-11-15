@@ -3,7 +3,7 @@ import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-nati
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Ban, Ellipsis, Lock, MessageCircle, Settings, Snowflake, UserCheck, UserPlus, UserX, Video } from 'lucide-react-native';
+import { Bell, BellOff, Ban, Bookmark, Ellipsis, Lock, MessageCircle, Pencil, Settings, Users, Snowflake, UserCheck, UserPlus, UserX, Video } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { PostCard } from './PostCard';
 import { ReportSheet } from './ReportSheet';
@@ -13,6 +13,7 @@ import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
+import { useAuthorNotify } from '@/hooks/usePostActions';
 import { mediaSource } from '@/lib/mediaAuth';
 import { isNotFound } from '@/shared/apiError';
 import { isVideoUrl, visualMedia } from '@/shared/media';
@@ -175,6 +176,7 @@ function ProfileHeader(props: {
   onSettings: () => void;
 }) {
   const { t, locale } = useT();
+  const router = useRouter();
   const { profile, isOwn, blocked, tab, onTab } = props;
   const count = (n: number) => n.toLocaleString(locale);
   return (
@@ -189,13 +191,21 @@ function ProfileHeader(props: {
           <Avatar uri={profile.avatar_url} name={profile.display_name ?? profile.username} size={88} />
         </View>
         {isOwn ? (
-          <View className="absolute -bottom-11 right-4">
-            <Pressable onPress={props.onSettings} accessibilityRole="button" accessibilityLabel={t('settings')} hitSlop={6} className="h-10 w-10 items-center justify-center rounded-full bg-brand-card active:opacity-70">
-              <Settings size={18} color={colors.offwhite} />
-            </Pressable>
+          <View className="absolute -bottom-11 right-4 flex-row items-center gap-2">
+            {[
+              { onPress: () => router.push('/edit-profile'), label: t('mEditProfileTitle'), icon: <Pencil size={18} color={colors.offwhite} /> },
+              { onPress: () => router.push('/friends'), label: t('mPeopleTitle'), icon: <Users size={18} color={colors.offwhite} /> },
+              { onPress: () => router.push('/bookmarks'), label: t('bookmarksPageTitle'), icon: <Bookmark size={18} color={colors.offwhite} /> },
+              { onPress: props.onSettings, label: t('settings'), icon: <Settings size={18} color={colors.offwhite} /> },
+            ].map((b) => (
+              <Pressable key={b.label} onPress={b.onPress} accessibilityRole="button" accessibilityLabel={b.label} hitSlop={6} className="h-10 w-10 items-center justify-center rounded-full bg-brand-card active:opacity-70">
+                {b.icon}
+              </Pressable>
+            ))}
           </View>
         ) : (
           <View className="absolute -bottom-11 right-4 flex-row items-center gap-2">
+            {profile.is_following ? <NotifyBell userId={profile.id} /> : null}
             <Pressable onPress={props.onMenu} accessibilityRole="button" accessibilityLabel={t('mMore')} hitSlop={6} className="h-10 w-10 items-center justify-center rounded-full bg-brand-card active:opacity-70">
               <Ellipsis size={18} color={colors.offwhite} />
             </Pressable>
@@ -305,5 +315,24 @@ function StatBox({ value, label }: { value: string; label: string }) {
       <Text className="font-nunito-extrabold text-lg text-brand-offwhite">{value}</Text>
       <Text className="font-nunito text-[11px] text-brand-muted">{label}</Text>
     </Card>
+  );
+}
+
+/** Колокольчик «уведомлять о постах автора»: только для тех, на кого подписан (веб: PersonCard notify-toggle). */
+function NotifyBell({ userId }: { userId: string }) {
+  const { t } = useT();
+  const { on, toggle } = useAuthorNotify(userId, true);
+  return (
+    <Pressable
+      onPress={() => toggle.mutate()}
+      disabled={toggle.isPending}
+      accessibilityRole="button"
+      accessibilityState={{ selected: on }}
+      accessibilityLabel={on ? t('disableNotifyTitle') : t('enableNotifyTitle')}
+      hitSlop={6}
+      className="h-10 w-10 items-center justify-center rounded-full border border-brand-border bg-brand-card active:opacity-70"
+    >
+      {on ? <Bell size={18} color={colors.accent} fill={colors.accent} /> : <BellOff size={18} color={colors.offwhite} />}
+    </Pressable>
   );
 }

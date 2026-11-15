@@ -94,6 +94,17 @@ export interface UserProfile {
   avatar_video_url: string | null;
   banner_url: string | null;
   pronouns: string | null;
+  /** Поля ниже сервер отдаёт владельцу профиля (и тем, кому позволяет приватность). */
+  location?: string | null;
+  website?: string | null;
+  likes?: string[];
+  dislikes?: string[];
+  profile_visibility?: 'everyone' | 'friends' | 'only_me';
+  friends_list_visibility?: 'everyone' | 'friends' | 'only_me';
+  messages_privacy?: 'everyone' | 'friends' | 'nobody';
+  comments_privacy?: 'everyone' | 'friends' | 'nobody';
+  mentions_privacy?: 'everyone' | 'friends' | 'nobody';
+  online_status_visibility?: 'everyone' | 'friends' | 'nobody';
   fursona_name: string | null;
   fursona_color: string | null;
   fursona_description: string | null;
@@ -183,6 +194,17 @@ export interface AppNotification {
   created_at: string;
   meta: Record<string, unknown> | null;
   sender: { id: string; username: string; display_name: string | null; avatar_url: string | null; badge_type: string | null } | null;
+}
+
+/** Человек в списках «Друзья / Подписчики / Подписки» и рекомендациях (веб: FriendUser). */
+export interface FriendUser extends Omit<UserSummary, 'is_verified' | 'verification_type'> {
+  location: string | null;
+  deceased_at: string | null;
+  is_following?: boolean;
+  /** Только у друзей: онлайн ли сейчас. */
+  online?: boolean;
+  /** Сколько моих друзей знакомы с этим человеком (рекомендации). */
+  mutual_count?: number;
 }
 
 export interface UserSummary {

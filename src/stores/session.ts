@@ -30,6 +30,8 @@ interface SessionState {
   completeSignup: (signupToken: string, consent: AgeConsentPayload) => Promise<'ok' | 'parental-pending'>;
   /** Сохранить шаг профиля (имя, дата рождения, симпатии) или пропустить. */
   finishOnboarding: (data: { display_name?: string; birth_date?: string; likes?: string[]; dislikes?: string[] }) => Promise<void>;
+  /** Обновить поля текущего пользователя после правки профиля (имя, аватар). */
+  patchUser: (patch: Partial<AuthUser>) => void;
   verifyEmail: (email: string, code: string, remember?: boolean) => Promise<void>;
   resendOtp: (email: string, purpose: 'register' | 'reset' | 'unfreeze') => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -89,6 +91,7 @@ export const useSession = create<SessionState>((set, get) => ({
     return 'ok';
   },
 
+  patchUser: (patch) => set((s) => (s.user ? { user: { ...s.user, ...patch } } : {})),
   finishOnboarding: async (data) => {
     const patch = await saveOnboarding({ onboarding_done: true, ...data });
     const user = get().user;

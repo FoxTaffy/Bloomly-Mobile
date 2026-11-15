@@ -80,7 +80,7 @@
 | D5 | Блок «О себе» (about, контакты, дата рождения, интересы, ссылки), статус-пузырь | `GET /users/:id` | partial | P1 | priv | M | Показано только био; полей about/интересов/ссылок нет |
 | D6 | Фурсона/фурсьют: вкладки, референсы | `GET /users/:id/fursonas`, `/fursuits`, `/fursona/reference` | missing | P2 | — | L | Специфика сообщества, не блокирует релиз |
 | D7 | Достижения, доверие, значки | `GET /achievements/users/:id`, `/activities/trust/:id` | missing | P2 | — | S | |
-| D8 | Подписки: Подписаться/Отписаться; уведомления об авторе | `POST /follows/:id/toggle`, `/users/:id/notify-toggle` | partial | P0 | — | S | Подписка есть; колокольчик нет |
+| D8 | Подписки: Подписаться/Отписаться; уведомления об авторе | `POST /follows/:id/toggle`, `/users/:id/notify-toggle` | done | P0 | — | S | Батч 2: колокольчик на профиле тех, на кого подписан (`notify-toggle`) |
 | D9 | Дружба/отношения (партнёр): запрос, принять, отклонить | `/friends/request`, `/relationships/*` | partial | P1 | — | M | Принять/отклонить из уведомлений есть; запрос и профиль-кнопки нет |
 | D10 | Блокировка и жалоба на пользователя | `POST/DELETE /users/:id/block`, `/admin/reports` | done | P0 | ugc | — | |
 | D11 | Верификация-бейдж и роли | `GET /verification/status`… | partial | P1 | — | S | Бейдж показывается (`VerifiedBadge`), заявка — в разделе «Аккаунт» |
@@ -93,10 +93,10 @@
 
 | ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
 |---|---|---|---|---|---|---|---|
-| E1 | `/friends`: вкладки Друзья/Подписчики/Подписки, онлайн-фильтр, поиск | `GET /friends`, `/friends/followers`, `/friends/following` | **missing** | P0 | — | M | Экрана нет вообще (в `ARCHITECTURE` значится P1) |
-| E2 | Заявки в друзья (входящие/исходящие), принять/отклонить | `GET /friends/requests`, `/requests/outgoing`, `POST /friends/request`, `/requests/:id/accept|reject`, `DELETE` | missing | P0 | — | M | |
+| E1 | `/friends`: вкладки Друзья/Подписчики/Подписки, онлайн-фильтр, поиск | `GET /friends`, `/friends/followers`, `/friends/following` | done | P0 | — | M | Батч 2: `/friends`: Друзья/Подписчики/Подписки, поиск, «онлайн», добавление по ID или @username, рекомендации, меню (профиль, отписаться, убрать из друзей, блок). Нет: дни рождения (E3) |
+| E2 | Заявки в друзья (входящие/исходящие), принять/отклонить | `GET /friends/requests`, `/requests/outgoing`, `POST /friends/request`, `/requests/:id/accept|reject`, `DELETE` | partial | P0 | — | M | Батч 2: отправка заявки (по ID/@username и из рекомендаций). Входящие/исходящие списки: **на вебе их нет** (только счётчик в сайдбаре), принять/отклонить из уведомления `FRIEND_REQUEST` тоже нельзя — решение владельца |
 | E3 | Дни рождения друзей, рядом, подсказки | `GET /friends/birthdays`, `/birthdays/nearby`, `/suggestions` | missing | P2 | priv | S | |
-| E4 | `/bookmarks`: посты, люди, группы, метки, массовые действия, отмена | `GET /posts/me/bookmarks`, `/bookmarks/*` | **missing** | P0 | — | M | Закладки нужны вместе с B9; карточки листингов Den — пропускаем |
+| E4 | `/bookmarks`: посты, люди, группы, метки, массовые действия, отмена | `GET /posts/me/bookmarks`, `/bookmarks/*` | partial | P0 | — | M | Батч 2: `/bookmarks`: Все/Медиа/Аккаунты/Группы, сортировка, поиск, убрать. Нет: метки, массовые действия, отмена удаления; лоты Den — OUT |
 | E5 | `/subscriptions` (платные планы) | `/payments/subscription*` | OUT | — | pay | — | Покупка подписки |
 | E6 | Список подписок на города (события) | `GET /events/city-subscriptions` | missing | P1 | — | S | См. раздел 8 |
 
@@ -166,10 +166,10 @@
 
 | ID | Веб (`/settings/profile`, 14 секций) | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
 |---|---|---|---|---|---|---|---|
-| J1 | Основное: имя, username, био, аватар, баннер | `PATCH /users/me`, `/users/me/username`, `/media/upload` | **missing** | P0 | ugc priv | M | Профиль в приложении можно только смотреть; редактировать нельзя. Нужна загрузка аватара/баннера |
+| J1 | Основное: имя, username, био, аватар, баннер | `PATCH /users/me`, `/users/me/username`, `/media/upload` | partial | P0 | ugc priv | M | Батч 2: `/edit-profile`: имя, о себе, местоимения, место, сайт, аватар и баннер (обрезка встроенным выбором фото). Нет: смена @username, статус, работа, дата рождения, GIF-аватар |
 | J2 | Контакты и соцсети | `PATCH /users/me` | missing | P1 | priv | S | |
-| J3 | Приватность (кто видит профиль/посты/онлайн) | `PATCH /users/me` | missing | P1 | priv | S | |
-| J4 | Интересы | `PATCH /users/me` | missing | P1 | — | S | |
+| J3 | Приватность (кто видит профиль/посты/онлайн) | `PATCH /users/me` | partial | P1 | priv | S | Батч 2: 6 из 10 настроек (профиль, список друзей, сообщения, комментарии, упоминания, онлайн). Нет: пересылка, группы, статус отношений, дата рождения |
+| J4 | Интересы | `PATCH /users/me` | done | P1 | — | S | Батч 2: «Нравится» / «Не нравится» с подсказками |
 | J5 | Язык интерфейса | локально | done | P0 | — | — | RU/EN (веб: 8 языков) |
 | J6 | NSFW-режим | `PATCH /users/me` | done | P0 | 18+ | — | |
 | J7 | Пуши (messages/events) | `/push/prefs` | done | P0 | — | — | |
@@ -222,9 +222,9 @@
 
 | Статус | Кол-во |
 |---|---|
-| done | 41 |
-| partial | 18 |
-| missing | 44 |
+| done | 44 |
+| partial | 21 |
+| missing | 38 |
 | OUT (деньги/магазины; из них 5 — раздел 12) | 15 |
 | web (не портируем) | 12 |
 

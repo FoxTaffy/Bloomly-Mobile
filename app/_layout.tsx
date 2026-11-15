@@ -206,6 +206,9 @@ function RootLayout() {
               <Stack.Screen name="create-story" options={{ presentation: 'modal', gestureEnabled: false }} />
               {/* Просмотр историй: чёрный экран на всё окно, закрывается жестом вниз и кнопкой «назад» */}
               <Stack.Screen name="stories/[userId]" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false, contentStyle: { backgroundColor: colors.black } }} />
+              <Stack.Screen name="edit-profile" options={{ presentation: 'modal', gestureEnabled: false }} />
+              <Stack.Screen name="friends" />
+              <Stack.Screen name="bookmarks" />
               <Stack.Screen name="delete-account" />
               <Stack.Screen name="support" />
             </Stack.Protected>
