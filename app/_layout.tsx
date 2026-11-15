@@ -196,6 +196,7 @@ function RootLayout() {
             <Stack.Protected guard={isAuthenticated && !needsOnboarding}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="messages/[id]" />
+              <Stack.Screen name="messages/new" />
               <Stack.Screen name="profile/[username]" />
               <Stack.Screen name="groups/[id]" />
               <Stack.Screen name="events/[id]" />

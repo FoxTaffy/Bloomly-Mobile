@@ -43,7 +43,8 @@ function sizeOf(a: ImagePicker.ImagePickerAsset): number {
  * Вложения поста: выбор из галереи или камеры, предпроверка по тарифу, загрузка с прогрессом, повтор при ошибке.
  * Веб-аналог: components/MediaUpload.vue + composables/useUploadPrecheck.ts (папка posts, не больше 20 файлов).
  */
-export function usePostMedia(opts: { max?: number } = {}) {
+export function usePostMedia(opts: { max?: number; folder?: 'posts' | 'messages' } = {}) {
+  const folder = opts.folder ?? 'posts';
   const max = opts.max ?? MAX_POST_MEDIA;
   const { t } = useT();
   const gate = usePermissionGate();
@@ -84,7 +85,7 @@ export function usePostMedia(opts: { max?: number } = {}) {
       patch(item.id, { status: 'uploading', progress: 0, error: undefined });
       try {
         const data = await uploadFile({
-          uri: item.uri, name: item.name, mime: item.mime, size: item.size, folder: 'posts', signal: ctrl.signal,
+          uri: item.uri, name: item.name, mime: item.mime, size: item.size, folder, signal: ctrl.signal,
           onProgress: (f) => patch(item.id, { progress: f }),
         });
         patch(item.id, { status: 'done', progress: 1, url: data.url, originalUrl: data.originalUrl || data.url });
@@ -95,7 +96,7 @@ export function usePostMedia(opts: { max?: number } = {}) {
         aborts.current.delete(item.id);
       }
     },
-    [errorMessage, patch],
+    [errorMessage, folder, patch],
   );
 
   const addAssets = useCallback(

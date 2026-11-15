@@ -37,7 +37,7 @@ export function useAppendMessage(conversationId: string) {
 
 export function useSendMessage(conversationId: string, onSent: (msg: Message) => void) {
   const send = useMutation({
-    mutationFn: (body: { content: string; file_url?: string; media_type?: string }) => sendMessage(conversationId, body),
+    mutationFn: (body: { content: string; file_url?: string; media_type?: string; reply_to_id?: string }) => sendMessage(conversationId, body),
     onSuccess: onSent,
   });
   /** Голосовое: загрузка файла, затем сообщение. Возвращает false, если загрузка не удалась. */

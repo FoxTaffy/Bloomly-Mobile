@@ -104,17 +104,17 @@
 
 | ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
 |---|---|---|---|---|---|---|---|
-| F1 | Список диалогов, непрочитанные, поиск | `GET /messages/conversations`, `/unread` | done `(tabs)/messages` | P0 | priv | — | |
+| F1 | Список диалогов, непрочитанные, поиск | `GET /messages/conversations`, `/unread` | done | P0 | priv | — | Батч 4: исправлена форма беседы (собеседник из `other_participants[].user`; раньше брались строки участников и имя могло не показываться); закреплённые вверху, значки «закреплён/без звука», архив |
 | F2 | Чат: текст, подгрузка истории, прочитано, realtime, печатает… | `GET/POST /messages/conversations/:id/messages`, `/read`, WS | done `messages/[id]` | P0 | priv | — | |
 | F3 | Голосовые сообщения | `/media/upload` | done | P0 | priv | — | |
-| F4 | Новый личный диалог / новая группа, поиск человека | `POST /messages/conversations`, `/messages/groups`, `GET /users/search` | partial | P0 | — | S | Диалог открывается из профиля; кнопки «Новый чат» и групповых чатов нет |
-| F5 | Вложения: фото, видео, файлы, альбом | `POST /messages/.../messages` с `file_url` | missing | P0 | ugc priv | M | API принимает `file_url`/`media_type`; в UI только текст и голос |
-| F6 | Действия с сообщением: ответ, правка, удаление, пересылка, реакции | `PATCH/DELETE /messages/messages/:id`, `/forward`, `/reactions` | missing | P0 | — | M | `reply_to_id` в API есть |
-| F7 | Управление диалогом: закрепить, без звука, архив, метка, удалить | `PUT/DELETE .../pin`, `PATCH .../mute|archive|label|pin-chat`, `DELETE ...?scope` | missing | P1 | — | M | |
+| F4 | Новый личный диалог / новая группа, поиск человека | `POST /messages/conversations`, `/messages/groups`, `GET /users/search` | done | P0 | — | S | Батч 4: `/messages/new`: личный чат (поиск человека) и группа (название + выбор людей) |
+| F5 | Вложения: фото, видео, файлы, альбом | `POST /messages/.../messages` с `file_url` | partial | P0 | ugc priv | M | Батч 4: фото из галереи/камеры и видео из галереи (папка `messages`, лимиты тарифа), показ фото/видео/альбома. Файлы (документы) — нужен `expo-document-picker`, ждёт решения |
+| F6 | Действия с сообщением: ответ, правка, удаление, пересылка, реакции | `PATCH/DELETE /messages/messages/:id`, `/forward`, `/reactions` | done | P0 | — | M | Батч 4: долгое нажатие → реакции (8), ответ с цитатой, правка (24 ч), пересылка, удаление; жалоба и блок автора. Нет: закрепить сообщение, выделение, копировать (нужен `expo-clipboard`) |
+| F7 | Управление диалогом: закрепить, без звука, архив, метка, удалить | `PUT/DELETE .../pin`, `PATCH .../mute|archive|label|pin-chat`, `DELETE ...?scope` | partial | P1 | — | M | Батч 4: закрепить чат, без звука (1/8/24 ч/неделя), архив, удалить у себя. Нет: метки, «удалить у всех» |
 | F8 | Группа-чат: участники, роли, приглашения, настройки | `/messages/conversations/:id/members*`, `/group` | missing | P1 | — | M | Только участие; без админ-инструментов |
-| F9 | Запросы на переписку (message request) | `POST /messages/conversations/:id/request` | missing | P1 | ugc | S | Антиспам-механика; нужна для UGC-политики |
+| F9 | Запросы на переписку (message request) | `POST /messages/conversations/:id/request` | done | P1 | ugc | S | Батч 4: входящий запрос переписки — принять/отклонить, отправителю — подсказка; в списке пометка |
 | F10 | Медиа беседы и статистика | `GET .../media`, `/media-stats` | missing | P2 | — | S | |
-| F11 | Карточки в чате: `post_share`, `group_share`, `story`, `sticker` | типы сообщений | partial | P0 | ugc | S | Без рендера эти сообщения будут «пустыми» у получателя; минимум — текстовая заглушка/ссылка Ответ на историю (`story_reply`) рисуется карточкой с батча 1b. |
+| F11 | Карточки в чате: `post_share`, `group_share`, `story`, `sticker` | типы сообщений | partial | P0 | ugc | S | Батч 4: `post_share` и `group_share` открываются, `sticker` — плашка, платёжные и заказные — безопасная плашка без оплаты, ответ на историю — карточка. Нет: превью поста/группы внутри карточки |
 | F12 | Платёжные карточки: `payment_request`, `payment_confirmation`, `tip`, `order_update` | `POST /messages/messages/:id/pay` | OUT | — | pay | S | Показывать безопасную плашку «доступно в веб-версии», кнопку оплаты не рисовать |
 | F13 | Групповой инбокс бизнеса `/groups/:id/inbox`, `/dm` | | web | — | pay | — | Управление группой |
 | F14 | Вставка стикеров в чат (StickerPanel) | `/stickers/*` | OUT | — | pay | — | Стикеры живут в Shop; получение можно только отрисовать (F11) |
@@ -222,9 +222,9 @@
 
 | Статус | Кол-во |
 |---|---|
-| done | 47 |
-| partial | 23 |
-| missing | 33 |
+| done | 50 |
+| partial | 24 |
+| missing | 29 |
 | OUT (деньги/магазины; из них 5 — раздел 12) | 15 |
 | web (не портируем) | 12 |
 
