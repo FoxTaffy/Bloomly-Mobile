@@ -47,3 +47,14 @@ export async function respondRequest(id: string, accept: boolean) {
 export async function cancelRequest(id: string) {
   await api.delete(`/friends/requests/${id}`);
 }
+
+export interface FriendBirthday extends FriendUser {
+  daysUntil: number;
+  nextBirthday: string;
+}
+
+/** Ближайшие дни рождения друзей (веб: FriendsSidePanel). */
+export async function fetchBirthdays(): Promise<FriendBirthday[]> {
+  const res = await api.get('/friends/birthdays');
+  return (res.data.data ?? []) as FriendBirthday[];
+}

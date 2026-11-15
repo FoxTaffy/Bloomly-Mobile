@@ -186,3 +186,13 @@ export async function pinPost(id: string) {
 export async function unpinPost() {
   await api.delete('/users/me/pin');
 }
+
+/** Приглашение в соавторы поста: `my_status === 'pending'` — приглашён и ещё не ответил (веб: CoauthorInvite.vue). */
+export async function fetchCoauthorStatus(postId: string): Promise<'pending' | 'accepted' | null> {
+  const res = await api.get(`/posts/${postId}/coauthors`);
+  return (res.data.data?.my_status ?? null) as 'pending' | 'accepted' | null;
+}
+
+export async function respondCoauthor(postId: string, accept: boolean) {
+  await api.post(`/posts/${postId}/coauthors/respond`, { accept });
+}

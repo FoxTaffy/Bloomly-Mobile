@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toggleFollow } from '@/api/follows';
 import { getOrCreateConversation } from '@/api/messages';
 import { fetchUserPosts, pinPost, unpinPost } from '@/api/posts';
-import { blockUser, fetchBlockStatus, fetchUserProfile, unblockUser } from '@/api/users';
+import { blockUser, fetchAchievements, fetchBlockStatus, fetchUserProfile, unblockUser } from '@/api/users';
 
 export type ProfileTab = 'posts' | 'media' | 'likes' | 'repaws' | 'archive';
 
@@ -58,4 +58,9 @@ export function useTogglePin() {
     mutationFn: ({ postId, pinned }: { postId: string; pinned: boolean }) => (pinned ? unpinPost() : pinPost(postId)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
   });
+}
+
+/** Значки профиля. Сбой не ломает страницу: блока просто не будет (как на вебе). */
+export function useAchievements(userId: string | undefined) {
+  return useQuery({ queryKey: ['achievements', userId], queryFn: () => fetchAchievements(userId!), enabled: !!userId, retry: false, staleTime: 60_000 });
 }

@@ -1,5 +1,6 @@
 import { api } from './client';
 import type { UserProfile, UserSummary } from '@/shared/api-types';
+import type { AchievementsData } from '@/shared/achievements';
 
 export async function fetchUserProfile(idOrUsername: string): Promise<UserProfile> {
   const res = await api.get(`/users/${idOrUsername}`);
@@ -66,4 +67,9 @@ export async function updateMyProfile(body: ProfilePatch): Promise<UserProfile> 
 export async function updateUsername(username: string): Promise<{ username: string }> {
   const res = await api.patch('/users/me/username', { username });
   return res.data.data.user as { username: string };
+}
+
+export async function fetchAchievements(userId: string): Promise<AchievementsData> {
+  const res = await api.get(`/achievements/users/${encodeURIComponent(userId)}`);
+  return res.data.data as AchievementsData;
 }

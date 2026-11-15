@@ -105,6 +105,10 @@ export default function SettingsScreen() {
           )}
         </Section>
 
+        <Section title={t('mSchedTitle')}>
+          <Button title={t('mSchedOpenList')} variant="secondary" onPress={() => router.push('/scheduled')} />
+        </Section>
+
         <Section title={t('mSettingsLegal')}>
           <View className="gap-2">
             <Button title={t('termsTitle')} variant="secondary" onPress={() => router.push('/legal/terms')} />

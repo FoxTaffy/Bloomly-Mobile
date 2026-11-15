@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Camera, ImagePlus, RotateCcw, Video, X } from 'lucide-react-native';
+import { CalendarClock, Camera, ImagePlus, RotateCcw, Video, X } from 'lucide-react-native';
 import { Avatar } from '@/components/Avatar';
 import { PermissionDeniedSheet } from '@/components/PermissionDeniedSheet';
-import { Button, Chip, ErrorState, Field, Screen, Skeleton } from '@/components/ui';
+import { Button, Chip, ErrorState, Field, Screen, Sheet, Skeleton } from '@/components/ui';
+import { useSaveScheduled } from '@/hooks/useScheduled';
+import { formatLocalDateTime, isSchedulable, parseLocalDateTime, presetTime, SCHEDULE_PRESETS, toScheduleBody } from '@/shared/schedule';
 import { usePublishPost, useTagSuggestions } from '@/hooks/useComposer';
 import { usePost } from '@/hooks/usePost';
 import { useEditPost } from '@/hooks/usePostActions';
@@ -33,6 +35,9 @@ export default function CreatePostScreen() {
   const original = usePost(editId);
   const save = useEditPost(editId);
   const loaded = useRef(false);
+  const later = useSaveScheduled();
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [customText, setCustomText] = useState('');
 
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -71,11 +76,46 @@ export default function CreatePostScreen() {
     setTagInput('');
   };
 
+  /** Сохранить как черновик (date не передан) или запланировать; текст, теги, NSFW и ИИ-метка — как у обычного поста (веб: saveScheduled). */
+  const saveLater = (date?: Date) => {
+    if (later.isPending) return;
+    setError(null);
+    const text = content.trim();
+    const allTags = Array.from(new Set([...tags, ...extractHashtags(text)]));
+    later.mutate(
+      {
+        content: text,
+        tags: allTags,
+        isNsfw,
+        isAiGenerated: isAi,
+        mediaUrls: media.mediaUrls,
+        mediaOriginalUrls: media.mediaOriginalUrls,
+        ...(date ? toScheduleBody(date) : {}),
+      },
+      {
+        onSuccess: () => {
+          media.clear();
+          setScheduleOpen(false);
+          router.back();
+        },
+        onError: (e) => {
+          setScheduleOpen(false);
+          setError(apiErrorMessage(e) ?? t('mSchedSaveFailed'));
+        },
+      },
+    );
+  };
+  // Отложенные посты на сервере не знают «только подписчикам»: отложить такой пост нельзя, чтобы он не вышел публичным
+  const draftable = hasContent && !media.uploading && !media.failed && !editing && visibility === 'public';
+  const customDate = parseLocalDateTime(customText);
+  const customOk = !!customDate && isSchedulable(customDate);
+
   const close = () => {
     if (!dirty) return router.back();
     Alert.alert(t('mDiscardPostTitle'), t('mDiscardPostHint'), [
       { text: t('mKeepEditing'), style: 'cancel' },
-      { text: t('mDiscard'), style: 'destructive', onPress: () => router.back() },
+      ...(draftable ? [{ text: t('mSchedSaveDraft'), onPress: () => saveLater() }] : []),
+      { text: t('mDiscard'), style: 'destructive' as const, onPress: () => router.back() },
     ]);
   };
 
@@ -121,6 +161,11 @@ export default function CreatePostScreen() {
           <X size={18} color={colors.offwhite} />
         </Pressable>
         <Text className="font-nunito-extrabold text-lg text-brand-offwhite">{editing ? t('mEditPostTitle') : t('mNewPostTitle')}</Text>
+        {editing ? null : (
+          <Pressable onPress={() => setScheduleOpen(true)} disabled={!draftable} accessibilityRole="button" accessibilityLabel={t('mSchedTitle')} hitSlop={8} className={`h-9 w-9 items-center justify-center rounded-full bg-brand-card ${draftable ? '' : 'opacity-40'}`}>
+            <CalendarClock size={18} color={colors.offwhite} />
+          </Pressable>
+        )}
         <Button title={editing ? t('mSave') : publish.isPending ? t('publishing') : t('publish')} loading={pending} disabled={!canPublish && !pending} onPress={submit} className="min-h-9 py-2" />
       </View>
 
@@ -187,9 +232,26 @@ export default function CreatePostScreen() {
         </View>
         )}
 
+        {visibility === 'subscriber_only' && !editing ? <Text className="font-nunito text-xs text-brand-muted">{t('mSchedSubscribersNote')}</Text> : null}
         {error ? <Text className="font-nunito-bold text-sm text-brand-error">{error}</Text> : null}
       </ScrollView>
       )}
+      <Sheet visible={scheduleOpen} title={t('mSchedTitle')} onClose={() => setScheduleOpen(false)}>
+        <View className="gap-2 pb-2">
+          <Button title={t('mSchedSaveDraft')} variant="secondary" loading={later.isPending} onPress={() => saveLater()} />
+          <Text className="mt-1 font-nunito-bold text-xs text-brand-muted">{t('mSchedPublishAt')}</Text>
+          {SCHEDULE_PRESETS.map((p) => {
+            const d = presetTime(p);
+            return <Button key={p} title={`${t(`mSchedPreset_${p}` as const)} · ${formatLocalDateTime(d)}`} variant="secondary" disabled={later.isPending} onPress={() => saveLater(d)} />;
+          })}
+          <Field value={customText} onChangeText={setCustomText} placeholder={t('mSchedCustomPlaceholder')} maxLength={16} keyboardType="numbers-and-punctuation" autoCorrect={false} />
+          {customText && !customOk ? <Text className="font-nunito text-xs text-brand-error">{t('mSchedCustomInvalid')}</Text> : null}
+          <Button title={t('mSchedPlan')} loading={later.isPending} disabled={!customOk} onPress={() => customDate && saveLater(customDate)} />
+          <Pressable onPress={() => { setScheduleOpen(false); router.push('/scheduled'); }} accessibilityRole="link" className="py-2 active:opacity-70">
+            <Text className="text-center font-nunito-bold text-sm text-brand-accent-minus">{t('mSchedOpenList')}</Text>
+          </Pressable>
+        </View>
+      </Sheet>
       <PermissionDeniedSheet gate={media.gate} />
     </Screen>
   );

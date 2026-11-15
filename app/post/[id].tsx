@@ -5,7 +5,8 @@ import { ChevronLeft, PawPrint, SendHorizontal, ShieldAlert, X } from 'lucide-re
 import { CommentItem } from '@/components/post/CommentList';
 import { PostCard } from '@/components/PostCard';
 import { Button, EmptyState, ErrorState, Field, Screen, Skeleton } from '@/components/ui';
-import { useCreateComment, usePost, usePostComments } from '@/hooks/usePost';
+import { useCoauthorInvite, useCreateComment, usePost, usePostComments } from '@/hooks/usePost';
+import { useSession } from '@/stores/session';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { apiErrorMessage, isNotFound } from '@/shared/apiError';
 import type { Comment } from '@/shared/api-types';
@@ -27,6 +28,8 @@ export default function PostScreen() {
   const [sendError, setSendError] = useState<string | null>(null);
 
   const post = postQuery.data;
+  const myId = useSession((s) => s.user?.id);
+  const invite = useCoauthorInvite(post, myId);
   const comments = commentsQuery.data?.comments ?? [];
   const commentsClosed = !!post?.comments_disabled;
 
@@ -113,6 +116,17 @@ export default function PostScreen() {
         ListHeaderComponent={
           <View>
             {back}
+            {invite.pending ? (
+              <View className="mb-3 gap-2 rounded-2xl border border-brand-accent/40 bg-brand-card p-3">
+                <Text className="font-nunito-bold text-sm text-brand-offwhite">{t('mCoauthorInviteTitle')}</Text>
+                <Text className="font-nunito text-xs text-brand-muted">{t('mCoauthorInviteHint')}</Text>
+                {invite.respond.isError ? <Text className="font-nunito text-xs text-brand-error">{t('mActionFailed')}</Text> : null}
+                <View className="flex-row gap-2">
+                  <Button title={t('mFriendAccept')} className="flex-1" loading={invite.respond.isPending} onPress={() => invite.respond.mutate(true)} />
+                  <Button title={t('mFriendReject')} variant="secondary" className="flex-1" loading={invite.respond.isPending} onPress={() => invite.respond.mutate(false)} />
+                </View>
+              </View>
+            ) : null}
             <PostCard post={post} interactive={false} onRemoved={() => router.back()} />
             <Text className="mb-1 mt-2 font-nunito-bold text-xs text-brand-muted">{t('mCommentsCaps')}</Text>
           </View>

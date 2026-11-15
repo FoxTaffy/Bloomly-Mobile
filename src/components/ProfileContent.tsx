@@ -3,7 +3,7 @@ import { FlatList, Linking, Pressable, Text, View, useWindowDimensions } from 'r
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Bell, BellOff, Ban, Globe, MapPin, Pin, Bookmark, Ellipsis, Lock, MessageCircle, Pencil, Settings, Users, Snowflake, UserCheck, UserPlus, UserX, Video } from 'lucide-react-native';
+import { Award, Bell, BellOff, Ban, Globe, MapPin, Pin, Bookmark, Ellipsis, Lock, MessageCircle, Pencil, Settings, Users, Snowflake, UserCheck, UserPlus, UserX, Video } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { PostCard } from './PostCard';
 import { ReportSheet } from './ReportSheet';
@@ -11,7 +11,7 @@ import { VerifiedBadge } from './VerifiedBadge';
 import { Button, Card, EmptyState, ErrorState, Sheet, Skeleton } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
-import { useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
+import { useAchievements, useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
 import { useAuthorNotify } from '@/hooks/usePostActions';
 import { mediaSource } from '@/lib/mediaAuth';
@@ -19,6 +19,7 @@ import { isNotFound } from '@/shared/apiError';
 import { isVideoUrl, visualMedia } from '@/shared/media';
 import type { MessageKey } from '@/shared/i18n';
 import type { Post, UserProfile } from '@/shared/api-types';
+import { earnedItems, tierTone, type Tone } from '@/shared/achievements';
 import { colors } from '@/theme/tokens';
 
 const GRID_GAP = 4;
@@ -279,6 +280,7 @@ function ProfileHeader(props: {
         ) : null}
 
         <AboutInfo profile={profile} isOwn={isOwn} />
+        <AchievementsRow userId={profile.id} />
 
         <View className="mb-3 mt-6 flex-row border-b border-brand-border" accessibilityRole="tablist">
           {TABS.filter((x) => !x.ownOnly || isOwn).map((x) => (
@@ -401,5 +403,30 @@ function NotifyBell({ userId }: { userId: string }) {
     >
       {on ? <Bell size={18} color={colors.accent} fill={colors.accent} /> : <BellOff size={18} color={colors.offwhite} />}
     </Pressable>
+  );
+}
+
+const TONE_TEXT: Record<Tone, string> = {
+  warning: 'text-brand-warning', accent: 'text-brand-accent-minus', yellow: 'text-brand-yellow', purple: 'text-brand-purple', success: 'text-brand-success', muted: 'text-brand-muted',
+};
+
+/** Значки: «получено N из M» и полученные с уровнем (веб: ProfileAchievementRow). Названия значков приходят с сервера. */
+function AchievementsRow({ userId }: { userId: string }) {
+  const { t } = useT();
+  const q = useAchievements(userId);
+  const items = earnedItems(q.data);
+  if (!q.data || items.length === 0) return null;
+  return (
+    <View className="mt-4 gap-2">
+      <Text className="font-nunito-bold text-xs text-brand-muted">{t('mAchievements', { earned: q.data.earned, total: q.data.total })}</Text>
+      <View className="flex-row flex-wrap gap-1.5">
+        {items.slice(0, 12).map((i) => (
+          <View key={i.key} className="flex-row items-center gap-1 rounded-full border border-brand-border bg-brand-card px-3 py-1">
+            <Award size={12} color={colors.mutedIcon} />
+            <Text className={`font-nunito-bold text-xs ${TONE_TEXT[tierTone(i.level, i.maxLevel)]}`}>{i.title}{i.maxLevel > 1 && i.levelName ? ` · ${i.levelName}` : ''}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }

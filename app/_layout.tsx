@@ -211,6 +211,7 @@ function RootLayout() {
               <Stack.Screen name="edit-profile" options={{ presentation: 'modal', gestureEnabled: false }} />
               <Stack.Screen name="friends" />
               <Stack.Screen name="bookmarks" />
+              <Stack.Screen name="scheduled" />
               <Stack.Screen name="delete-account" />
               <Stack.Screen name="support" />
             </Stack.Protected>

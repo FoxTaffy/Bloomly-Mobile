@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { cancelRequest, fetchFriendList, fetchRequests, fetchSuggestions, removeFriend, respondRequest, sendFriendRequest, type FriendTab } from '@/api/friends';
+import { cancelRequest, fetchBirthdays, fetchFriendList, fetchRequests, fetchSuggestions, removeFriend, respondRequest, sendFriendRequest, type FriendTab } from '@/api/friends';
 import { toggleFollow } from '@/api/follows';
 
 export function useFriendList(tab: FriendTab) {
@@ -45,4 +45,8 @@ export function useRequestActions() {
     respond: useMutation({ mutationFn: ({ id, accept }: { id: string; accept: boolean }) => respondRequest(id, accept), onSuccess: refresh }),
     cancel: useMutation({ mutationFn: (id: string) => cancelRequest(id), onSuccess: refresh }),
   };
+}
+
+export function useBirthdays() {
+  return useQuery({ queryKey: ['friends', 'birthdays'], queryFn: fetchBirthdays });
 }

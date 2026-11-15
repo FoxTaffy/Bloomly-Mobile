@@ -52,8 +52,8 @@
 | B17 | Истории: кольцо в ленте | `GET /stories` | done | P0 | ugc | — | Батч 1b: кольца по авторам (а не по историям), просмотренные приглушены (список id в AsyncStorage, ключ как на вебе) |
 | B18 | Истории: просмотр (StoryViewer: отметка просмотра, оценка, ответ в чат, зрители) | `POST /stories/:id/view`, `/vote`, `GET /stories/:id/viewers`, `GET /stories/user/:id` | done | P0 | ugc | M | Батч 1b: просмотр (`/stories/[userId]`): тап/удержание/свайп, фото 7 с и видео по длине, отметка просмотра, оценка, ответ в чат (формат веба `[story_reply:…]`, в чате рисуется карточкой), зрители и удаление для своей, жалоба/блок автора. Нет: двойной тап-«сердечко» (анимация без действия), «Bloomly-новости» в кольцах (`isBloomly`, источник `/updates`) |
 | B19 | Истории: создание | `POST /stories`, `DELETE /stories/:id` | done | P0 | ugc | M | Батч 1b: `/create-story`: фото из галереи/камеры, видео из галереи; загрузка в папку `posts`, затем `POST /stories`. Нет: съёмка видео камерой, редактор/стикеры/текст на истории (на вебе их тоже нет) |
-| B20 | Мульти-авторские посты (CoauthorPicker, CoauthorInvite) | `GET /posts/:id/coauthors`, `POST /posts/:id/coauthors/respond`, `coauthorIds` в `POST /posts` | missing | P2 | ugc | M | Приглашение соавтора приходит уведомлением, ответ нужен для полноты |
-| B21 | Черновики и отложенные посты (ScheduledPostsList) | `GET/POST/PATCH/DELETE /posts/scheduled`, `/publish-now` | missing | P1 | — | M | Черновиков в виде отдельной сущности в вебе нет, есть только отложенные |
+| B20 | Мульти-авторские посты (CoauthorPicker, CoauthorInvite) | `GET /posts/:id/coauthors`, `POST /posts/:id/coauthors/respond`, `coauthorIds` в `POST /posts` | partial | P2 | ugc | M | Батч 6: ответ на приглашение в соавторы (баннер «принять / отклонить» над постом, ссылка из уведомления). Нет: приглашать соавторов при создании поста |
+| B21 | Черновики и отложенные посты (ScheduledPostsList) | `GET/POST/PATCH/DELETE /posts/scheduled`, `/publish-now` | partial | P1 | — | M | Батч 6: **на вебе есть и черновики** (поправка к плану): сохранить в черновики при закрытии редактора, отложить (быстрые варианты и своё время), список `/scheduled`: опубликовать сейчас, удалить. Нет: правка отложенного, повтор (`repeat_interval` только показывается), «только подписчикам» отложить нельзя (сервер не знает видимости) |
 | B22 | Комиксы (ComicReader, postType=comic) | `postType: 'comic'` | missing | P2 | ugc | M | Читалка без создания |
 | B23 | Реклама (AdSlot, AdRequestModal) | `/ads/*` | OUT | — | pay | — | Рекламный кабинет = деньги |
 | B24 | Листинг Dealers' Den в посте (PostListingCard/Picker) | `listingId` в `PATCH /posts/:id` | OUT | — | pay | — | Ведёт в Den |
@@ -79,7 +79,7 @@
 | D4 | Закреплённый пост профиля | `PUT/DELETE /users/me/pin` | done | P1 | — | S | Батч 3: закреплённый пост сверху вкладки «Посты»; закрепить/открепить из меню своего поста |
 | D5 | Блок «О себе» (about, контакты, дата рождения, интересы, ссылки), статус-пузырь | `GET /users/:id` | partial | P1 | priv | M | Батч 3: местоположение, сайт, «Нравится/Не нравится» (с учётом скрытия). Нет: дата рождения, соцсети, фурсона, достижения |
 | D6 | Фурсона/фурсьют: вкладки, референсы | `GET /users/:id/fursonas`, `/fursuits`, `/fursona/reference` | missing | P2 | — | L | Специфика сообщества, не блокирует релиз |
-| D7 | Достижения, доверие, значки | `GET /achievements/users/:id`, `/activities/trust/:id` | missing | P2 | — | S | |
+| D7 | Достижения, доверие, значки | `GET /achievements/users/:id`, `/activities/trust/:id` | done | P2 | — | S | Батч 6: «Значки: N из M» и полученные с уровнем на профиле (названия приходят с сервера на русском) |
 | D8 | Подписки: Подписаться/Отписаться; уведомления об авторе | `POST /follows/:id/toggle`, `/users/:id/notify-toggle` | done | P0 | — | S | Батч 2: колокольчик на профиле тех, на кого подписан (`notify-toggle`) |
 | D9 | Дружба/отношения (партнёр): запрос, принять, отклонить | `/friends/request`, `/relationships/*` | partial | P1 | — | M | Принять/отклонить из уведомлений есть; запрос и профиль-кнопки нет |
 | D10 | Блокировка и жалоба на пользователя | `POST/DELETE /users/:id/block`, `/admin/reports` | done | P0 | ugc | — | |
@@ -95,7 +95,7 @@
 |---|---|---|---|---|---|---|---|
 | E1 | `/friends`: вкладки Друзья/Подписчики/Подписки, онлайн-фильтр, поиск | `GET /friends`, `/friends/followers`, `/friends/following` | done | P0 | — | M | Батч 2: `/friends`: Друзья/Подписчики/Подписки, поиск, «онлайн», добавление по ID или @username, рекомендации, меню (профиль, отписаться, убрать из друзей, блок). Нет: дни рождения (E3) |
 | E2 | Заявки в друзья (входящие/исходящие), принять/отклонить | `GET /friends/requests`, `/requests/outgoing`, `POST /friends/request`, `/requests/:id/accept|reject`, `DELETE` | partial | P0 | — | M | Батч 3: на экране «Люди» раздел «Заявки в друзья»: принять, отклонить, отозвать. **Нет на вебе** — добавлено по решению владельца, бэкенд готов |
-| E3 | Дни рождения друзей, рядом, подсказки | `GET /friends/birthdays`, `/birthdays/nearby`, `/suggestions` | missing | P2 | priv | S | |
+| E3 | Дни рождения друзей, рядом, подсказки | `GET /friends/birthdays`, `/birthdays/nearby`, `/suggestions` | partial | P2 | priv | S | Батч 6: дни рождения друзей с «Поздравить» (чат). Нет: «рядом» (вчера/завтра) в списке бесед |
 | E4 | `/bookmarks`: посты, люди, группы, метки, массовые действия, отмена | `GET /posts/me/bookmarks`, `/bookmarks/*` | partial | P0 | — | M | Батч 2: `/bookmarks`: Все/Медиа/Аккаунты/Группы, сортировка, поиск, убрать. Нет: метки, массовые действия, отмена удаления; лоты Den — OUT |
 | E5 | `/subscriptions` (платные планы) | `/payments/subscription*` | OUT | — | pay | — | Покупка подписки |
 | E6 | Список подписок на города (события) | `GET /events/city-subscriptions` | missing | P1 | — | S | См. раздел 8 |
@@ -222,9 +222,9 @@
 
 | Статус | Кол-во |
 |---|---|
-| done | 54 |
-| partial | 25 |
-| missing | 23 |
+| done | 55 |
+| partial | 28 |
+| missing | 19 |
 | OUT (деньги/магазины; из них 5 — раздел 12) | 15 |
 | web (не портируем) | 13 |
 

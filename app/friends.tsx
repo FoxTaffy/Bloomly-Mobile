@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, MessageCircle, MoreHorizontal, Search, UserPlus } from 'lucide-react-native';
 import { Avatar } from '@/components/Avatar';
 import { Button, Card, Chip, EmptyState, ErrorState, Field, Screen, Sheet, Skeleton } from '@/components/ui';
-import { useFriendList, useRemoveFriend, useRequestActions, useRequests, useSendFriendRequest, useSuggestions, useUnfollow } from '@/hooks/useFriends';
+import { useBirthdays, useFriendList, useRemoveFriend, useRequestActions, useRequests, useSendFriendRequest, useSuggestions, useUnfollow } from '@/hooks/useFriends';
 import { useOpenConversation, useToggleBlock } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
 import { apiErrorMessage } from '@/shared/apiError';
@@ -31,6 +31,8 @@ export default function FriendsScreen() {
 
   const list = useFriendList(tab);
   const suggestions = useSuggestions();
+  const birthdays = useBirthdays();
+  const openChat = useOpenConversation();
   const send = useSendFriendRequest();
 
   const shown = useMemo(() => {
@@ -105,6 +107,28 @@ export default function FriendsScreen() {
         }
         ListFooterComponent={
           <View className="mt-6 gap-3">
+            {(birthdays.data ?? []).length > 0 ? (
+              <View className="gap-2">
+                <Text className="font-nunito-extrabold text-base text-brand-offwhite">{t('birthdaysTitle')}</Text>
+                {(birthdays.data ?? []).slice(0, 8).map((b) => (
+                  <Card key={b.id} padding="sm" className="flex-row items-center gap-3" onPress={() => router.push(`/profile/${b.username}`)}>
+                    <Avatar uri={b.avatar_url} name={b.display_name ?? b.username} size={40} />
+                    <View className="flex-1">
+                      <Text numberOfLines={1} className="font-nunito-bold text-brand-offwhite">{b.display_name ?? b.username}</Text>
+                      <Text numberOfLines={1} className="font-nunito text-xs text-brand-muted">
+                        {new Date(b.nextBirthday).toLocaleDateString(undefined, { day: 'numeric', month: 'long', timeZone: 'UTC' })} · {b.daysUntil === 0 ? t('friendsBirthdayToday') : b.daysUntil === 1 ? t('friendsBirthdayTomorrow') : t('friendsBirthdayIn', { n: b.daysUntil })}
+                      </Text>
+                    </View>
+                    {b.daysUntil <= 1 ? (
+                      <Pressable onPress={() => openChat.mutate(b.id, { onSuccess: (c) => router.push(`/messages/${c.id}`) })} disabled={openChat.isPending} accessibilityRole="button" className="rounded-full bg-brand-accent px-3 py-1.5 active:opacity-80">
+                        <Text className="font-nunito-bold text-xs text-brand-offwhite">{t('friendsCongratulate')}</Text>
+                      </Pressable>
+                    ) : null}
+                  </Card>
+                ))}
+              </View>
+            ) : null}
+
             <Text className="font-nunito-extrabold text-base text-brand-offwhite">{t('rightPanelSuggestions')}</Text>
             {suggestions.isLoading ? (
               <Skeleton height={56} />
