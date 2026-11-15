@@ -11,7 +11,6 @@ import { VerifiedBadge } from './VerifiedBadge';
 import { Button, Card, EmptyState, ErrorState, Sheet, Skeleton } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
-import { useRepawPost } from '@/hooks/usePosts';
 import { useBlockStatus, useOpenConversation, useProfile, useToggleBlock, useToggleFollow, useUserPosts, type ProfileTab } from '@/hooks/useProfile';
 import { useT } from '@/hooks/useT';
 import { mediaSource } from '@/lib/mediaAuth';
@@ -44,7 +43,6 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
   const messageMutation = useOpenConversation();
   const blockStatus = useBlockStatus(profile?.id, !isOwn && !!profile);
   const blockMutation = useToggleBlock(profile?.id ?? '');
-  const repaw = useRepawPost();
   const { nsfwMode } = useNsfwMode();
   const { width } = useWindowDimensions();
   const viewable = useViewableIds();
@@ -131,7 +129,7 @@ export function ProfileContent({ username, isOwn }: { username: string; isOwn: b
           media ? (
             <MediaTile post={item} size={gridItem} nsfwMode={nsfwMode} onPress={() => router.push(`/post/${item.id}`)} />
           ) : (
-            <PostCard post={item} onRepaw={() => repaw.mutate(item.id)} />
+            <PostCard post={item} />
           )
         }
       />

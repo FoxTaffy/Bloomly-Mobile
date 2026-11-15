@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Search } from 'lucide-react-native';
 import { ExploreFeed } from '@/components/explore/ExploreFeed';
@@ -13,6 +14,11 @@ export default function DiscoverScreen() {
   const { t } = useT();
   const [text, setText] = useState('');
   const [tag, setTag] = useState('');
+  // Тег из карточки поста открывает поиск по нему (web: /search?q=<тег>)
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  useEffect(() => {
+    if (typeof q === 'string' && q) setText(q);
+  }, [q]);
   const query = useDebouncedValue(text.trim(), 300);
   const searching = text.trim().length > 0;
 

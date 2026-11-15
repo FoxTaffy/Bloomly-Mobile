@@ -23,3 +23,14 @@ export async function blockUser(userId: string) {
 export async function unblockUser(userId: string) {
   await api.delete(`/users/${userId}/block`);
 }
+
+/** Уведомления о новых постах автора (web: PostCard toggleNotify). */
+export async function fetchNotifyStatus(userId: string): Promise<boolean> {
+  const res = await api.get(`/users/${userId}/notify-status`);
+  return !!res.data?.data?.notifyPosts;
+}
+
+export async function toggleNotify(userId: string): Promise<boolean> {
+  const res = await api.post(`/users/${userId}/notify-toggle`);
+  return !!res.data?.data?.notifyPosts;
+}

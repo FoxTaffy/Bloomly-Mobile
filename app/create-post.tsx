@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Camera, ImagePlus, RotateCcw, Video, X } from 'lucide-react-native';
 import { Avatar } from '@/components/Avatar';
 import { PermissionDeniedSheet } from '@/components/PermissionDeniedSheet';
-import { Button, Chip, Field, Screen } from '@/components/ui';
+import { Button, Chip, ErrorState, Field, Screen, Skeleton } from '@/components/ui';
 import { usePublishPost, useTagSuggestions } from '@/hooks/useComposer';
+import { usePost } from '@/hooks/usePost';
+import { useEditPost } from '@/hooks/usePostActions';
 import { usePostMedia, type MediaItem } from '@/hooks/usePostMedia';
 import { useT } from '@/hooks/useT';
 import { apiErrorMessage } from '@/shared/apiError';
@@ -24,6 +26,13 @@ export default function CreatePostScreen() {
   const user = useSession((s) => s.user);
   const media = usePostMedia();
   const publish = usePublishPost();
+  // Правка своего поста: /create-post?edit=<id> (web: PostCard.vue startEdit/saveEdit — текст, теги, NSFW, пометка ИИ)
+  const { edit } = useLocalSearchParams<{ edit?: string }>();
+  const editId = typeof edit === 'string' ? edit : '';
+  const editing = !!editId;
+  const original = usePost(editId);
+  const save = useEditPost(editId);
+  const loaded = useRef(false);
 
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -34,9 +43,27 @@ export default function CreatePostScreen() {
   const [error, setError] = useState<string | null>(null);
   const suggestions = useTagSuggestions(tagInput).filter((s) => !tags.includes(s.name)).slice(0, 8);
 
-  const hasContent = !!content.trim() || media.mediaUrls.length > 0;
-  const dirty = !!content.trim() || media.items.length > 0 || tags.length > 0;
-  const canPublish = hasContent && !media.uploading && !media.failed && !publish.isPending;
+  const source = original.data;
+  useEffect(() => {
+    if (!editing || !source || loaded.current) return;
+    loaded.current = true;
+    setContent(source.content ?? '');
+    setTags((source.tags ?? []).map((x) => x.tag.name));
+    setIsNsfw(!!source.is_nsfw);
+    setIsAi(!!source.is_ai_generated);
+  }, [editing, source]);
+
+  const pending = publish.isPending || save.isPending;
+  const keptMedia = editing ? (source?.media_urls.length ?? 0) : 0;
+  const hasContent = !!content.trim() || media.mediaUrls.length > 0 || keptMedia > 0;
+  const dirty = editing
+    ? !!source &&
+      (content !== (source.content ?? '') ||
+        tags.join(',') !== (source.tags ?? []).map((x) => x.tag.name).join(',') ||
+        isNsfw !== !!source.is_nsfw ||
+        isAi !== !!source.is_ai_generated)
+    : !!content.trim() || media.items.length > 0 || tags.length > 0;
+  const canPublish = hasContent && !media.uploading && !media.failed && !pending && (!editing || !!source);
 
   const addTag = (raw: string) => {
     const name = sanitizeTagInput(raw.replace(/^\s*#/, ''));
@@ -60,6 +87,13 @@ export default function CreatePostScreen() {
     const text = content.trim();
     // Последний «#тег» без пробела мог не попасть в список: итоговый проход, как на вебе
     const allTags = Array.from(new Set([...tags, ...extractHashtags(text)]));
+    if (editing) {
+      // Вложения при правке в приложении не меняются: новых не добавляем
+      return save.mutate(
+        { content: text, tags: allTags, isNsfw, isAiGenerated: isAi, addMediaUrls: [], addMediaOriginalUrls: [] },
+        { onSuccess: () => router.back(), onError: (e) => setError(apiErrorMessage(e) ?? t('mPostSaveFailed')) },
+      );
+    }
     publish.mutate(
       {
         content: text,
@@ -86,10 +120,15 @@ export default function CreatePostScreen() {
         <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={t('mClose')} hitSlop={8} className="h-9 w-9 items-center justify-center rounded-full bg-brand-card">
           <X size={18} color={colors.offwhite} />
         </Pressable>
-        <Text className="font-nunito-extrabold text-lg text-brand-offwhite">{t('mNewPostTitle')}</Text>
-        <Button title={publish.isPending ? t('publishing') : t('publish')} loading={publish.isPending} disabled={!canPublish && !publish.isPending} onPress={submit} className="min-h-9 py-2" />
+        <Text className="font-nunito-extrabold text-lg text-brand-offwhite">{editing ? t('mEditPostTitle') : t('mNewPostTitle')}</Text>
+        <Button title={editing ? t('mSave') : publish.isPending ? t('publishing') : t('publish')} loading={pending} disabled={!canPublish && !pending} onPress={submit} className="min-h-9 py-2" />
       </View>
 
+      {editing && !source ? (
+        <View className="gap-3 px-4 pt-2">
+          {original.isError ? <ErrorState onRetry={() => original.refetch()} /> : <Skeleton height={160} />}
+        </View>
+      ) : (
       <ScrollView contentContainerClassName="gap-4 px-4 pb-8 pt-2" keyboardShouldPersistTaps="handled">
         <View className="flex-row items-start gap-3">
           <Avatar uri={user?.avatar_url} name={user?.display_name ?? user?.username} size={40} />
@@ -105,10 +144,14 @@ export default function CreatePostScreen() {
         ) : null}
         {media.notice ? <Text className="font-nunito-bold text-xs text-brand-error">{media.notice}</Text> : null}
 
+        {editing ? (
+          keptMedia > 0 ? <Text className="font-nunito text-xs text-brand-muted">{t('mEditMediaNote', { n: keptMedia })}</Text> : null
+        ) : (
         <View className="flex-row gap-2">
           <Button title={`${t('mAddFromLibrary')} · ${media.items.length}/${MAX_POST_MEDIA}`} variant="secondary" onPress={() => void media.pickFromLibrary()} className="flex-1" />
           <Button title={t('mAddFromCamera')} variant="secondary" onPress={() => void media.takeWithCamera()} />
         </View>
+        )}
 
         <View className="gap-2">
           {tags.length > 0 ? (
@@ -137,13 +180,16 @@ export default function CreatePostScreen() {
         </View>
         {isAi ? <Text className="font-nunito text-xs text-brand-muted">{t('aiGenToggleTitle')}</Text> : null}
 
+        {editing ? null : (
         <View className="flex-row flex-wrap gap-2">
           <Chip label={t('mVisibilityPublic')} selected={visibility === 'public'} onPress={() => setVisibility('public')} />
           <Chip label={t('mVisibilitySubscribers')} selected={visibility === 'subscriber_only'} onPress={() => setVisibility('subscriber_only')} />
         </View>
+        )}
 
         {error ? <Text className="font-nunito-bold text-sm text-brand-error">{error}</Text> : null}
       </ScrollView>
+      )}
       <PermissionDeniedSheet gate={media.gate} />
     </Screen>
   );

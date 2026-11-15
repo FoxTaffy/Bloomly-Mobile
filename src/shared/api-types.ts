@@ -55,7 +55,14 @@ export interface Post {
   tags: { tag: { id: string; name: string } }[];
   _count: { votes: number; repaws: number; comments: number };
   my_vote?: -1 | 0 | 1;
+  /** Состояние читателя из /posts/status (web: loadViewerState). */
+  repawed?: boolean;
+  favourited?: boolean;
   comments_disabled?: boolean;
+  is_ai_generated?: boolean;
+  is_archived?: boolean;
+  /** Только на клиенте: «Не интересно» — карточка свёрнута до отмены (web: PostCard isHidden). */
+  hidden_by_me?: boolean;
   groupPosts?: { group: { id: string; slug: string; name: string; avatar_url: string | null; accent_color: string | null } }[];
 }
 
@@ -187,6 +194,9 @@ export interface Comment {
   parent_id: string | null;
   content: string;
   created_at: string;
+  author_id?: string;
+  rating?: number;
+  user_vote?: -1 | 0 | 1;
   author: PostAuthor | null;
   group: { id: string; slug: string; name: string; avatar_url: string | null } | null;
   _count: { replies: number };

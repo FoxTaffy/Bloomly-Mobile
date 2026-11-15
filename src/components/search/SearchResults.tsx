@@ -8,7 +8,6 @@ import { PostCard } from '@/components/PostCard';
 import { UserRow } from '@/components/UserRow';
 import { Card, Chip, EmptyState, ErrorState, Skeleton } from '@/components/ui';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
-import { useRepawPost } from '@/hooks/usePosts';
 import { useSearchGroups, useSearchPosts, useSearchTags, useSearchUsers } from '@/hooks/useSearch';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
@@ -43,7 +42,6 @@ export function SearchResults({ query, onPickTag }: Props) {
   const users = useSearchUsers(query);
   const groups = useSearchGroups(query);
   const tags = useSearchTags(query);
-  const repaw = useRepawPost();
   const viewable = useViewableIds();
 
   const header = (
@@ -70,7 +68,7 @@ export function SearchResults({ query, onPickTag }: Props) {
           data={posts.items}
           keyExtractor={(p) => p.id}
           onEndReached={more(posts)}
-          renderItem={({ item }) => <PostCard post={item} onRepaw={() => repaw.mutate(item.id)} />}
+          renderItem={({ item }) => <PostCard post={item} />}
           ListEmptyComponent={<Placeholder loading={posts.isLoading} error={posts.isError} onRetry={() => posts.refetch()} emptyHint={t('mTryOtherQuery')} />}
         />
         </PostVisibilityProvider>

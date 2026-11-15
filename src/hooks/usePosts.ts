@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import { createPost, fetchExplorePage, fetchFeedPage, fetchTrendingTags, repawPost, votePost } from '@/api/posts';
+import { createPost, fetchExplorePage, fetchFeedPage, fetchTrendingTags, votePost } from '@/api/posts';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { FEED_CACHE_MAX_AGE_MS } from '@/shared/feedCache';
 import type { CursorPage, Post } from '@/shared/api-types';
-import { appendUnique, type ExplorePeriod, type ExploreSort, type FeedMode } from '@/shared/feed';
+import { appendUnique, isSortableMode, type ExplorePeriod, type ExploreSort, type FeedMode, type FeedSort } from '@/shared/feed';
 
 function flatten(data: InfiniteData<CursorPage<Post>> | undefined): Post[] {
   return (data?.pages ?? []).reduce<Post[]>((acc, page) => appendUnique(acc, page.items), []);
@@ -17,12 +17,15 @@ export function usePosts(mode: FeedMode = 'for-you') {
 }
 
 /** Лента с догрузкой по курсору сервера (nextCursor). */
-export function useInfinitePosts(mode: FeedMode = 'for-you') {
+export function useInfinitePosts(mode: FeedMode = 'for-you', sort: FeedSort = 'smart') {
   const { nsfwMode } = useNsfwMode();
+  // Сортировка есть только у общих вкладок: у остальных она не входит в ключ и в запрос
+  const appliedSort: FeedSort = isSortableMode(mode) ? sort : 'smart';
   const query = useInfiniteQuery({
-    queryKey: ['feed', mode, nsfwMode],
+    // У «Для вас» и «Подписок» ключ прежний (3 элемента): по нему лента сохраняется на диск (shared/feedCache.ts)
+    queryKey: isSortableMode(mode) ? ['feed', mode, nsfwMode, appliedSort] : ['feed', mode, nsfwMode],
     initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) => fetchFeedPage({ mode, nsfw: nsfwMode, cursor: pageParam }),
+    queryFn: ({ pageParam }) => fetchFeedPage({ mode, nsfw: nsfwMode, sort: appliedSort, cursor: pageParam }),
     getNextPageParam: (last) => last.nextCursor,
     // Лента «Для вас» сохраняется на диск для чтения без сети (lib/queryPersist.ts): держим её в памяти не меньше срока кэша
     gcTime: mode === 'for-you' ? FEED_CACHE_MAX_AGE_MS : undefined,
@@ -83,17 +86,6 @@ export function usePostVote(post: Post) {
   );
 
   return { vote, rating, cast };
-}
-
-export function useRepawPost() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => repawPost(id),
-    onSuccess: (_d, id) => {
-      qc.invalidateQueries({ queryKey: ['feed'] });
-      qc.invalidateQueries({ queryKey: ['post', id] });
-    },
-  });
 }
 
 export function useCreatePost() {

@@ -1,9 +1,10 @@
 import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { ArrowBigDown, ArrowBigUp, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
+import { ArrowBigDown, ArrowBigUp, Bookmark, EyeOff, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
 import { Avatar } from './Avatar';
-import { ContentMenu } from './ContentMenu';
 import { PostMedia } from '@/components/post/PostMedia';
+import { PostMenu } from '@/components/post/PostMenu';
+import { PostText } from '@/components/post/PostText';
 import { Card } from '@/components/ui';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { VerifiedBadge } from './VerifiedBadge';
@@ -12,18 +13,21 @@ import type { Post, PostAuthor } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
 import { usePostVote } from '@/hooks/usePosts';
+import { usePostActions } from '@/hooks/usePostActions';
+import { useSession } from '@/stores/session';
 
 // Feed list has px-4 (16+16) and the card has p-4 (16+16): media must fit inside both.
 const HORIZONTAL_SPACE = 64;
 
 interface PostCardProps {
   post: Post;
-  onRepaw?: () => void;
+  /** Пост удалён или ушёл в архив (экран поста закрывается; в списках карточка исчезает сама). */
+  onRemoved?: () => void;
   /** On the post screen the card is already open, so tapping it should not navigate again. */
   interactive?: boolean;
 }
 
-export function PostCard({ post, onRepaw, interactive = true }: PostCardProps) {
+export function PostCard({ post, onRemoved, interactive = true }: PostCardProps) {
   const { t } = useT();
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
@@ -31,6 +35,11 @@ export function PostCard({ post, onRepaw, interactive = true }: PostCardProps) {
   const author = post.author;
   const groupContext = post.groupPosts?.[0]?.group;
   const { vote, rating, cast } = usePostVote(post);
+  const actions = usePostActions(post);
+  const myId = useSession((s) => s.user?.id);
+  // Свой пост репостнуть нельзя (web: toggleRepaw)
+  const isOwn = !!myId && (myId === post.author_id || myId === author?.id);
+  const tags = post.tags ?? [];
 
   const openPost = () => router.push(`/post/${post.id}`);
 
@@ -38,6 +47,19 @@ export function PostCard({ post, onRepaw, interactive = true }: PostCardProps) {
   // 18+: в режиме 'hide' скрываем текст и медиа, в 'blur' размываем изображения (web: PostCard.vue)
   const nsfwLocked = post.is_nsfw && nsfwMode === 'hide';
   const nsfwBlur = post.is_nsfw && nsfwMode === 'blur';
+
+  // «Не интересно»: карточка свёрнута, пока не отменят (web: PostCard isHidden)
+  if (post.hidden_by_me) {
+    return (
+      <Card className="mb-3 flex-row items-center gap-3">
+        <EyeOff size={18} color={colors.mutedIcon} />
+        <Text className="flex-1 font-nunito text-sm text-brand-muted">{t('mPostHidden')}</Text>
+        <Pressable onPress={() => actions.markNotInterested(false)} hitSlop={10} accessibilityRole="button" className="active:opacity-60">
+          <Text className="font-nunito-bold text-sm text-brand-accent-minus">{t('mUndo')}</Text>
+        </Pressable>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -62,7 +84,7 @@ export function PostCard({ post, onRepaw, interactive = true }: PostCardProps) {
             <Text className="text-xs font-semibold text-brand-accent-minus">{t('mPinned')}</Text>
           </View>
         ) : null}
-        <ContentMenu report={{ type: 'post', id: post.id }} author={author ? { id: author.id, name: author.username } : null} />
+        <PostMenu post={post} onRemoved={onRemoved} />
       </View>
 
       {nsfwLocked ? (
@@ -73,9 +95,24 @@ export function PostCard({ post, onRepaw, interactive = true }: PostCardProps) {
 
       {!nsfwLocked && post.title ? <Text className="mb-1 text-base font-bold text-brand-offwhite">{post.title}</Text> : null}
       {!nsfwLocked && post.content ? (
-        <Text numberOfLines={interactive ? 6 : undefined} className="mb-3 leading-5 text-brand-offwhite">
-          {post.content}
-        </Text>
+        <PostText text={post.content} numberOfLines={interactive ? 6 : undefined} className="mb-3 leading-5 text-brand-offwhite" />
+      ) : null}
+
+      {!nsfwLocked && tags.length > 0 ? (
+        <View className="mb-3 flex-row flex-wrap gap-1.5">
+          {tags.map(({ tag }) => (
+            // Тег ведёт в поиск по нему (web: /search?q=<тег>)
+            <Pressable
+              key={tag.id}
+              onPress={() => router.push({ pathname: '/discover', params: { q: tag.name } })}
+              hitSlop={4}
+              accessibilityRole="link"
+              className="rounded-full border border-brand-border bg-brand-bg px-3 py-1 active:opacity-60"
+            >
+              <Text className="font-nunito-medium text-xs text-brand-muted">#{tag.name}</Text>
+            </Pressable>
+          ))}
+        </View>
       ) : null}
 
       {!nsfwLocked ? <PostMedia postId={post.id} urls={post.media_urls} width={mediaWidth} nsfwBlur={nsfwBlur} /> : null}
@@ -122,14 +159,27 @@ export function PostCard({ post, onRepaw, interactive = true }: PostCardProps) {
           <Text className="text-sm text-brand-muted">{post._count.comments}</Text>
         </Pressable>
         <Pressable
-          onPress={onRepaw}
+          onPress={() => void actions.toggleRepaw()}
+          disabled={isOwn}
           hitSlop={10}
           accessibilityRole="button"
+          accessibilityState={{ selected: !!post.repawed, disabled: isOwn }}
           accessibilityLabel={t('mRepost')}
-          className="flex-row items-center gap-1.5 active:opacity-60"
+          className={`flex-row items-center gap-1.5 active:opacity-60 ${isOwn ? 'opacity-50' : ''}`}
         >
-          <Repeat2 size={20} color={colors.mutedIcon} />
-          <Text className="text-sm text-brand-muted">{post._count.repaws}</Text>
+          <Repeat2 size={20} color={post.repawed ? colors.success : colors.mutedIcon} />
+          <Text className={`text-sm ${post.repawed ? 'font-nunito-bold text-brand-success' : 'text-brand-muted'}`}>{post._count.repaws}</Text>
+        </Pressable>
+        <View className="flex-1" />
+        <Pressable
+          onPress={() => void actions.toggleFavourite()}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityState={{ selected: !!post.favourited }}
+          accessibilityLabel={post.favourited ? t('mBookmarked') : t('mBookmark')}
+          className="active:opacity-60"
+        >
+          <Bookmark size={20} color={post.favourited ? colors.accent : colors.mutedIcon} fill={post.favourited ? colors.accent : 'transparent'} />
         </Pressable>
       </View>
     </Card>

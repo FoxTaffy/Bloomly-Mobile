@@ -1,6 +1,6 @@
 import { api } from './client';
 import type { Comment, CursorPage, NsfwMode, Post } from '@/shared/api-types';
-import { exploreRequest, feedRequest, isRenderablePost, SEARCH_PAGE_SIZE, type ExplorePeriod, type ExploreSort, type FeedMode } from '@/shared/feed';
+import { exploreRequest, feedRequest, isRenderablePost, SEARCH_PAGE_SIZE, type ExplorePeriod, type ExploreSort, type FeedMode, type FeedSort } from '@/shared/feed';
 
 export async function fetchTrendingTags(includeNsfw = false): Promise<{ id: string; name: string; count: number }[]> {
   const res = await api.get('/posts/trending-tags', { params: { includeNsfw: String(includeNsfw) } });
@@ -21,18 +21,23 @@ export async function searchPosts(q: string): Promise<Post[]> {
 /** Состояние читателя по постам (оценка, репост, закладка): web — `loadViewerState` в composables/useFeed.ts. */
 const STATUS_BATCH = 50;
 
+type ViewerState = { id: string; userVote?: -1 | 0 | 1; repawed?: boolean; favourited?: boolean };
+
 async function attachMyVote(posts: Post[]): Promise<Post[]> {
-  const votes = new Map<string, -1 | 0 | 1>();
+  const states = new Map<string, ViewerState>();
   for (let i = 0; i < posts.length; i += STATUS_BATCH) {
     const ids = posts.slice(i, i + STATUS_BATCH).map((p) => p.id);
     try {
       const res = await api.get('/posts/status', { params: { ids: ids.join(',') } });
-      for (const s of (res.data?.data ?? []) as { id: string; userVote?: -1 | 0 | 1 }[]) votes.set(s.id, s.userVote ?? 0);
+      for (const s of (res.data?.data ?? []) as ViewerState[]) states.set(s.id, s);
     } catch {
       // не критично: карточка покажет нейтральное состояние (как на вебе)
     }
   }
-  return posts.map((p) => (votes.has(p.id) ? { ...p, my_vote: votes.get(p.id) } : p));
+  return posts.map((p) => {
+    const s = states.get(p.id);
+    return s ? { ...p, my_vote: s.userVote ?? 0, repawed: !!s.repawed, favourited: !!s.favourited } : p;
+  });
 }
 
 export async function fetchPost(id: string): Promise<Post> {
@@ -51,7 +56,7 @@ async function getPostsPage(path: string, params: Record<string, string>): Promi
   return { items: posts, nextCursor: res.data.data.nextCursor ?? null };
 }
 
-export function fetchFeedPage(opts: { mode: FeedMode; nsfw: NsfwMode; cursor?: string | null }) {
+export function fetchFeedPage(opts: { mode: FeedMode; nsfw: NsfwMode; sort?: FeedSort; cursor?: string | null }) {
   const { path, params } = feedRequest(opts);
   return getPostsPage(path, params);
 }
@@ -110,10 +115,58 @@ export async function votePost(id: string, value: 1 | -1): Promise<number | null
   return typeof res.data?.data?.rating === 'number' ? res.data.data.rating : null;
 }
 
-export async function repawPost(id: string) {
-  await api.post(`/posts/${id}/repaw`);
+/** Переключатель репоста (web: toggleRepaw). Сервер отдаёт итог: стоит ли репост и сколько их всего. */
+export async function repawPost(id: string): Promise<{ repawed: boolean; repaw_count: number | null }> {
+  const res = await api.post(`/posts/${id}/repaw`, {});
+  const d = res.data?.data ?? {};
+  return { repawed: !!d.repawed, repaw_count: typeof d.repaw_count === 'number' ? d.repaw_count : null };
 }
 
-export async function favouritePost(id: string) {
-  await api.post(`/posts/${id}/favourite`);
+/** Переключатель закладки (web: toggleFavourite). */
+export async function favouritePost(id: string): Promise<boolean> {
+  const res = await api.post(`/posts/${id}/favourite`);
+  return !!res.data?.data?.favourited;
+}
+
+/** Правка своего поста (web: saveEdit → PATCH /posts/:id). */
+export interface EditPostBody {
+  content: string;
+  tags: string[];
+  isNsfw: boolean;
+  isAiGenerated: boolean;
+  addMediaUrls: string[];
+  addMediaOriginalUrls: string[];
+}
+
+export async function editPost(id: string, body: EditPostBody): Promise<Post> {
+  const res = await api.patch(`/posts/${id}`, body);
+  return res.data.data.post as Post;
+}
+
+export async function deletePost(id: string) {
+  await api.delete(`/posts/${id}`);
+}
+
+/** Архив — переключатель: пост уходит из лент в «Архив» профиля и обратно. */
+export async function toggleArchivePost(id: string) {
+  await api.post(`/posts/${id}/archive`);
+}
+
+export async function toggleCommentsDisabled(id: string): Promise<boolean> {
+  const res = await api.post(`/posts/${id}/comments-toggle`);
+  return !!res.data?.data?.commentsDisabled;
+}
+
+export async function setNotInterested(id: string, value: boolean) {
+  await api.post(`/posts/${id}/not-interested`, { value });
+}
+
+/** Оценка комментария: шлём нажатую стрелку, повтор снимает оценку; сервер отдаёт новый рейтинг (web: voteComment). */
+export async function voteComment(commentId: string, value: 1 | -1): Promise<number | null> {
+  const res = await api.post(`/posts/comments/${commentId}/vote`, { value });
+  return typeof res.data?.data?.rating === 'number' ? res.data.data.rating : null;
+}
+
+export async function deleteComment(commentId: string) {
+  await api.delete(`/posts/comments/${commentId}`);
 }

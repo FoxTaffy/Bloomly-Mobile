@@ -1,6 +1,20 @@
 // Чистая логика ленты и обзора. Перенос frontend/src/lib/feed.ts и composables/useExploreFeed.ts.
 
-export type FeedMode = 'for-you' | 'subscriptions' | 'news';
+export type FeedMode = 'for-you' | 'subscriptions' | 'news' | 'photos' | 'nsfw';
+export type FeedSort = 'smart' | 'new' | 'old' | 'hot-day' | 'hot-week' | 'hot-month' | 'hot-all';
+
+/** Вкладки ленты (web: FEED_TABS). `nsfwOnly` — только при включённом показе 18+ (режим 'show'). */
+export const FEED_TABS: readonly { mode: FeedMode; nsfwOnly?: boolean }[] = [
+  { mode: 'for-you' },
+  { mode: 'subscriptions' },
+  { mode: 'news' },
+  { mode: 'photos' },
+  { mode: 'nsfw', nsfwOnly: true },
+];
+export const FEED_SORTS: readonly FeedSort[] = ['smart', 'new', 'old', 'hot-day', 'hot-week', 'hot-month', 'hot-all'];
+
+/** Сортируются только общие вкладки; «Для вас» и «Подписки» сервер отдаёт в своём порядке (web: isSortableMode). */
+export const isSortableMode = (mode: FeedMode): boolean => mode === 'news' || mode === 'photos' || mode === 'nsfw';
 export type ExploreSort = 'hot' | 'new';
 export type ExplorePeriod = 'day' | 'week' | 'month' | 'all';
 
@@ -47,12 +61,20 @@ export function exploreRequest(opts: {
   return { path: personalized ? '/posts/personalized' : '/posts', params };
 }
 
-/** Параметры страницы ленты (web: feedUrl). */
-export function feedRequest(opts: { mode: FeedMode; nsfw: string; cursor?: string | null }): { path: string; params: Record<string, string> } {
+/** Параметры страницы ленты (web: feedUrl). Вкладка NSFW доступна только взрослым с режимом 'show' — это решает экран. */
+export function feedRequest(opts: { mode: FeedMode; nsfw: string; sort?: FeedSort; cursor?: string | null }): { path: string; params: Record<string, string> } {
   const params: Record<string, string> = opts.cursor ? { nsfw: opts.nsfw, cursor: opts.cursor } : { page: '1', nsfw: opts.nsfw };
   if (opts.mode === 'for-you') return { path: '/posts/personalized', params };
   if (opts.mode === 'subscriptions') return { path: '/follows/feed', params };
+  // Общие вкладки показывают чужие публикации: свои посты — в профиле
   params.excludeOwn = 'true';
-  params.sort = 'smart';
+  if (opts.mode === 'photos') params.hasMedia = 'true';
+  if (opts.mode === 'nsfw') {
+    params.nsfw = 'show';
+    params.nsfwOnly = 'true';
+  }
+  const [by, period] = (opts.sort ?? 'smart').split('-');
+  params.sort = by;
+  if (period) params.period = period;
   return { path: '/posts', params };
 }
