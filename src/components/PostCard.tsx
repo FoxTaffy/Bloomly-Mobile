@@ -1,6 +1,6 @@
 import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Heart, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
+import { ArrowBigDown, ArrowBigUp, MessageCircle, Repeat2, Pin } from 'lucide-react-native';
 import { Avatar } from './Avatar';
 import { ContentMenu } from './ContentMenu';
 import { PostMedia } from '@/components/post/PostMedia';
@@ -11,26 +11,26 @@ import { useTimeAgo } from '@/hooks/useTimeAgo';
 import type { Post, PostAuthor } from '@/shared/api-types';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
+import { usePostVote } from '@/hooks/usePosts';
 
 // Feed list has px-4 (16+16) and the card has p-4 (16+16): media must fit inside both.
 const HORIZONTAL_SPACE = 64;
 
 interface PostCardProps {
   post: Post;
-  onVote?: (value: 1 | -1 | 0) => void;
   onRepaw?: () => void;
   /** On the post screen the card is already open, so tapping it should not navigate again. */
   interactive?: boolean;
 }
 
-export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCardProps) {
+export function PostCard({ post, onRepaw, interactive = true }: PostCardProps) {
   const { t } = useT();
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const mediaWidth = screenWidth - HORIZONTAL_SPACE;
   const author = post.author;
   const groupContext = post.groupPosts?.[0]?.group;
-  const liked = post.my_vote === 1;
+  const { vote, rating, cast } = usePostVote(post);
 
   const openPost = () => router.push(`/post/${post.id}`);
 
@@ -80,17 +80,37 @@ export function PostCard({ post, onVote, onRepaw, interactive = true }: PostCard
 
       {!nsfwLocked ? <PostMedia postId={post.id} urls={post.media_urls} width={mediaWidth} nsfwBlur={nsfwBlur} /> : null}
 
-      <View className="flex-row items-center gap-7">
-        <Pressable
-          onPress={() => onVote?.(liked ? 0 : 1)}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel={liked ? t('mUnlike') : t('mLike')}
-          className="flex-row items-center gap-1.5 active:opacity-60"
-        >
-          <Heart size={20} color={liked ? colors.error : colors.mutedIcon} fill={liked ? colors.error : 'transparent'} />
-          <Text className={`text-sm ${liked ? 'font-bold text-brand-error' : 'text-brand-muted'}`}>{post._count.votes}</Text>
-        </Pressable>
+      <View className="flex-row items-center gap-4">
+        {/* Рейтинг, не лайки: ▲ / ▼ и сумма, как в вебе (PostCard.vue → Vote) */}
+        <View className="h-8 flex-row items-center rounded-full border border-brand-border bg-brand-bg px-1">
+          <Pressable
+            onPress={() => cast(1)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityState={{ selected: vote === 1 }}
+            accessibilityLabel={t('mUpvote')}
+            className="p-1 active:opacity-60"
+          >
+            <ArrowBigUp size={20} color={vote === 1 ? colors.success : colors.mutedIcon} fill={vote === 1 ? colors.success : 'transparent'} />
+          </Pressable>
+          <Text
+            className={`min-w-6 text-center font-nunito-bold text-sm ${
+              vote === 1 ? 'text-brand-success' : vote === -1 ? 'text-brand-error' : 'text-brand-muted'
+            }`}
+          >
+            {rating}
+          </Text>
+          <Pressable
+            onPress={() => cast(-1)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityState={{ selected: vote === -1 }}
+            accessibilityLabel={t('mDownvote')}
+            className="p-1 active:opacity-60"
+          >
+            <ArrowBigDown size={20} color={vote === -1 ? colors.error : colors.mutedIcon} fill={vote === -1 ? colors.error : 'transparent'} />
+          </Pressable>
+        </View>
         <Pressable
           onPress={interactive ? openPost : undefined}
           hitSlop={10}

@@ -5,7 +5,7 @@ import { Hash } from 'lucide-react-native';
 import { PostCard } from '@/components/PostCard';
 import { Chip, EmptyState, ErrorState, Skeleton } from '@/components/ui';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
-import { useExplorePosts, useTrendingTags, useVotePost, useRepawPost } from '@/hooks/usePosts';
+import { useExplorePosts, useTrendingTags, useRepawPost } from '@/hooks/usePosts';
 import { EXPLORE_PERIODS, type ExplorePeriod, type ExploreSort } from '@/shared/feed';
 import { colors } from '@/theme/tokens';
 import { useT } from '@/hooks/useT';
@@ -24,7 +24,6 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
 
   const explore = useExplorePosts({ sort, period, tag: tag || undefined });
   const tags = useTrendingTags();
-  const vote = useVotePost();
   const repaw = useRepawPost();
   const viewable = useViewableIds();
 
@@ -74,7 +73,7 @@ export function ExploreFeed({ tag, onTagChange }: { tag: string; onTagChange: (t
         </View>
       }
       renderItem={({ item }) => (
-        <PostCard post={item} onVote={(value) => vote.mutate({ id: item.id, value })} onRepaw={() => repaw.mutate(item.id)} />
+        <PostCard post={item} onRepaw={() => repaw.mutate(item.id)} />
       )}
       ListEmptyComponent={
         explore.isLoading ? (

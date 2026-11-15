@@ -4,7 +4,7 @@ import { Link } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Flower2, Search, Bell, Hash } from 'lucide-react-native';
 import { EmptyState, ErrorState, Screen, Skeleton } from '@/components/ui';
-import { useCreatePost, useInfinitePosts, useRepawPost, useVotePost } from '@/hooks/usePosts';
+import { useCreatePost, useInfinitePosts, useRepawPost } from '@/hooks/usePosts';
 import { useStories } from '@/hooks/useStories';
 import { PostVisibilityProvider, useViewableIds } from '@/hooks/usePostVisibility';
 import { PostCard } from '@/components/PostCard';
@@ -24,7 +24,6 @@ export default function FeedScreen() {
 
   const storiesQuery = useStories();
   const feedQuery = useInfinitePosts('for-you');
-  const voteMutation = useVotePost();
   const repawMutation = useRepawPost();
   const postMutation = useCreatePost();
 
@@ -113,7 +112,6 @@ export default function FeedScreen() {
         renderItem={({ item }) => (
           <PostCard
             post={item}
-            onVote={(value) => voteMutation.mutate({ id: item.id, value })}
             onRepaw={() => repawMutation.mutate(item.id)}
           />
         )}

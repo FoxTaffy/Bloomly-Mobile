@@ -18,9 +18,26 @@ export async function searchPosts(q: string): Promise<Post[]> {
   return res.data.data.posts as Post[];
 }
 
+/** Состояние читателя по постам (оценка, репост, закладка): web — `loadViewerState` в composables/useFeed.ts. */
+const STATUS_BATCH = 50;
+
+async function attachMyVote(posts: Post[]): Promise<Post[]> {
+  const votes = new Map<string, -1 | 0 | 1>();
+  for (let i = 0; i < posts.length; i += STATUS_BATCH) {
+    const ids = posts.slice(i, i + STATUS_BATCH).map((p) => p.id);
+    try {
+      const res = await api.get('/posts/status', { params: { ids: ids.join(',') } });
+      for (const s of (res.data?.data ?? []) as { id: string; userVote?: -1 | 0 | 1 }[]) votes.set(s.id, s.userVote ?? 0);
+    } catch {
+      // не критично: карточка покажет нейтральное состояние (как на вебе)
+    }
+  }
+  return posts.map((p) => (votes.has(p.id) ? { ...p, my_vote: votes.get(p.id) } : p));
+}
+
 export async function fetchPost(id: string): Promise<Post> {
   const res = await api.get(`/posts/${id}`);
-  return res.data.data.post as Post;
+  return (await attachMyVote([res.data.data.post as Post]))[0];
 }
 
 export async function fetchComments(postId: string): Promise<{ comments: Comment[]; canModerate: boolean }> {
@@ -30,7 +47,7 @@ export async function fetchComments(postId: string): Promise<{ comments: Comment
 
 async function getPostsPage(path: string, params: Record<string, string>): Promise<CursorPage<Post>> {
   const res = await api.get(path, { params });
-  const posts = ((res.data.data.posts ?? []) as Post[]).filter(isRenderablePost);
+  const posts = await attachMyVote(((res.data.data.posts ?? []) as Post[]).filter(isRenderablePost));
   return { items: posts, nextCursor: res.data.data.nextCursor ?? null };
 }
 
@@ -46,7 +63,7 @@ export function fetchExplorePage(opts: { sort: ExploreSort; period: ExplorePerio
 
 export async function searchPostsPage(q: string, page: number, nsfw: NsfwMode = 'hide'): Promise<Post[]> {
   const res = await api.get('/posts/search', { params: { q, limit: SEARCH_PAGE_SIZE, page, sort: 'relevance', synonyms: 'true', nsfw } });
-  return (res.data.data.posts ?? []) as Post[];
+  return attachMyVote((res.data.data.posts ?? []) as Post[]);
 }
 
 export async function searchTags(q: string): Promise<{ id: string; name: string; count: number }[]> {
@@ -62,7 +79,7 @@ export async function createComment(postId: string, content: string, parentId?: 
 export async function fetchUserPosts(userId: string, tab: 'posts' | 'media' | 'likes' | 'repaws' = 'posts'): Promise<Post[]> {
   const suffix = tab === 'posts' ? '' : `/${tab}`;
   const res = await api.get(`/posts/user/${userId}${suffix}`);
-  return res.data.data.posts as Post[];
+  return attachMyVote(res.data.data.posts as Post[]);
 }
 
 /** Тело как у веба (PostComposer.vue payload + subscriberOnly). */
@@ -87,8 +104,10 @@ export async function suggestTags(q: string): Promise<{ name: string; count: num
   return res.data.data.tags ?? [];
 }
 
-export async function votePost(id: string, value: -1 | 0 | 1) {
-  await api.post(`/posts/${id}/vote`, { value });
+/** Как на вебе: шлём нажатую стрелку (1 или -1), повтор той же снимает оценку. Сервер отдаёт новый рейтинг. */
+export async function votePost(id: string, value: 1 | -1): Promise<number | null> {
+  const res = await api.post(`/posts/${id}/vote`, { value });
+  return typeof res.data?.data?.rating === 'number' ? res.data.data.rating : null;
 }
 
 export async function repawPost(id: string) {

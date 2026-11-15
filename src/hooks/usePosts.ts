@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { createPost, fetchExplorePage, fetchFeedPage, fetchTrendingTags, repawPost, votePost } from '@/api/posts';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
@@ -46,16 +47,42 @@ export function useTrendingTags() {
   return useQuery({ queryKey: ['trending-tags', nsfwMode !== 'hide'], queryFn: () => fetchTrendingTags(nsfwMode !== 'hide') });
 }
 
-export function useVotePost() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, value }: { id: string; value: -1 | 0 | 1 }) => votePost(id, value),
-    onSuccess: (_d, { id }) => {
-      qc.invalidateQueries({ queryKey: ['feed'] });
-      qc.invalidateQueries({ queryKey: ['explore'] });
-      qc.invalidateQueries({ queryKey: ['post', id] });
+/**
+ * Оценка поста ▲/▼ как на вебе (PostCard.vue → vote): оптимистично, повтор той же стрелки снимает голос,
+ * рейтинг берётся из ответа сервера, при ошибке откат. Ленты не перезапрашиваем: порядок постов не прыгает.
+ */
+export function usePostVote(post: Post) {
+  const [vote, setVote] = useState<-1 | 0 | 1>(post.my_vote ?? 0);
+  const [rating, setRating] = useState(post.rating ?? 0);
+  const pending = useRef(false);
+
+  // Состояние читателя приходит позже поста (/posts/status) или после обновления списка
+  useEffect(() => setVote(post.my_vote ?? 0), [post.my_vote]);
+  useEffect(() => setRating(post.rating ?? 0), [post.rating]);
+
+  const cast = useCallback(
+    async (value: 1 | -1) => {
+      if (pending.current) return;
+      pending.current = true;
+      const prev = vote;
+      const prevRating = rating;
+      const next: -1 | 0 | 1 = prev === value ? 0 : value;
+      setVote(next);
+      setRating(prevRating + (next - prev));
+      try {
+        const serverRating = await votePost(post.id, value);
+        if (serverRating !== null) setRating(serverRating);
+      } catch {
+        setVote(prev);
+        setRating(prevRating);
+      } finally {
+        pending.current = false;
+      }
     },
-  });
+    [post.id, vote, rating],
+  );
+
+  return { vote, rating, cast };
 }
 
 export function useRepawPost() {

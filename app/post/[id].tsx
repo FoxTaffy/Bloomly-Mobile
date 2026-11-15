@@ -6,7 +6,7 @@ import { CommentItem } from '@/components/post/CommentList';
 import { PostCard } from '@/components/PostCard';
 import { Button, EmptyState, ErrorState, Field, Screen, Skeleton } from '@/components/ui';
 import { useCreateComment, usePost, usePostComments } from '@/hooks/usePost';
-import { useRepawPost, useVotePost } from '@/hooks/usePosts';
+import { useRepawPost } from '@/hooks/usePosts';
 import { useNsfwMode } from '@/hooks/useNsfwMode';
 import { apiErrorMessage, isNotFound } from '@/shared/apiError';
 import type { Comment } from '@/shared/api-types';
@@ -21,7 +21,6 @@ export default function PostScreen() {
   const postQuery = usePost(id);
   const commentsQuery = usePostComments(id);
   const createComment = useCreateComment(id);
-  const vote = useVotePost();
   const repaw = useRepawPost();
   const { canUseNsfw, setNsfwMode, nsfwMode } = useNsfwMode();
 
@@ -116,7 +115,7 @@ export default function PostScreen() {
         ListHeaderComponent={
           <View>
             {back}
-            <PostCard post={post} interactive={false} onVote={(value) => vote.mutate({ id: post.id, value })} onRepaw={() => repaw.mutate(post.id)} />
+            <PostCard post={post} interactive={false} onRepaw={() => repaw.mutate(post.id)} />
             <Text className="mb-1 mt-2 font-nunito-bold text-xs text-brand-muted">{t('mCommentsCaps')}</Text>
           </View>
         }
