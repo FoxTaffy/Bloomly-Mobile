@@ -25,7 +25,7 @@
 | A6 | `/onboarding/age-verification` дата рождения + согласия после OAuth | `POST /auth/oauth/complete` | done `(auth)/age` | P0 | 18+ | — | |
 | A7 | `/onboarding` (имя, дата рождения, интересы) | `PATCH /users/me` | done `(auth)/onboarding` | P0 | 18+ | — | |
 | A8 | `/parental-consent` (родитель переходит по письму) | `GET /auth/parental-consent/:token`, `POST /auth/parental-consent` | web | — | priv | — | Родитель открывает ссылку из письма в браузере; в приложении нужна только подсказка «ждём согласие» (проверить, есть ли она) |
-| A9 | Разморозка аккаунта | `POST /auth/unfreeze/request`, `/unfreeze/verify` | partial | P1 | — | S | Замороженный аккаунт показывается (`AppStatusGate`), но запроса на разморозку в `src/api/auth.ts` нет |
+| A9 | Разморозка аккаунта | `POST /auth/unfreeze/request`, `/unfreeze/verify` | done | P1 | — | S | Батч 7: на экране замороженного аккаунта — «Разморозить по коду на почту» (код → вход); выход остаётся |
 | A10 | `/unsubscribe` (отписка от писем по ссылке) | `POST /auth/unsubscribe` | web | — | — | — | Открывается из письма в браузере |
 | A11 | Режим обслуживания, бан, заморозка | 503 `MAINTENANCE`, 403 `ACCOUNT_FROZEN` | done `AppStatusGate` | P0 | — | — | Бан-экран (`BannedAccountModal`) — проверить отдельно |
 
@@ -173,8 +173,8 @@
 | J5 | Язык интерфейса | локально | done | P0 | — | — | RU/EN (веб: 8 языков) |
 | J6 | NSFW-режим | `PATCH /users/me` | done | P0 | 18+ | — | |
 | J7 | Пуши (messages/events) | `/push/prefs` | done | P0 | — | — | |
-| J8 | Email-уведомления | `GET/PUT /email-preferences` | missing | P1 | — | S | |
-| J9 | Безопасность: смена пароля, смена почты, 2FA (email/TOTP), сессии, привязанные аккаунты | `/auth/change-password`, `/auth/change-email/*`, `/auth/2fa/*`, `/auth/sessions`, `/auth/linked-accounts`, `/auth/link-start` | missing | P1 | priv | L | Привязка OAuth требует `link-start` + браузер. TOTP-QR показывать без новых зависимостей (`react-native-svg` уже есть) |
+| J8 | Email-уведомления | `GET/PUT /email-preferences` | OUT | P1 | — | S | Все категории писем на вебе — подписка, кошелёк, заказы и сроки Dealers' Den (деньги): в приложении настраивать нечего |
+| J9 | Безопасность: смена пароля, смена почты, 2FA (email/TOTP), сессии, привязанные аккаунты | `/auth/change-password`, `/auth/change-email/*`, `/auth/2fa/*`, `/auth/sessions`, `/auth/linked-accounts`, `/auth/link-start` | partial | P1 | priv | L | Батч 7: `/security`: смена и установка пароля, смена почты (код на текущую), 2FA (почта и приложение: QR и ключ), устройства (завершить сеанс, все остальные). Нет: привязанные соцсети (браузерный сценарий) |
 | J10 | Верификация (заявка на бейдж) | `/verification/*` | missing | P2 | — | S | |
 | J11 | Экспорт данных | `POST /auth/export-data` | missing | P1 | priv | S | Требование приватности магазинов |
 | J12 | Удаление аккаунта | `DELETE /users/me/account`, `/account/code` | done `delete-account` | P0 | priv | — | Обязательно для Apple/Google |
@@ -188,8 +188,8 @@
 | ID | Веб | Бэкенд | Мобайл | P | Риск | Ус. | Заметки |
 |---|---|---|---|---|---|---|---|
 | K1 | `/terms`, `/privacy`, `/dmca` | статика/клиент | done `legal/[doc]` | P0 | — | — | Dealers' Den terms и safe-deals — OUT |
-| K2 | `/support`: тикеты (создать, переписка, вложения) | `GET/POST /support/tickets`, `/tickets/:id/messages` | **partial** `support` | P1 | ugc | M | Сейчас только почтовые адреса; API тикетов в приложении не подключён |
-| K3 | `/help`: FAQ, жалоба на баг, мои обращения, контакты | `useFaq` (локально) + `/support/*` | missing | P1 | — | S | FAQ — статический, переносится без бэкенда |
+| K2 | `/support`: тикеты (создать, переписка, вложения) | `GET/POST /support/tickets`, `/tickets/:id/messages` | done | P1 | ugc | M | Батч 7: обращения: создать (тип, тема, текст), список со статусами, переписка. Без вложений |
+| K3 | `/help`: FAQ, жалоба на баг, мои обращения, контакты | `useFaq` (локально) + `/support/*` | done | P1 | — | S | Батч 7: «Помощь»: частые вопросы с поиском (без вопросов про Den и магазин) + мои обращения + контакты |
 | K4 | Жалоба на контент (ReportModal) | `POST /admin/reports` | done `ReportSheet` | P0 | ugc | — | Покрыты пост/группа/пользователь; добавить комментарий и сообщение вместе с B13/F6 |
 | K5 | Cookie-баннер, аналитика Яндекс.Метрика | | web | — | priv | — | В приложении не нужен; трекеров нет |
 
@@ -222,10 +222,10 @@
 
 | Статус | Кол-во |
 |---|---|
-| done | 55 |
-| partial | 28 |
-| missing | 19 |
-| OUT (деньги/магазины; из них 5 — раздел 12) | 15 |
+| done | 58 |
+| partial | 27 |
+| missing | 16 |
+| OUT (деньги/магазины; из них 5 — раздел 12) | 16 |
 | web (не портируем) | 13 |
 
 (`OUT-ish` в D13/J15 посчитаны как OUT. Статусы в таблицах — по состоянию на дату среза; при правках пересчитывать.)

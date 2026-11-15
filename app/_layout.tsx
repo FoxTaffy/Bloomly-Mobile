@@ -214,6 +214,9 @@ function RootLayout() {
               <Stack.Screen name="scheduled" />
               <Stack.Screen name="delete-account" />
               <Stack.Screen name="support" />
+              <Stack.Screen name="support/new" />
+              <Stack.Screen name="support/[id]" />
+              <Stack.Screen name="security" />
             </Stack.Protected>
             <Stack.Protected guard={!isAuthenticated || needsOnboarding}>
               <Stack.Screen name="(auth)" />

@@ -23,6 +23,9 @@ export interface AuthUser {
   is_adult?: boolean;
   /** Тариф: определяет лимиты загрузки (free, lite, pro, business). */
   subscription_tier?: string | null;
+  /** Второй фактор входа и есть ли пароль (у входа через соцсеть пароля нет). */
+  two_factor_method?: 'totp' | 'email' | null;
+  has_password?: boolean;
 }
 
 export interface PostAuthor {

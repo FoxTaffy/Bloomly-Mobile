@@ -69,7 +69,8 @@
     "test:profile": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-profile.mjs",
     "test:chat": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-chat.mjs",
     "test:events": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-events.mjs",
-    "test:schedule": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-schedule.mjs"
+    "test:schedule": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-schedule.mjs",
+    "test:support": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-support.mjs"
   },
   "private": true
 }
