@@ -1,0 +1,36 @@
+name: EAS Build (Android preview)
+
+# Новая сборка APK запускается сама, когда меняется что-то нативное: зависимости (package-lock.json),
+# app.json (версия, разрешения, плагины, иконка), eas.json, ассеты. JS-правки доставляет eas-update.yml
+# по воздуху, пересборка для них не нужна. Вручную: Actions → EAS Build → Run workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.json'
+      - 'eas.json'
+      - 'package-lock.json'
+      - 'assets/**'
+  workflow_dispatch:
+
+concurrency:
+  group: eas-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci --legacy-peer-deps
+      - run: npm run check
+      # --no-wait: сборка идёт на серверах Expo, ссылка на неё — в логе; готовый APK ставится вручную (expo.dev → Builds)
+      - run: eas build --platform android --profile preview --non-interactive --no-wait
